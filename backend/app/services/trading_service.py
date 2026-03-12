@@ -28,7 +28,6 @@ class TradingService:
         research_depth: int = 1,
         deep_think_llm: str = "gpt-5-mini",
         quick_think_llm: str = "gpt-5-mini",
-        analysis_mode: str = "deep",
     ) -> Dict[str, Any]:
         """Create configuration for TradingAgentsX
 
@@ -36,24 +35,13 @@ class TradingService:
             research_depth: Research depth (1-5)
             deep_think_llm: Deep thinking LLM model
             quick_think_llm: Quick thinking LLM model
-            analysis_mode: "fast" (no debates) or "deep" (with debates)
         """
         config = self.default_config.copy()
         config["deep_think_llm"] = deep_think_llm
         config["quick_think_llm"] = quick_think_llm
         config["results_dir"] = settings.results_dir
-
-        # Handle analysis mode
-        if analysis_mode == "fast":
-            # Fast mode: disable debates entirely
-            config["max_debate_rounds"] = 0
-            config["max_risk_discuss_rounds"] = 0
-            logger.info("Analysis mode: FAST (debates disabled)")
-        else:
-            # Deep mode: use research_depth for debate rounds
-            config["max_debate_rounds"] = research_depth
-            config["max_risk_discuss_rounds"] = research_depth
-            logger.info(f"Analysis mode: DEEP (research_depth={research_depth})")
+        config["max_debate_rounds"] = research_depth
+        config["max_risk_discuss_rounds"] = research_depth
 
         return config
     
@@ -78,7 +66,6 @@ class TradingService:
         deep_think_llm: str = "gpt-5-mini",
         quick_think_llm: str = "gpt-5-mini",
         language: str = "zh-TW",  # Language for agent reports: 'en' or 'zh-TW'
-        analysis_mode: str = "deep",  # Analysis mode: 'fast' (no debates) or 'deep' (with debates)
     ) -> Dict[str, Any]:
         """
         Run trading analysis for a given ticker and date with user-provided API keys
@@ -126,8 +113,8 @@ class TradingService:
                     os.environ["OPENAI_API_KEY"] = openai_api_key
                 
                 # Create configuration
-                logger.info(f"Initializing TradingAgentsX for {ticker} on {analysis_date} (mode={analysis_mode})")
-                config = self.create_config(research_depth, deep_think_llm, quick_think_llm, analysis_mode)
+                logger.info(f"Initializing TradingAgentsX for {ticker} on {analysis_date}")
+                config = self.create_config(research_depth, deep_think_llm, quick_think_llm)
                 
                 # Normalize base URLs (ensure lowercase paths, common issue with custom endpoints)
                 def normalize_base_url(url: str) -> str:
