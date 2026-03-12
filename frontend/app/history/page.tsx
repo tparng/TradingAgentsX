@@ -401,6 +401,7 @@ export default function HistoryPage() {
 
   // Auto-sync tracking ref
   const hasAutoSyncedRef = useRef(false);
+  const hasCleanedUpRef = useRef(false);
   const cloudReportsPromiseRef = useRef<Promise<any[] | null> | null>(null);
 
   const fetchCloudReportsCached = async (forceRefresh = false) => {
@@ -440,14 +441,18 @@ export default function HistoryPage() {
 
     try {
       // First cleanup backend duplicates (existing duplicates from old versions)
-      try {
-        const cleanupResult = await cleanupDuplicateCloudReports();
-        if (cleanupResult && cleanupResult.deleted > 0) {
-          console.log(`☁️ Cleaned up ${cleanupResult.deleted} duplicate reports from cloud DB`);
-          cloudReportsPromiseRef.current = null; // Force refresh after cleanup
+      // Only run once per session to avoid spamming the endpoint on every tab focus
+      if (!hasCleanedUpRef.current) {
+        hasCleanedUpRef.current = true;
+        try {
+          const cleanupResult = await cleanupDuplicateCloudReports();
+          if (cleanupResult && cleanupResult.deleted > 0) {
+            console.log(`☁️ Cleaned up ${cleanupResult.deleted} duplicate reports from cloud DB`);
+            cloudReportsPromiseRef.current = null; // Force refresh after cleanup
+          }
+        } catch (err) {
+          console.warn("Cloud duplicate cleanup failed:", err);
         }
-      } catch (err) {
-        console.warn("Cloud duplicate cleanup failed:", err);
       }
 
       // Then auto-clean local duplicates that might exist from older flawed versions
