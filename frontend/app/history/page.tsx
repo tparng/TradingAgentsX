@@ -36,6 +36,7 @@ import {
   FileText,
   Download,
   MessageCircle,
+  X,
 } from "lucide-react";
 import {
   getReportsByMarketType,
@@ -574,82 +575,65 @@ export default function HistoryPage() {
   }, [isAuthenticated]);
 
   const loadReports = async () => {
-    setLoading(true);
-    try {
-      // Helper to filter reports by current UI language
-      const filterByLang = (reports: SavedReport[]) => {
-        return reports.filter((report) => {
-          const reportLang = report.language || detectReportLanguage(report.result?.reports);
-          return reportLang === locale;
-        });
-      };
-
-      // Always load local IndexedDB reports first
-      const localData = await getReportsByMarketType(activeTab);
-
-      // If authenticated, also load from cloud and merge
-      if (isAuthenticated && isCloudSyncEnabled()) {
-        const cloudReports = await fetchCloudReportsCached();
-
-        if (cloudReports) {
-          // Convert cloud reports to SavedReport format and filter by market type
-          const cloudFiltered = cloudReports
-            .filter((r) => r.market_type === activeTab)
-          .map((r) => ({
-            id: parseInt(r.id.replace(/-/g, "").slice(0, 8), 16), // Convert UUID to number
-            cloudId: r.id, // Keep cloud ID for deletion
-            ticker: r.ticker,
-            market_type: r.market_type as "us" | "twse" | "tpex",
-            analysis_date: r.analysis_date,
-            saved_at: parseUTCDate(r.created_at),
-            result: r.result,
-            language: r.language, // Include language from cloud
-          })) as (SavedReport & { cloudId?: string })[];
-
-        if (cloudFiltered.length > 0) {
-          // Merge: prefer LOCAL data (full analyst content) over cloud data
-          // (cloud list endpoint may not include full report content)
-          const localSignatures = new Set(
-            localData.map((r) => getReportSignature(r)),
-          );
-
-          // Find cloud reports that don't exist locally (new device / cleared storage)
-          const cloudOnly = cloudFiltered.filter(
-            (r) => !localSignatures.has(getReportSignature(r)),
-          );
-
-          // Combine: local reports first (full content) + cloud-only reports
-          const merged = [...localData, ...cloudOnly];
-
-          // Sort by saved_at descending
-          merged.sort(
-            (a, b) =>
-              new Date(b.saved_at).getTime() - new Date(a.saved_at).getTime(),
-          );
-
-          // Filter by current UI language before display
-          setReports(filterByLang(merged));
-          setIsCloudData(true);
-          return;
-        }
-        } // Added missing closing brace for if (cloudReports)
-      }
-
-      // Filter local data by language before display
-      setReports(filterByLang(localData));
-      setIsCloudData(false);
-    } catch (error) {
-      console.error("Failed to load reports:", error);
-      const data = await getReportsByMarketType(activeTab);
-      // Filter by language on error fallback too
-      const filtered = data.filter((report) => {
+    // Helper to filter reports by current UI language
+    const filterByLang = (reports: SavedReport[]) => {
+      return reports.filter((report) => {
         const reportLang = report.language || detectReportLanguage(report.result?.reports);
         return reportLang === locale;
       });
-      setReports(filtered as SavedReport[]);
+    };
+
+    // ── PHASE 1: Show local IndexedDB data INSTANTLY (no loading spinner) ──
+    try {
+      const localData = await getReportsByMarketType(activeTab);
+      setReports(filterByLang(localData));
       setIsCloudData(false);
+    } catch (error) {
+      console.error("Failed to load local reports:", error);
     } finally {
+      // Always clear loading after local data is shown
       setLoading(false);
+    }
+
+    // ── PHASE 2: Silently fetch cloud data and merge in background ──
+    if (!isAuthenticated || !isCloudSyncEnabled()) return;
+
+    try {
+      const cloudReports = await fetchCloudReportsCached();
+      if (!cloudReports) return;
+
+      // Re-fetch local to ensure we have the latest after potential sync
+      const localData = await getReportsByMarketType(activeTab);
+
+      const cloudFiltered = cloudReports
+        .filter((r) => r.market_type === activeTab)
+        .map((r) => ({
+          id: parseInt(r.id.replace(/-/g, "").slice(0, 8), 16),
+          cloudId: r.id,
+          ticker: r.ticker,
+          market_type: r.market_type as "us" | "twse" | "tpex",
+          analysis_date: r.analysis_date,
+          saved_at: parseUTCDate(r.created_at),
+          result: r.result,
+          language: r.language,
+        })) as (SavedReport & { cloudId?: string })[];
+
+      if (cloudFiltered.length > 0) {
+        const localSignatures = new Set(localData.map((r) => getReportSignature(r)));
+        const cloudOnly = cloudFiltered.filter(
+          (r) => !localSignatures.has(getReportSignature(r)),
+        );
+        const merged = [...localData, ...cloudOnly];
+        merged.sort(
+          (a, b) => new Date(b.saved_at).getTime() - new Date(a.saved_at).getTime(),
+        );
+        // Silently update without showing loading spinner
+        setReports(filterByLang(merged));
+        setIsCloudData(true);
+      }
+    } catch (error) {
+      console.error("Failed to load cloud reports:", error);
+      // Local data already shown — no action needed
     }
   };
 
@@ -851,86 +835,91 @@ export default function HistoryPage() {
     }
   };
 
-  // Download PDF handler
-  const [downloadingId, setDownloadingId] = useState<number | null>(null);
+  // PDF Preview Modal state
+  const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false);
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
+  const [pdfPreviewFilename, setPdfPreviewFilename] = useState<string>("");
+  const [pdfGenerating, setPdfGenerating] = useState(false);
+  const [pdfPreviewReport, setPdfPreviewReport] = useState<SavedReport | null>(null);
+
+  const handleClosePdfPreview = () => {
+    setPdfPreviewOpen(false);
+    // Revoke blob URL to free memory
+    if (pdfPreviewUrl) {
+      window.URL.revokeObjectURL(pdfPreviewUrl);
+      setPdfPreviewUrl(null);
+    }
+    setPdfPreviewFilename("");
+    setPdfPreviewReport(null);
+  };
+
+  const handleDownloadFromPreview = () => {
+    if (!pdfPreviewUrl || !pdfPreviewFilename) return;
+    const link = document.createElement("a");
+    link.href = pdfPreviewUrl;
+    link.download = pdfPreviewFilename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Helper: build PDF request body for a report
+  const buildPdfRequestBody = (report: SavedReport) => {
+    const getNestedValue = (obj: any, path: string) =>
+      path.split(".").reduce((current, key) => current?.[key], obj);
+
+    const availableAnalystKeys = ANALYSTS.filter((analyst) => {
+      const content = getNestedValue(report.result.reports, analyst.reportKey);
+      return content && content.trim().length > 0;
+    }).map((a) => a.key);
+
+    if (availableAnalystKeys.length === 0) return null;
+
+    // Detect report language from content
+    const detectLang = (reports: any): "zh-TW" | "en" => {
+      const traderPlan = reports?.trader_investment_plan;
+      if (!traderPlan || typeof traderPlan !== "string") return "zh-TW";
+      const chineseKeywords = ["買入", "賣出", "持有", "最終交易提案"];
+      for (const kw of chineseKeywords) {
+        if (traderPlan.includes(kw)) return "zh-TW";
+      }
+      const englishKeywords = ["buy", "sell", "hold", "final trading proposal"];
+      const lower = traderPlan.toLowerCase();
+      for (const kw of englishKeywords) {
+        if (lower.includes(kw)) return "en";
+      }
+      return /[\u4e00-\u9fa5]/.test(traderPlan) ? "zh-TW" : "en";
+    };
+
+    return {
+      analysts: availableAnalystKeys,
+      ticker: report.ticker,
+      analysis_date: report.analysis_date,
+      reports: report.result.reports,
+      price_data: report.result.price_data,
+      price_stats: report.result.price_stats,
+      language: detectLang(report.result.reports),
+    };
+  };
 
   const handleDownloadPdf = async (report: SavedReport) => {
-    setDownloadingId(report.id ?? null);
+    const requestBody = buildPdfRequestBody(report);
+    if (!requestBody) {
+      alert("此報告沒有可下載的分析師報告");
+      return;
+    }
+
+    // Open preview modal immediately with loading state
+    setPdfPreviewReport(report);
+    setPdfPreviewUrl(null);
+    setPdfPreviewFilename(`${report.ticker}_Combined_Report_${report.analysis_date}.pdf`);
+    setPdfGenerating(true);
+    setPdfPreviewOpen(true);
+
     try {
-      // Get all available analyst keys
-      const getNestedValue = (obj: any, path: string) => {
-        return path.split(".").reduce((current, key) => current?.[key], obj);
-      };
-
-      const availableAnalystKeys = ANALYSTS.filter((analyst) => {
-        const reportContent = getNestedValue(
-          report.result.reports,
-          analyst.reportKey,
-        );
-        return reportContent && reportContent.trim().length > 0;
-      }).map((a) => a.key);
-
-      if (availableAnalystKeys.length === 0) {
-        alert("此報告沒有可下載的分析師報告");
-        return;
-      }
-
-      // Detect report language based on trader's final decision keywords
-      // This ensures PDF language matches the report content, not UI language
-      const detectReportLanguage = (reports: any): "zh-TW" | "en" => {
-        const traderPlan = reports?.trader_investment_plan;
-        if (!traderPlan || typeof traderPlan !== "string") {
-          return "zh-TW"; // Default to Chinese
-        }
-
-        // Chinese decision keywords: 買入, 賣出, 持有
-        const chineseKeywords = ["買入", "賣出", "持有", "最終交易提案"];
-        // English decision keywords: buy, sell, hold (case insensitive)
-        const englishKeywords = ["buy", "sell", "hold", "final trading proposal"];
-
-        const lowerPlan = traderPlan.toLowerCase();
-
-        // Check for Chinese keywords first
-        for (const keyword of chineseKeywords) {
-          if (traderPlan.includes(keyword)) {
-            return "zh-TW";
-          }
-        }
-
-        // Check for English keywords
-        for (const keyword of englishKeywords) {
-          if (lowerPlan.includes(keyword)) {
-            return "en";
-          }
-        }
-
-        // Fallback: check for any Chinese characters
-        const chineseRegex = /[\u4e00-\u9fa5]/;
-        if (chineseRegex.test(traderPlan)) {
-          return "zh-TW";
-        }
-
-        return "en";
-      };
-
-      const reportLanguage = detectReportLanguage(report.result.reports);
-
-      // Build request body
-      const requestBody = {
-        ticker: report.ticker,
-        analysis_date: report.analysis_date,
-        analysts: availableAnalystKeys,
-        reports: report.result.reports,
-        price_data: report.result.price_data,
-        price_stats: report.result.price_stats,
-        language: reportLanguage, // Use detected language based on trader decision
-      };
-
       const response = await fetch("/api/download/reports", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestBody),
       });
 
@@ -939,35 +928,25 @@ export default function HistoryPage() {
         throw new Error(errorData.detail || `下載失敗 (${response.status})`);
       }
 
-      // Get the blob
       const blob = await response.blob();
 
-      // Get filename from header
+      // Extract filename from Content-Disposition header
       const contentDisposition = response.headers.get("Content-Disposition");
       let filename = `${report.ticker}_Combined_Report_${report.analysis_date}.pdf`;
       if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename=(.+)/);
-        if (filenameMatch) {
-          filename = filenameMatch[1];
-        }
+        const match = contentDisposition.match(/filename=(.+)/);
+        if (match) filename = match[1];
       }
 
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-
-      // Cleanup
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      const blobUrl = window.URL.createObjectURL(blob);
+      setPdfPreviewUrl(blobUrl);
+      setPdfPreviewFilename(filename);
     } catch (error: any) {
-      console.error("Download error:", error);
-      alert(error.message || "下載失敗，請稍後再試");
+      console.error("PDF generation error:", error);
+      setPdfPreviewOpen(false);
+      alert(error.message || "PDF 產生失敗，請稍後再試");
     } finally {
-      setDownloadingId(null);
+      setPdfGenerating(false);
     }
   };
 
@@ -1123,9 +1102,9 @@ export default function HistoryPage() {
                               size="sm"
                               className="w-full gap-1"
                               onClick={() => handleDownloadPdf(report)}
-                              disabled={downloadingId === report.id}
+                              disabled={pdfGenerating && pdfPreviewReport?.id === report.id}
                             >
-                              {downloadingId === report.id ? (
+                              {pdfGenerating && pdfPreviewReport?.id === report.id ? (
                                 <>
                                   <Download className="h-4 w-4 animate-bounce" />
                                   {t.history.downloading}
@@ -1200,6 +1179,74 @@ export default function HistoryPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* PDF Preview Modal */}
+      {pdfPreviewOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl flex flex-col w-full max-w-5xl h-[90vh]">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
+              <div className="flex items-center gap-2 min-w-0">
+                <FileText className="h-5 w-5 text-purple-500 shrink-0" />
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-200 truncate">
+                  {pdfPreviewFilename}
+                </span>
+              </div>
+              <button
+                onClick={handleClosePdfPreview}
+                className="ml-3 p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors shrink-0"
+                aria-label="Close preview"
+              >
+                <X className="h-5 w-5 text-gray-500" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 overflow-hidden bg-gray-100 dark:bg-gray-800">
+              {pdfGenerating ? (
+                <div className="flex flex-col items-center justify-center h-full gap-4">
+                  <div className="relative">
+                    <div className="h-16 w-16 rounded-full border-4 border-purple-200 border-t-purple-600 animate-spin" />
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-300 font-medium">
+                    {locale === "zh-TW" ? "正在產生 PDF 報告…" : "Generating PDF report…"}
+                  </p>
+                  <p className="text-sm text-gray-400 dark:text-gray-500">
+                    {locale === "zh-TW" ? "請稍候，通常需要 10–30 秒" : "This usually takes 10–30 seconds"}
+                  </p>
+                </div>
+              ) : pdfPreviewUrl ? (
+                <embed
+                  src={pdfPreviewUrl}
+                  type="application/pdf"
+                  className="w-full h-full"
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-red-500">
+                    {locale === "zh-TW" ? "PDF 載入失敗" : "Failed to load PDF"}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-gray-200 dark:border-gray-700 shrink-0">
+              <Button variant="outline" onClick={handleClosePdfPreview}>
+                {locale === "zh-TW" ? "關閉" : "Close"}
+              </Button>
+              <Button
+                onClick={handleDownloadFromPreview}
+                disabled={!pdfPreviewUrl || pdfGenerating}
+                className="gap-2 bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                <Download className="h-4 w-4" />
+                {locale === "zh-TW" ? "下載 PDF" : "Download PDF"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -2,7 +2,7 @@
 import functools
 import time
 import json
-from tradingagents.agents.utils.prompts import get_trader_prompt
+from tradingagents.agents.utils.prompts import get_trader_prompt, get_language_closing_instruction
 
 
 def create_trader(llm, memory, language: str = "zh-TW"):
@@ -40,7 +40,8 @@ def create_trader(llm, memory, language: str = "zh-TW"):
 
         # Get language-specific prompt
         base_prompt = get_trader_prompt(language)
-        
+        lang_closing = get_language_closing_instruction(language)
+
         if language == "en":
             prompt = f"""{base_prompt}
 
@@ -48,9 +49,13 @@ def create_trader(llm, memory, language: str = "zh-TW"):
 - Investment Plan: {investment_plan}
 - Past Reflections: {past_memory_str}
 
-**IMPORTANT**: End your response with "Final Trading Proposal: **Buy/Hold/Sell**"!"""
-            
-            system_msg = f"""You are a trading agent analyzing market data to make investment decisions. Based on your analysis, provide specific Buy, Sell, or Hold recommendations. End with a firm decision by always ending your response with "Final Trading Proposal: **Buy/Hold/Sell**" to confirm your recommendation. Don't forget to leverage lessons from past decisions to learn from mistakes. Here are some reflections from similar situations: {past_memory_str}"""
+**IMPORTANT**: End your response with "Final Trading Proposal: **Buy/Hold/Sell**"!
+
+{lang_closing}"""
+
+            system_msg = f"""You are a trading agent analyzing market data to make investment decisions. Based on your analysis, provide specific Buy, Sell, or Hold recommendations. End with a firm decision by always ending your response with "Final Trading Proposal: **Buy/Hold/Sell**" to confirm your recommendation. Don't forget to leverage lessons from past decisions to learn from mistakes. Here are some reflections from similar situations: {past_memory_str}
+
+{lang_closing}"""
         else:
             prompt = f"""{base_prompt}
 
@@ -58,9 +63,13 @@ def create_trader(llm, memory, language: str = "zh-TW"):
 - 投資計畫：{investment_plan}
 - 過去反思：{past_memory_str}
 
-**重要**：請以「最終交易提案：**買入/持有/賣出**」結束回應！"""
-            
-            system_msg = f"""您是一位分析市場數據以做出投資決策的交易代理。根據您的分析，提供具體的買入、賣出或持有建議。以堅定的決策結束，並始終以「最終交易提案：**買入/持有/賣出**」來結束您的回應，以確認您的建議。不要忘記利用過去決策的教訓來從錯誤中學習。以下是您在類似情況下交易的一些反思：{past_memory_str}"""
+**重要**：請以「最終交易提案：**買入/持有/賣出**」結束回應！
+
+{lang_closing}"""
+
+            system_msg = f"""您是一位分析市場數據以做出投資決策的交易代理。根據您的分析，提供具體的買入、賣出或持有建議。以堅定的決策結束，並始終以「最終交易提案：**買入/持有/賣出**」來結束您的回應，以確認您的建議。不要忘記利用過去決策的教訓來從錯誤中學習。以下是您在類似情況下交易的一些反思：{past_memory_str}
+
+{lang_closing}"""
 
         messages = [
             {"role": "system", "content": system_msg},

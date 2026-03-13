@@ -276,6 +276,19 @@ class PDFGenerator:
         
         if fonts_registered and self.custom_font:
             print(f"✅ Using NotoSerifTC fonts - Proper Chinese character spacing")
+            # Register font family so <b> tags in Paragraph work correctly
+            # Without this, bold tags fall back to Times-Bold which has no CJK support → garbled text
+            try:
+                pdfmetrics.registerFontFamily(
+                    self.custom_font,
+                    normal=self.custom_font,
+                    bold=self.custom_font_bold if self.custom_font_bold else self.custom_font,
+                    italic=self.custom_font,
+                    boldItalic=self.custom_font_bold if self.custom_font_bold else self.custom_font,
+                )
+                print(f"✅ Registered font family: {self.custom_font}")
+            except Exception as e:
+                print(f"⚠️ Font family registration failed: {e}")
         else:
             # Fallback to CID fonts
             try:
@@ -815,7 +828,7 @@ class PDFGenerator:
             ('<', '&lt;'),
             ('>', '&gt;'),
             ('"', '&quot;'),
-            ("'", '&apos;'),
+            ("'", '&#39;'),
         ]
         
         for old, new in replacements:

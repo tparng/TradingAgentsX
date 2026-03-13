@@ -15,6 +15,13 @@ def get_language_instruction(language: str = "zh-TW") -> str:
 **請只使用純文字、數字、標點符號和必要的 Unicode 符號（如 ↑ ↓ ★ ●等）。**"""
 
 
+def get_language_closing_instruction(language: str = "zh-TW") -> str:
+    """Get the language closing instruction placed at the END of agent prompts for maximum compliance."""
+    if language == "en":
+        return "**Language Rule: Your ENTIRE response MUST be written in English only. Do NOT use Chinese or any other language.**"
+    return "【語言規定】\n您的回覆必須完全使用繁體中文，嚴格禁止使用英文或其他語言。"
+
+
 def get_agent_role_instruction(language: str = "zh-TW") -> str:
     """Get the common agent role instruction."""
     if language == "en":
@@ -72,6 +79,7 @@ def get_report_closing(language: str, report_type: str) -> str:
 def get_market_analyst_prompt(language: str) -> str:
     """Get market analyst system prompt."""
     lang_instruction = get_language_instruction(language)
+    lang_closing = get_language_closing_instruction(language)
     closing = get_report_closing(language, "market")
     
     if language == "en":
@@ -102,8 +110,10 @@ You are a senior technical analyst responsible for providing precise market tech
 **Closing**:
 {closing}
 
-Please provide a professional, precise, and actionable technical analysis report with a Markdown summary table."""
-    
+Please provide a professional, precise, and actionable technical analysis report with a Markdown summary table.
+
+{lang_closing}"""
+
     return f"""{lang_instruction}
 
 【專業身份】
@@ -132,7 +142,9 @@ Please provide a professional, precise, and actionable technical analysis report
 **結尾提示**：
 {closing}
 
-請提供專業、精準且具操作性的技術分析報告，並在結尾附加 Markdown 表格。"""
+請提供專業、精準且具操作性的技術分析報告，並在結尾附加 Markdown 表格。
+
+{lang_closing}"""
 
 
 # ============================================
@@ -142,6 +154,7 @@ Please provide a professional, precise, and actionable technical analysis report
 def get_fundamentals_analyst_prompt(language: str) -> str:
     """Get fundamentals analyst system prompt."""
     lang_instruction = get_language_instruction(language)
+    lang_closing = get_language_closing_instruction(language)
     closing = get_report_closing(language, "fundamentals")
     
     if language == "en":
@@ -172,7 +185,9 @@ You are a fundamentals analyst responsible for evaluating company financial heal
 **Closing**:
 {closing}
 
-Please provide a professional and comprehensive fundamental analysis report with a Markdown summary table."""
+Please provide a professional and comprehensive fundamental analysis report with a Markdown summary table.
+
+{lang_closing}"""
 
     return f"""{lang_instruction}
 
@@ -202,7 +217,9 @@ Please provide a professional and comprehensive fundamental analysis report with
 **結尾提示**：
 {closing}
 
-請提供專業且全面的基本面分析報告，並在結尾附加 Markdown 表格。"""
+請提供專業且全面的基本面分析報告，並在結尾附加 Markdown 表格。
+
+{lang_closing}"""
 
 
 # ============================================
@@ -212,6 +229,7 @@ Please provide a professional and comprehensive fundamental analysis report with
 def get_social_analyst_prompt(language: str) -> str:
     """Get social media analyst system prompt."""
     lang_instruction = get_language_instruction(language)
+    lang_closing = get_language_closing_instruction(language)
     closing = get_report_closing(language, "social")
     
     if language == "en":
@@ -241,7 +259,9 @@ You are a market sentiment analyst responsible for interpreting social media and
 **Closing**:
 {closing}
 
-Please provide a professional and insightful market sentiment analysis report with a Markdown summary table."""
+Please provide a professional and insightful market sentiment analysis report with a Markdown summary table.
+
+{lang_closing}"""
 
     return f"""{lang_instruction}
 
@@ -270,7 +290,9 @@ Please provide a professional and insightful market sentiment analysis report wi
 **結尾提示**：
 {closing}
 
-請提供專業且具洞察力的市場情緒分析報告，並在結尾附加 Markdown 表格。"""
+請提供專業且具洞察力的市場情緒分析報告，並在結尾附加 Markdown 表格。
+
+{lang_closing}"""
 
 
 # ============================================
@@ -280,6 +302,7 @@ Please provide a professional and insightful market sentiment analysis report wi
 def get_news_analyst_prompt(language: str) -> str:
     """Get news analyst system prompt."""
     lang_instruction = get_language_instruction(language)
+    lang_closing = get_language_closing_instruction(language)
     closing = get_report_closing(language, "news")
     
     if language == "en":
@@ -310,7 +333,9 @@ You are a financial news analyst responsible for interpreting major events' impa
 **Closing**:
 {closing}
 
-Please provide a professional and insightful news analysis report with a Markdown summary table."""
+Please provide a professional and insightful news analysis report with a Markdown summary table.
+
+{lang_closing}"""
 
     return f"""{lang_instruction}
 
@@ -340,7 +365,9 @@ Please provide a professional and insightful news analysis report with a Markdow
 **結尾提示**：
 {closing}
 
-請提供專業且具洞察力的新聞分析報告，並在結尾附加 Markdown 表格。"""
+請提供專業且具洞察力的新聞分析報告，並在結尾附加 Markdown 表格。
+
+{lang_closing}"""
 
 
 # ============================================
@@ -350,6 +377,7 @@ Please provide a professional and insightful news analysis report with a Markdow
 def get_bull_researcher_prompt(language: str) -> str:
     """Get bull researcher prompt template."""
     lang_instruction = get_language_instruction(language)
+    lang_closing = get_language_closing_instruction(language)
     
     if language == "en":
         return f"""{lang_instruction}
@@ -375,7 +403,9 @@ You are a Bull Researcher responsible for presenting buy arguments, emphasizing 
 ---
 ※ This is a bullish research analysis with an optimistic stance. Recommend combining with bearish views and risk assessment. Investment involves risk, please evaluate carefully.
 
-Please provide a persuasive and aggressive bullish analysis report."""
+Please provide a persuasive and aggressive bullish analysis report.
+
+{lang_closing}"""
 
     return f"""{lang_instruction}
 
@@ -401,7 +431,9 @@ Please provide a persuasive and aggressive bullish analysis report."""
 ---
 ※ 本報告為看漲方研究分析，立場偏向積極樂觀。建議搭配看跌方觀點與風險評估綜合研判。投資有風險，請謹慎評估。
 
-請提供有說服力且激進的看漲分析報告。"""
+請提供有說服力且激進的看漲分析報告。
+
+{lang_closing}"""
 
 
 # ============================================
@@ -411,6 +443,7 @@ Please provide a persuasive and aggressive bullish analysis report."""
 def get_bear_researcher_prompt(language: str) -> str:
     """Get bear researcher prompt template."""
     lang_instruction = get_language_instruction(language)
+    lang_closing = get_language_closing_instruction(language)
     
     if language == "en":
         return f"""{lang_instruction}
@@ -436,7 +469,9 @@ You are a Bear Researcher responsible for presenting sell arguments, emphasizing
 ---
 ※ This is a bearish research analysis with a cautious stance. Recommend combining with bullish views and market sentiment. Investment involves risk, please evaluate carefully.
 
-Please provide a persuasive and aggressive bearish analysis report."""
+Please provide a persuasive and aggressive bearish analysis report.
+
+{lang_closing}"""
 
     return f"""{lang_instruction}
 
@@ -462,7 +497,9 @@ Please provide a persuasive and aggressive bearish analysis report."""
 ---
 ※ 本報告為看跌方研究分析，立場偏向謹慎保守。建議搭配看漲方觀點與市場情緒綜合研判。投資有風險，請謹慎評估。
 
-請提供有說服力且激進的看跌分析報告。"""
+請提供有說服力且激進的看跌分析報告。
+
+{lang_closing}"""
 
 
 # ============================================
@@ -472,6 +509,7 @@ Please provide a persuasive and aggressive bearish analysis report."""
 def get_research_manager_prompt(language: str) -> str:
     """Get research manager prompt template."""
     lang_instruction = get_language_instruction(language)
+    lang_closing = get_language_closing_instruction(language)
     
     if language == "en":
         return f"""{lang_instruction}
@@ -491,7 +529,9 @@ You are the Research Manager responsible for synthesizing bullish and bearish ar
 2. Evidence Analysis (300 words): Critical evaluation of arguments
 3. Final Decision (100 words): Clear recommendation with rationale
 
-Please provide a balanced and well-reasoned research conclusion."""
+Please provide a balanced and well-reasoned research conclusion.
+
+{lang_closing}"""
 
     return f"""{lang_instruction}
 
@@ -511,7 +551,9 @@ Please provide a balanced and well-reasoned research conclusion."""
 2. 證據分析：論點批判性評估
 3. 最終決策：明確建議與理由
 
-請提供平衡且經過深思的研究結論。"""
+請提供平衡且經過深思的研究結論。
+
+{lang_closing}"""
 
 
 # ============================================
@@ -521,6 +563,7 @@ Please provide a balanced and well-reasoned research conclusion."""
 def get_aggressive_debator_prompt(language: str) -> str:
     """Get aggressive risk debator prompt."""
     lang_instruction = get_language_instruction(language)
+    lang_closing = get_language_closing_instruction(language)
     
     if language == "en":
         return f"""{lang_instruction}
@@ -535,7 +578,9 @@ You are the Aggressive Risk Analyst, advocating for higher risk tolerance and ag
 4. Push for decisive action
 
 【Output Requirements】
-Provide aggressive risk perspective supporting bold trading decisions."""
+Provide aggressive risk perspective supporting bold trading decisions.
+
+{lang_closing}"""
 
     return f"""{lang_instruction}
 
@@ -549,12 +594,15 @@ Provide aggressive risk perspective supporting bold trading decisions."""
 4. 推動果斷行動
 
 【輸出要求】
-提供支持積極交易決策的激進風險觀點。"""
+提供支持積極交易決策的激進風險觀點。
+
+{lang_closing}"""
 
 
 def get_conservative_debator_prompt(language: str) -> str:
     """Get conservative risk debator prompt."""
     lang_instruction = get_language_instruction(language)
+    lang_closing = get_language_closing_instruction(language)
     
     if language == "en":
         return f"""{lang_instruction}
@@ -569,7 +617,9 @@ You are the Conservative Risk Analyst, prioritizing capital preservation and ris
 4. Recommend cautious approach
 
 【Output Requirements】
-Provide conservative risk perspective emphasizing capital preservation."""
+Provide conservative risk perspective emphasizing capital preservation.
+
+{lang_closing}"""
 
     return f"""{lang_instruction}
 
@@ -583,12 +633,15 @@ Provide conservative risk perspective emphasizing capital preservation."""
 4. 建議謹慎行動
 
 【輸出要求】
-提供強調資本保全的保守風險觀點。"""
+提供強調資本保全的保守風險觀點。
+
+{lang_closing}"""
 
 
 def get_neutral_debator_prompt(language: str) -> str:
     """Get neutral risk debator prompt."""
     lang_instruction = get_language_instruction(language)
+    lang_closing = get_language_closing_instruction(language)
     
     if language == "en":
         return f"""{lang_instruction}
@@ -603,7 +656,9 @@ You are the Neutral Risk Analyst, seeking balanced risk-reward assessment.
 4. Recommend balanced approach
 
 【Output Requirements】
-Provide neutral risk perspective balancing risk and reward."""
+Provide neutral risk perspective balancing risk and reward.
+
+{lang_closing}"""
 
     return f"""{lang_instruction}
 
@@ -617,7 +672,9 @@ Provide neutral risk perspective balancing risk and reward."""
 4. 推薦平衡方法
 
 【輸出要求】
-提供平衡風險與報酬的中立風險觀點。"""
+提供平衡風險與報酬的中立風險觀點。
+
+{lang_closing}"""
 
 
 # ============================================
@@ -627,6 +684,7 @@ Provide neutral risk perspective balancing risk and reward."""
 def get_risk_manager_prompt(language: str) -> str:
     """Get risk manager prompt template."""
     lang_instruction = get_language_instruction(language)
+    lang_closing = get_language_closing_instruction(language)
     
     if language == "en":
         return f"""{lang_instruction}
@@ -641,7 +699,9 @@ You are the Risk Manager responsible for final risk assessment and position sizi
 4. **Final Risk Verdict**: Overall risk assessment
 
 【Output Requirements】
-Provide comprehensive risk management recommendations."""
+Provide comprehensive risk management recommendations.
+
+{lang_closing}"""
 
     return f"""{lang_instruction}
 
@@ -655,7 +715,9 @@ Provide comprehensive risk management recommendations."""
 4. **最終裁決**：整體風險評估
 
 【輸出要求】
-提供全面的風險管理建議。"""
+提供全面的風險管理建議。
+
+{lang_closing}"""
 
 
 # ============================================
@@ -665,6 +727,7 @@ Provide comprehensive risk management recommendations."""
 def get_trader_prompt(language: str) -> str:
     """Get trader prompt template."""
     lang_instruction = get_language_instruction(language)
+    lang_closing = get_language_closing_instruction(language)
     
     if language == "en":
         return f"""{lang_instruction}
@@ -685,7 +748,9 @@ You are the Trader responsible for integrating all reports and creating actionab
 3. Execution Plan (300 words): Detailed trading strategy
 4. Risk Controls (200 words): Position sizing and stop levels
 
-Please provide a comprehensive trading plan with clear execution guidelines."""
+Please provide a comprehensive trading plan with clear execution guidelines.
+
+{lang_closing}"""
 
     return f"""{lang_instruction}
 
@@ -706,5 +771,7 @@ Please provide a comprehensive trading plan with clear execution guidelines."""
 3. 執行計劃：詳細交易策略
 4. 風險控制：倉位規模與停損水位
 
-請提供具有明確執行指南的全面交易計劃。"""
+請提供具有明確執行指南的全面交易計劃。
+
+{lang_closing}"""
 

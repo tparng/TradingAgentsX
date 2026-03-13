@@ -2,7 +2,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 import time
 import json
 from tradingagents.agents.utils.agent_utils import get_stock_data, get_indicators
-from tradingagents.agents.utils.prompts import get_language_instruction, get_agent_role_instruction, get_context_message
+from tradingagents.agents.utils.prompts import get_language_instruction, get_language_closing_instruction, get_agent_role_instruction, get_context_message
 from tradingagents.dataflows.config import get_config
 
 
@@ -39,6 +39,7 @@ def create_market_analyst(llm, language: str = "zh-TW"):
 
         # Get language-specific instructions
         lang_instruction = get_language_instruction(language)
+        lang_closing = get_language_closing_instruction(language)
         role_instruction = get_agent_role_instruction(language)
         context_msg = get_context_message(language, current_date, company_name, ticker)
 
@@ -78,7 +79,9 @@ Please add the following at the end of your report:
 \"---
 ※ This report is technical analysis only. Recommend combining with fundamental and sentiment analysis. Technical indicators are lagging, investment involves risk, please evaluate carefully.\"
 
-Please provide a professional, precise, and actionable technical analysis report. Be sure to include a Markdown table at the end summarizing key points."""
+Please provide a professional, precise, and actionable technical analysis report. Be sure to include a Markdown table at the end summarizing key points.
+
+{lang_closing}"""
         else:
             system_message = f"""{lang_instruction}
 
@@ -116,7 +119,9 @@ Please provide a professional, precise, and actionable technical analysis report
 「---
 ※ 本報告為技術面分析，建議搭配基本面及市場情緒綜合研判。技術指標具滯後性，投資有風險，請謹慎評估。」
 
-請提供專業、精準且具操作性的技術分析報告。請務必在報告結尾附加一個 Markdown 表格，以整理報告中的要點。"""
+請提供專業、精準且具操作性的技術分析報告。請務必在報告結尾附加一個 Markdown 表格，以整理報告中的要點。
+
+{lang_closing}"""
 
         prompt = ChatPromptTemplate.from_messages(
             [

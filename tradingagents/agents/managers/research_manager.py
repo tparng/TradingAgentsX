@@ -12,7 +12,7 @@ from tenacity import (
 )
 from anthropic._exceptions import OverloadedError
 from tradingagents.agents.utils.output_filter import fix_common_llm_errors, validate_and_warn
-from tradingagents.agents.utils.prompts import get_research_manager_prompt
+from tradingagents.agents.utils.prompts import get_research_manager_prompt, get_language_closing_instruction
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +50,8 @@ def create_research_manager(llm, memory, language: str = "zh-TW"):
 
         # Get language-specific prompt
         base_prompt = get_research_manager_prompt(language)
-        
+        lang_closing = get_language_closing_instruction(language)
+
         if language == "en":
             prompt = f"""{base_prompt}
 
@@ -58,7 +59,9 @@ def create_research_manager(llm, memory, language: str = "zh-TW"):
 - Past Reflections: "{past_memory_str}"
 - Debate History: {history}
 
-Please provide your investment decision report."""
+Please provide your investment decision report.
+
+{lang_closing}"""
         else:
             prompt = f"""{base_prompt}
 
@@ -66,7 +69,9 @@ Please provide your investment decision report."""
 - 過去反思："{past_memory_str}"
 - 辯論歷史：{history}
 
-請提供您的投資決策報告。"""
+請提供您的投資決策報告。
+
+{lang_closing}"""
         
         @retry(
             retry=retry_if_exception_type(OverloadedError),

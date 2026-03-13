@@ -54,7 +54,10 @@ Please provide your aggressive risk analysis."""
 - 辯論歷史：{history}
 - 對手觀點：{current_safe_response}, {current_neutral_response}
 
-請提供您的激進風險分析。"""
+【語言規定】
+您的回覆必須完全使用繁體中文，嚴格禁止使用英文或其他語言。
+
+請用繁體中文提供您的激進風險分析。"""
 
         response = llm.invoke(prompt)
         

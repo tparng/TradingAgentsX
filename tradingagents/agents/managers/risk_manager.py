@@ -2,7 +2,7 @@
 import time
 import json
 from tradingagents.agents.utils.output_filter import fix_common_llm_errors, validate_and_warn
-from tradingagents.agents.utils.prompts import get_risk_manager_prompt
+from tradingagents.agents.utils.prompts import get_risk_manager_prompt, get_language_closing_instruction
 
 
 def create_risk_manager(llm, memory, language: str = "zh-TW"):
@@ -40,7 +40,8 @@ def create_risk_manager(llm, memory, language: str = "zh-TW"):
 
         # Get language-specific prompt
         base_prompt = get_risk_manager_prompt(language)
-        
+        lang_closing = get_language_closing_instruction(language)
+
         if language == "en":
             prompt = f"""{base_prompt}
 
@@ -49,7 +50,9 @@ def create_risk_manager(llm, memory, language: str = "zh-TW"):
 - Trader Plan: {trader_plan}
 - Debate History: {history}
 
-Please provide your risk management decision report."""
+Please provide your risk management decision report.
+
+{lang_closing}"""
         else:
             prompt = f"""{base_prompt}
 
@@ -58,7 +61,9 @@ Please provide your risk management decision report."""
 - 交易員計畫：{trader_plan}
 - 辯論歷史：{history}
 
-請提供您的風險管理決策報告。"""
+請提供您的風險管理決策報告。
+
+{lang_closing}"""
 
         response = llm.invoke(prompt)
         
