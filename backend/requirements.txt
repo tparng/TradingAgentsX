@@ -54,6 +54,7 @@ beautifulsoup4>=4.12.0
 tenacity>=8.2.0
 
 # PDF and document generation
+fpdf2>=2.7.0
 reportlab>=4.0.0
 markdown>=3.5.0
 matplotlib>=3.8.0

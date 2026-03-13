@@ -1216,10 +1216,10 @@ export default function HistoryPage() {
                   </p>
                 </div>
               ) : pdfPreviewUrl ? (
-                <embed
+                <iframe
                   src={pdfPreviewUrl}
-                  type="application/pdf"
-                  className="w-full h-full"
+                  className="w-full h-full border-0"
+                  title="PDF Preview"
                 />
               ) : (
                 <div className="flex items-center justify-center h-full">
