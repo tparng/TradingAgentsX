@@ -68,7 +68,7 @@ Please provide your conservative risk analysis."""
 
         new_risk_debate_state = {
             "history": history + "\n" + argument,
-            "safe_history": safe_history + "\n" + argument,
+            "safe_history": response.content,
             "risky_history": risk_debate_state.get("risky_history", ""),
             "neutral_history": risk_debate_state.get("neutral_history", ""),
             "latest_speaker": "Safe",

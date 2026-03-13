@@ -559,7 +559,7 @@ export default function HistoryPage() {
     };
   }, [isAuthenticated]);
 
-  // Auto-poll every 30 seconds for real-time cross-device sync
+  // Auto-poll every 8 seconds for real-time cross-device sync
   useEffect(() => {
     if (!isAuthenticated || !isCloudSyncEnabled()) return;
 
@@ -568,7 +568,7 @@ export default function HistoryPage() {
         console.log("☁️ Auto-poll: checking for new reports...");
         performBidirectionalSync(false);
       }
-    }, 30000);
+    }, 8000);
 
     return () => clearInterval(intervalId);
   }, [isAuthenticated]);

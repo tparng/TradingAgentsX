@@ -68,7 +68,7 @@ Please provide your aggressive risk analysis."""
 
         new_risk_debate_state = {
             "history": history + "\n" + argument,
-            "risky_history": risky_history + "\n" + argument,
+            "risky_history": response.content,
             "safe_history": risk_debate_state.get("safe_history", ""),
             "neutral_history": risk_debate_state.get("neutral_history", ""),
             "latest_speaker": "Risky",

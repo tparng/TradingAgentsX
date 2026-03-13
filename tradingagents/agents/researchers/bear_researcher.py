@@ -83,7 +83,7 @@ Please provide your bearish analysis now."""
 
         new_investment_debate_state = {
             "history": history + "\n" + argument,
-            "bear_history": bear_history + "\n" + response.content,
+            "bear_history": response.content,
             "bull_history": investment_debate_state.get("bull_history", ""),
             "current_response": argument,
             "count": investment_debate_state["count"] + 1,

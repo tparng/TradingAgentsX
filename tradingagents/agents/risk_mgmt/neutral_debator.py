@@ -68,7 +68,7 @@ Please provide your neutral risk analysis."""
 
         new_risk_debate_state = {
             "history": history + "\n" + argument,
-            "neutral_history": neutral_history + "\n" + argument,
+            "neutral_history": response.content,
             "risky_history": risk_debate_state.get("risky_history", ""),
             "safe_history": risk_debate_state.get("safe_history", ""),
             "latest_speaker": "Neutral",
