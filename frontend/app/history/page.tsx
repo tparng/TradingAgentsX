@@ -559,6 +559,20 @@ export default function HistoryPage() {
     };
   }, [isAuthenticated]);
 
+  // Auto-poll every 30 seconds for real-time cross-device sync
+  useEffect(() => {
+    if (!isAuthenticated || !isCloudSyncEnabled()) return;
+
+    const intervalId = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        console.log("☁️ Auto-poll: checking for new reports...");
+        performBidirectionalSync(false);
+      }
+    }, 30000);
+
+    return () => clearInterval(intervalId);
+  }, [isAuthenticated]);
+
   const loadReports = async () => {
     setLoading(true);
     try {

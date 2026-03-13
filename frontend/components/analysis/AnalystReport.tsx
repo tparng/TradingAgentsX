@@ -72,12 +72,14 @@ export function AnalystReport({ reports }: AnalystReportProps) {
               <ReportSection
                 title={t.agents.bull_researcher}
                 content={reports.investment_debate_state.bull_history}
+                isDebateHistory
               />
             )}
             {reports.investment_debate_state?.bear_history && (
               <ReportSection
                 title={t.agents.bear_researcher}
                 content={reports.investment_debate_state.bear_history}
+                isDebateHistory
               />
             )}
             {reports.investment_debate_state?.judge_decision && (
@@ -99,18 +101,21 @@ export function AnalystReport({ reports }: AnalystReportProps) {
               <ReportSection
                 title={t.agents.aggressive_debator}
                 content={reports.risk_debate_state.risky_history}
+                isDebateHistory
               />
             )}
             {reports.risk_debate_state?.safe_history && (
               <ReportSection
                 title={t.agents.conservative_debator}
                 content={reports.risk_debate_state.safe_history}
+                isDebateHistory
               />
             )}
             {reports.risk_debate_state?.neutral_history && (
               <ReportSection
                 title={t.agents.neutral_debator}
                 content={reports.risk_debate_state.neutral_history}
+                isDebateHistory
               />
             )}
             {reports.risk_debate_state?.judge_decision && (
@@ -126,13 +131,47 @@ export function AnalystReport({ reports }: AnalystReportProps) {
   );
 }
 
-function ReportSection({ title, content }: { title: string; content: string }) {
+/**
+ * Extract only the last debate round from a history string.
+ * Each round is prefixed with a known analyst label (e.g. "看漲分析師：").
+ * This prevents showing repetitive multi-round content to the user.
+ */
+function extractLastRound(history: string): string {
+  if (!history) return history;
+
+  // Known prefixes that start each debate round (Chinese and English)
+  const prefixes = [
+    "看漲分析師：",
+    "看跌分析師：",
+    "激進分析師：",
+    "保守分析師：",
+    "中立分析師：",
+    "Bull Analyst: ",
+    "Bear Analyst: ",
+    "Aggressive Analyst: ",
+    "Conservative Analyst: ",
+    "Neutral Analyst: ",
+  ];
+
+  // Find the last occurrence of any prefix preceded by a newline
+  let lastIndex = -1;
+  for (const prefix of prefixes) {
+    const idx = history.lastIndexOf("\n" + prefix);
+    if (idx > lastIndex) lastIndex = idx;
+  }
+
+  if (lastIndex === -1) return history.trimStart();
+  return history.slice(lastIndex + 1); // Skip the leading \n
+}
+
+function ReportSection({ title, content, isDebateHistory = false }: { title: string; content: string; isDebateHistory?: boolean }) {
+  const displayContent = isDebateHistory ? extractLastRound(content) : content;
   return (
     <div className="border rounded-lg p-4 bg-gradient-to-br from-blue-50/50 to-purple-50/50 dark:from-blue-900/10 dark:to-purple-900/10 hover:shadow-md transition-shadow">
       <h3 className="font-semibold text-lg mb-2">{title}</h3>
       <div className="prose prose-sm xl:prose-base dark:prose-invert max-w-none overflow-x-auto prose-table:border-collapse prose-table:w-full prose-td:border prose-td:border-gray-300 dark:prose-td:border-gray-600 prose-td:p-2 prose-th:border prose-th:border-gray-300 dark:prose-th:border-gray-600 prose-th:p-2 prose-th:bg-gray-100 dark:prose-th:bg-gray-800">
         <ReactMarkdown remarkPlugins={[remarkGfm]}>
-          {content}
+          {displayContent}
         </ReactMarkdown>
       </div>
     </div>
