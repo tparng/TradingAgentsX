@@ -8,13 +8,10 @@ import { useAnalysisContext } from "@/context/AnalysisContext";
 import { useAuth } from "@/contexts/auth-context";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { PriceChart } from "@/components/analysis/PriceChart";
-import { DownloadReports } from "@/components/analysis/DownloadReports";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ChevronLeft, Save, Check, AlertCircle, Cloud } from "lucide-react";
-import { saveReport, checkDuplicateReport } from "@/lib/reports-db";
-import { saveCloudReport, isCloudSyncEnabled } from "@/lib/user-api";
+import { ChevronLeft } from "lucide-react";
 
 // Analyst keys for mapping to translation keys
 const ANALYST_KEYS = [
@@ -44,15 +41,8 @@ const getNestedValue = (obj: any, path: string) => {
 export default function AnalysisResultsPage() {
   const router = useRouter();
   const { analysisResult, taskId, marketType } = useAnalysisContext();
-  const { isAuthenticated } = useAuth();
   const { t, locale } = useLanguage();
   const [selectedAnalyst, setSelectedAnalyst] = useState("market");
-  
-  // Save report states
-  const [saving, setSaving] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const [savedToCloud, setSavedToCloud] = useState(false);
 
   // Debug: log received analysis data structure
   useEffect(() => {
@@ -85,65 +75,6 @@ export default function AnalysisResultsPage() {
     }
   }, [analysisResult, router]);
 
-  // Handle save report
-  const handleSaveReport = async () => {
-    if (!analysisResult) return;
-    
-    setSaving(true);
-    setSaveError(null);
-    setSaveSuccess(false);
-    setSavedToCloud(false);
-    
-    try {
-      // Check for duplicate in local storage
-      const duplicate = await checkDuplicateReport(
-        analysisResult.ticker,
-        analysisResult.analysis_date
-      );
-      
-      if (duplicate) {
-        setSaveError(t.results.duplicateReport);
-        setSaving(false);
-        return;
-      }
-      
-      // Save to local IndexedDB
-      await saveReport(
-        analysisResult.ticker,
-        marketType,
-        analysisResult.analysis_date,
-        analysisResult,
-        taskId || undefined,
-        locale as "en" | "zh-TW"  // Pass current language for filtering
-      );
-      
-      // If authenticated, also save to cloud
-      if (isAuthenticated && isCloudSyncEnabled()) {
-        const cloudId = await saveCloudReport({
-          ticker: analysisResult.ticker,
-          market_type: marketType,
-          analysis_date: analysisResult.analysis_date,
-          result: analysisResult,
-          language: locale as "en" | "zh-TW",
-        });
-        if (cloudId) {
-          setSavedToCloud(true);
-        }
-      }
-      
-      setSaveSuccess(true);
-      // Reset success message after 3 seconds
-      setTimeout(() => {
-        setSaveSuccess(false);
-        setSavedToCloud(false);
-      }, 3000);
-    } catch (error) {
-      console.error("Save report error:", error);
-      setSaveError(t.results.saveError);
-    } finally {
-      setSaving(false);
-    }
-  };
 
   if (!analysisResult) {
     return (
@@ -176,59 +107,8 @@ export default function AnalysisResultsPage() {
             </p>
           </div>
           <div className="flex gap-2 items-center flex-wrap">
-            {/* Save success/error feedback */}
-            {saveSuccess && (
-              <span className="flex items-center gap-1 text-green-600 dark:text-green-400 text-sm animate-fade-in">
-                <Check className="h-4 w-4" />
-                {t.results.saved}
-              </span>
-            )}
-            {saveError && (
-              <span className="flex items-center gap-1 text-red-500 text-sm animate-fade-in">
-                <AlertCircle className="h-4 w-4" />
-                {saveError}
-              </span>
-            )}
-            
-            {/* Download PDF Button */}
-            {analysisResult.reports && (
-              <DownloadReports
-                ticker={analysisResult.ticker}
-                analysisDate={analysisResult.analysis_date}
-                taskId={taskId}
-                analysts={ANALYSTS}
-                reports={analysisResult.reports}
-                priceData={analysisResult.price_data}
-                priceStats={analysisResult.price_stats}
-                compact={true}
-                language={locale}
-              />
-            )}
-            
-            {/* Save Report Button */}
             <Button
-              variant="default"
-              onClick={handleSaveReport}
-              disabled={saving || saveSuccess}
-              className="gap-2 hover-lift bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
-            >
-              {saving ? (
-                <>{t.results.saving}</>
-              ) : saveSuccess ? (
-                <>
-                  <Check className="h-4 w-4" />
-                  {t.results.saved}
-                </>
-              ) : (
-                <>
-                  <Save className="h-4 w-4" />
-                  {t.results.saveReport}
-                </>
-              )}
-            </Button>
-            
-            <Button 
-              variant="outline" 
+              variant="outline"
               onClick={() => router.push("/analysis")}
               className="gap-2 hover-lift"
             >
