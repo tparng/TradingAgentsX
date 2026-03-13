@@ -6,7 +6,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { clearApiSettings, saveApiSettingsAsync } from "@/lib/storage";
-import { clearAllReports, saveReport } from "@/lib/reports-db";
+import { clearAllReports, bulkSaveReports } from "@/lib/reports-db";
 import { getCloudSettings, getCloudReports } from "@/lib/user-api";
 
 // User interface
@@ -129,19 +129,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const handleBeforeUnload = () => {
-      // Only clear data if user is not authenticated (production only)
+      // Only clear API settings if user is not authenticated (production only)
+      // Reports are NOT cleared on page leave — they persist until explicit logout
       const currentToken = localStorage.getItem(TOKEN_KEY);
       if (!currentToken) {
-        // Clear API settings (synchronous)
         clearApiSettings();
-        
-        // Clear reports - use synchronous approach for beforeunload
-        // IndexedDB operations are async, but we can at least attempt it
-        clearAllReports().catch(() => {
-          // Ignore errors during unload
-        });
-        
-        console.log("Cleared local data for unauthenticated user on page leave");
       }
     };
 
@@ -209,20 +201,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Fetch and restore cloud reports
       const cloudReports = await getCloudReports();
       if (cloudReports && cloudReports.length > 0) {
-        // Clear existing local reports first
-        await clearAllReports();
-        
-        // Save each cloud report to local IndexedDB
-        for (const report of cloudReports) {
-          await saveReport(
-            report.ticker,
-            report.market_type,
-            report.analysis_date,
-            report.result,
-            (report as any).task_id,
-            report.language  // Preserve language from cloud
-          );
-        }
+        // Merge cloud reports into local IndexedDB (don't clear local first)
+        // This preserves any locally saved reports that haven't synced yet
+        const reportsToMerge = cloudReports.map((r) => ({
+          ticker: r.ticker,
+          market_type: r.market_type as "us" | "twse" | "tpex",
+          analysis_date: r.analysis_date,
+          saved_at: new Date(r.created_at),
+          result: r.result,
+          language: r.language,
+          cloud_id: r.id,
+        }));
+        await bulkSaveReports(reportsToMerge);
         console.log(`Restored ${cloudReports.length} reports from cloud`);
       }
     } catch (error) {

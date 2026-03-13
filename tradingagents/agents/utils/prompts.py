@@ -92,8 +92,6 @@ You are a senior technical analyst responsible for providing precise market tech
 • Integrate data to provide professional insights
 
 【Report Structure】
-**Word Count**: 500-1000 words (excluding tables)
-
 **Content Structure**:
 1. Market Overview (60-80 words): Trend direction and momentum
 2. Technical Analysis (250-350 words): Indicator interpretation and cross-validation
@@ -165,8 +163,6 @@ You are a fundamentals analyst responsible for evaluating company financial heal
 • Integrate data for comprehensive evaluation
 
 【Report Structure】
-**Word Count**: 500-1000 words (excluding tables)
-
 **Content Structure**:
 1. Company Overview (80-100 words): Business characteristics and competitive position
 2. Financial Analysis (400-450 words): Profitability, financial structure, cash flow
@@ -237,8 +233,6 @@ You are a market sentiment analyst responsible for interpreting social media and
 • Analyze sentiment trends and discussion intensity
 
 【Report Structure】
-**Word Count**: 500-1000 words (excluding tables)
-
 **Content Structure**:
 1. Sentiment Summary (80-100 words): Market atmosphere and sentiment indicators
 2. Opinion Analysis (400-450 words): Main discussion topics and opinion distribution
@@ -309,8 +303,6 @@ You are a financial news analyst responsible for interpreting major events' impa
 • Filter high-value information and provide deep interpretation
 
 【Report Structure】
-**Word Count**: 500-1000 words (excluding tables)
-
 **Content Structure**:
 1. News Summary (60-80 words): Key event overview
 2. Impact Analysis (400-600 words): Multi-dimensional impact assessment on stock price
@@ -377,8 +369,6 @@ You are a Bull Researcher responsible for presenting buy arguments, emphasizing 
 5. **Rebut Bears**: **Strongly refute bearish arguments, pointing out flaws and excessive pessimism**
 
 【Output Requirements】
-**Word Count**: 800-1500 words
-
 **Content Structure**:
 1. Core Thesis (150+ words): Clear and confident bullish reasoning
 2. Growth Arguments (450-500 words): Data-supported growth logic
@@ -441,8 +431,6 @@ You are a Bear Researcher responsible for presenting sell arguments, emphasizing
 5. **Rebut Bulls**: **Strongly refute bullish arguments, exposing blind optimism**
 
 【Output Requirements】
-**Word Count**: 800-1500 words
-
 **Content Structure**:
 1. Core Warning (150+ words): Clear and firm bearish reasoning
 2. Risk Arguments (450-500 words): Data-supported risk analysis
@@ -504,8 +492,6 @@ You are the Research Manager responsible for synthesizing bullish and bearish ar
 4. **Final Verdict**: Make a clear Buy/Hold/Sell recommendation
 
 【Output Requirements】
-**Word Count**: 600-1000 words
-
 **Content Structure**:
 1. Debate Summary (200 words): Overview of both positions
 2. Evidence Analysis (300 words): Critical evaluation of arguments
@@ -556,7 +542,6 @@ You are the Aggressive Risk Analyst, advocating for higher risk tolerance and ag
 4. Push for decisive action
 
 【Output Requirements】
-Word Count: 400-600 words
 Provide aggressive risk perspective supporting bold trading decisions."""
 
     return f"""{lang_instruction}
@@ -592,7 +577,6 @@ You are the Conservative Risk Analyst, prioritizing capital preservation and ris
 4. Recommend cautious approach
 
 【Output Requirements】
-Word Count: 400-600 words
 Provide conservative risk perspective emphasizing capital preservation."""
 
     return f"""{lang_instruction}
@@ -628,7 +612,6 @@ You are the Neutral Risk Analyst, seeking balanced risk-reward assessment.
 4. Recommend balanced approach
 
 【Output Requirements】
-Word Count: 400-600 words
 Provide neutral risk perspective balancing risk and reward."""
 
     return f"""{lang_instruction}
@@ -668,7 +651,6 @@ You are the Risk Manager responsible for final risk assessment and position sizi
 4. **Final Risk Verdict**: Overall risk assessment
 
 【Output Requirements】
-Word Count: 500-800 words
 Provide comprehensive risk management recommendations."""
 
     return f"""{lang_instruction}
@@ -708,8 +690,6 @@ You are the Trader responsible for integrating all reports and creating actionab
 4. **Risk Management**: Stop-loss, take-profit, exit strategy
 
 【Output Requirements】
-Word Count: 800-1200 words
-
 **Content Structure**:
 1. Analysis Summary (200 words): Key findings from all reports
 2. Trading Decision (100 words): Final recommendation

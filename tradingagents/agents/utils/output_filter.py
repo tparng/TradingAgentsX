@@ -80,13 +80,6 @@ def validate_and_warn(content: str, agent_name: str) -> list:
             context = content[max(0, idx-15):min(len(content), idx+15)]
             warnings.append(f"Suspicious '煉' character found. Context: ...{context}...")
     
-    # Check word count (500-1000 range)
-    word_count = count_chinese_words(content)
-    if word_count < 500:
-        warnings.append(f"⚠️  Report too short (below 500 words)")
-    elif word_count > 1000:
-        warnings.append(f"⚠️  Report too long (exceeds 1000 words)")
-    
     # Check for truncation markers that shouldn't be there
     truncation_markers = ['...(已截斷)', '...(內容已截斷)', '...(為控制長度已精簡)']
     for marker in truncation_markers:
@@ -119,13 +112,6 @@ def post_process_agent_output(content: str, agent_name: str, retry_callback=None
     # Step 2: Validate and warn
     warnings = validate_and_warn(content, agent_name)
     
-    # Step 3: Critical validation - retry if needed (500-1000 range)
-    word_count = count_chinese_words(content)
-    if (word_count < 500 or word_count > 1000) and retry_callback:
-        print(f"\n🔄 {agent_name}: Word count out of range, triggering retry...")
-        # Callback should regenerate the content
-        # This is optional and should be implemented in the calling code
-    
     return content
 
 
@@ -142,13 +128,9 @@ def ensure_min_length(content: str, min_words: int = 500, agent_name: str = "Age
         tuple: (content, is_valid: bool)
     """
     word_count = count_chinese_words(content)
-    max_words = 1000
 
     if word_count < min_words:
         print(f"⚠️  [{agent_name}] Report too short")
-        return content, False
-    elif word_count > max_words:
-        print(f"⚠️  [{agent_name}] Report too long")
         return content, False
     else:
         print(f"✅ [{agent_name}] Report meets requirements")
