@@ -195,10 +195,7 @@ async def get_reports(
     optimized_reports = []
     for r in reports:
         if include_result and r.result and isinstance(r.result, dict):
-            # Shallow copy the dictionary and strip massive reports field
-            optimized_result = dict(r.result)
-            if "reports" in optimized_result:
-                optimized_result["reports"] = None
+            optimized_result = r.result
         elif include_result:
             optimized_result = r.result or {}
         else:
