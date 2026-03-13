@@ -75,7 +75,7 @@ Please provide your bullish analysis now."""
         response.content = fix_common_llm_errors(response.content)
         validate_and_warn(response.content, "Bull_Researcher")
 
-        # Format argument based on language
+        # Format argument based on language (with label for combined history only)
         if language == "en":
             argument = f"Bull Analyst: {response.content}"
         else:
@@ -83,7 +83,7 @@ Please provide your bullish analysis now."""
 
         new_investment_debate_state = {
             "history": history + "\n" + argument,
-            "bull_history": bull_history + "\n" + argument,
+            "bull_history": bull_history + "\n" + response.content,
             "bear_history": investment_debate_state.get("bear_history", ""),
             "current_response": argument,
             "count": investment_debate_state["count"] + 1,
