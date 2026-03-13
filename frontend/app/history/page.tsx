@@ -50,7 +50,6 @@ import {
   deleteCloudReport,
   saveCloudReport,
   isCloudSyncEnabled,
-  cleanupDuplicateCloudReports,
 } from "@/lib/user-api";
 // import { LoginPrompt } from "@/components/auth/login-button";
 import { PendingTaskRecovery } from "@/components/PendingTaskRecovery";
@@ -401,7 +400,6 @@ export default function HistoryPage() {
 
   // Auto-sync tracking ref
   const hasAutoSyncedRef = useRef(false);
-  const hasCleanedUpRef = useRef(false);
   const cloudReportsPromiseRef = useRef<Promise<any[] | null> | null>(null);
 
   const fetchCloudReportsCached = async (forceRefresh = false) => {
@@ -440,22 +438,7 @@ export default function HistoryPage() {
     }
 
     try {
-      // First cleanup backend duplicates (existing duplicates from old versions)
-      // Only run once per session to avoid spamming the endpoint on every tab focus
-      if (!hasCleanedUpRef.current) {
-        hasCleanedUpRef.current = true;
-        try {
-          const cleanupResult = await cleanupDuplicateCloudReports();
-          if (cleanupResult && cleanupResult.deleted > 0) {
-            console.log(`☁️ Cleaned up ${cleanupResult.deleted} duplicate reports from cloud DB`);
-            cloudReportsPromiseRef.current = null; // Force refresh after cleanup
-          }
-        } catch (err) {
-          console.warn("Cloud duplicate cleanup failed:", err);
-        }
-      }
-
-      // Then auto-clean local duplicates that might exist from older flawed versions
+      // Auto-clean local duplicates that might exist from older flawed versions
       try {
         const allLocal = await getAllReports();
         const seenSignatures = new Set<string>();
@@ -544,32 +527,8 @@ export default function HistoryPage() {
         }
       }
 
-      // === DELETE SYNC: Remove local reports that were deleted from cloud ===
-      // Only delete reports that are old enough (> 2 minutes) to avoid deleting newly saved reports
-      const TWO_MINUTES_AGO = Date.now() - 2 * 60 * 1000;
-      const toDeleteLocal = allLocal.filter((localReport) => {
-        // Don't delete recently saved reports (might not be uploaded yet)
-        const savedTime = new Date(localReport.saved_at).getTime();
-        if (savedTime > TWO_MINUTES_AGO) {
-          return false;
-        }
-        // If local report is not in cloud, it was likely deleted on another device
-        return !cloudKeys.has(getReportSignature(localReport));
-      });
-
-      if (toDeleteLocal.length > 0) {
-        console.log(`☁️ Sync: Removing ${toDeleteLocal.length} locally cached reports that were deleted from cloud...`);
-        const idsToDelete = toDeleteLocal
-          .map((r) => r.id)
-          .filter((id): id is number => id !== undefined);
-        if (idsToDelete.length > 0) {
-          await deleteReports(idsToDelete);
-          console.log(`☁️ Sync: Removed ${idsToDelete.length} local reports`);
-        }
-      }
-
       // Reload UI if any changes
-      if (toUpload.length > 0 || toDownload.length > 0 || toDeleteLocal.length > 0) {
+      if (toUpload.length > 0 || toDownload.length > 0) {
         await loadReports();
         await loadCounts();
       } else {
