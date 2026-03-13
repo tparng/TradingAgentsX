@@ -593,19 +593,19 @@ export default function HistoryPage() {
           })) as (SavedReport & { cloudId?: string })[];
 
         if (cloudFiltered.length > 0) {
-          // Merge: prefer cloud data, but include local-only reports
-          // Create a Set of cloud report keys (ticker + date + content snippet) for deduplication
-          const cloudKeys = new Set(
-            cloudFiltered.map((r) => getReportSignature(r)),
+          // Merge: prefer LOCAL data (full analyst content) over cloud data
+          // (cloud list endpoint may not include full report content)
+          const localSignatures = new Set(
+            localData.map((r) => getReportSignature(r)),
           );
 
-          // Find local reports that don't exist in cloud
-          const localOnly = localData.filter(
-            (r) => !cloudKeys.has(getReportSignature(r)),
+          // Find cloud reports that don't exist locally (new device / cleared storage)
+          const cloudOnly = cloudFiltered.filter(
+            (r) => !localSignatures.has(getReportSignature(r)),
           );
 
-          // Combine: cloud reports + local-only reports
-          const merged = [...cloudFiltered, ...localOnly];
+          // Combine: local reports first (full content) + cloud-only reports
+          const merged = [...localData, ...cloudOnly];
 
           // Sort by saved_at descending
           merged.sort(
