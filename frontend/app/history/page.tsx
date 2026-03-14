@@ -870,6 +870,13 @@ export default function HistoryPage() {
   const [pdfError, setPdfError] = useState<string | null>(null);
   const [pdfIframeLoaded, setPdfIframeLoaded] = useState(false);
 
+  // Safari's <embed> may not fire onLoad — clear the loading overlay after 3s max
+  useEffect(() => {
+    if (!pdfPreviewUrl || pdfIframeLoaded) return;
+    const timer = setTimeout(() => setPdfIframeLoaded(true), 3000);
+    return () => clearTimeout(timer);
+  }, [pdfPreviewUrl, pdfIframeLoaded]);
+
   const handleClosePdfPreview = () => {
     setPdfPreviewOpen(false);
     // Ask backend to clean up the temp PDF (fire-and-forget)
@@ -1270,13 +1277,13 @@ export default function HistoryPage() {
                 </div>
               )}
 
-              {/* Inline PDF iframe */}
+              {/* Inline PDF embed — <embed> works in Safari; <iframe> does not */}
               {pdfPreviewUrl && (
-                <iframe
+                <embed
                   key={pdfPreviewUrl}
                   src={pdfPreviewUrl}
-                  className="w-full h-full border-0"
-                  title={pdfPreviewFilename}
+                  type="application/pdf"
+                  className="w-full h-full"
                   onLoad={() => setPdfIframeLoaded(true)}
                 />
               )}
