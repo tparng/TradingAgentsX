@@ -402,6 +402,9 @@ export default function HistoryPage() {
   // Auto-sync tracking ref
   const hasAutoSyncedRef = useRef(false);
   const cloudReportsPromiseRef = useRef<Promise<any[] | null> | null>(null);
+  // Version counter — incremented on every loadReports call; stale async paths
+  // that complete after a newer invocation started are silently discarded.
+  const loadVersionRef = useRef(0);
 
   const fetchCloudReportsCached = async (forceRefresh = false) => {
     if (forceRefresh || !cloudReportsPromiseRef.current) {
@@ -609,24 +612,27 @@ export default function HistoryPage() {
   }, [isAuthenticated]);
 
   const loadReports = async () => {
-    // Helper to filter reports by current UI language
-    const filterByLang = (reports: SavedReport[]) => {
-      return reports.filter((report) => {
+    // Bump version so any older in-flight invocations can self-abort
+    const myVersion = ++loadVersionRef.current;
+
+    // Helper to filter reports by current UI language (captured at call time)
+    const currentLocale = locale;
+    const filterByLang = (reports: SavedReport[]) =>
+      reports.filter((report) => {
         const reportLang = report.language || detectReportLanguage(report.result?.reports);
-        return reportLang === locale;
+        return reportLang === currentLocale;
       });
-    };
 
     // ── PHASE 1: Show local IndexedDB data INSTANTLY (no loading spinner) ──
     try {
       const localData = await getReportsByMarketType(activeTab);
+      if (loadVersionRef.current !== myVersion) return; // stale — newer call took over
       setReports(filterByLang(localData));
       setIsCloudData(false);
     } catch (error) {
       console.error("Failed to load local reports:", error);
     } finally {
-      // Always clear loading after local data is shown
-      setLoading(false);
+      if (loadVersionRef.current === myVersion) setLoading(false);
     }
 
     // ── PHASE 2: Silently fetch cloud data and merge in background ──
@@ -634,10 +640,12 @@ export default function HistoryPage() {
 
     try {
       const cloudReports = await fetchCloudReportsCached();
+      if (loadVersionRef.current !== myVersion) return; // stale
       if (!cloudReports) return;
 
       // Re-fetch local to ensure we have the latest after potential sync
       const localData = await getReportsByMarketType(activeTab);
+      if (loadVersionRef.current !== myVersion) return; // stale
 
       const cloudFiltered = cloudReports
         .filter((r) => r.market_type === activeTab)
@@ -661,13 +669,11 @@ export default function HistoryPage() {
         merged.sort(
           (a, b) => new Date(b.saved_at).getTime() - new Date(a.saved_at).getTime(),
         );
-        // Silently update without showing loading spinner
         setReports(filterByLang(merged));
         setIsCloudData(true);
       }
     } catch (error) {
       console.error("Failed to load cloud reports:", error);
-      // Local data already shown — no action needed
     }
   };
 
@@ -871,30 +877,38 @@ export default function HistoryPage() {
 
   // PDF Preview Modal state
   const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false);
+  // pdfPreviewUrl is now a plain path like /api/pdf/serve/{temp_id} — not a blob URL.
+  // Loading from a real URL (not blob:) fixes Safari iframe PDF rendering.
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
+  const [pdfTempId, setPdfTempId] = useState<string | null>(null);
   const [pdfPreviewFilename, setPdfPreviewFilename] = useState<string>("");
   const [pdfGenerating, setPdfGenerating] = useState(false);
   const [pdfPreviewReport, setPdfPreviewReport] = useState<SavedReport | null>(null);
 
   const handleClosePdfPreview = () => {
     setPdfPreviewOpen(false);
-    // Revoke blob URL to free memory
-    if (pdfPreviewUrl) {
-      window.URL.revokeObjectURL(pdfPreviewUrl);
-      setPdfPreviewUrl(null);
+    // Ask backend to clean up the temp PDF (fire-and-forget)
+    if (pdfTempId) {
+      fetch(`/api/pdf/temp/${pdfTempId}`, { method: "DELETE" }).catch(() => {});
+      setPdfTempId(null);
     }
+    setPdfPreviewUrl(null);
     setPdfPreviewFilename("");
     setPdfPreviewReport(null);
   };
 
   const handleDownloadFromPreview = () => {
-    if (!pdfPreviewUrl || !pdfPreviewFilename) return;
+    if (!pdfTempId || !pdfPreviewFilename) return;
+    // Download via ?download=true — backend serves with Content-Disposition: attachment
+    // and removes the cached entry afterwards.
     const link = document.createElement("a");
-    link.href = pdfPreviewUrl;
+    link.href = `/api/pdf/serve/${pdfTempId}?download=true`;
     link.download = pdfPreviewFilename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    // Clear temp_id locally (backend already deleted it on download)
+    setPdfTempId(null);
   };
 
   // Helper: build PDF request body for a report
@@ -945,13 +959,15 @@ export default function HistoryPage() {
 
     // Open preview modal immediately with loading state
     setPdfPreviewReport(report);
+    setPdfTempId(null);
     setPdfPreviewUrl(null);
     setPdfPreviewFilename(`${report.ticker}_Combined_Report_${report.analysis_date}.pdf`);
     setPdfGenerating(true);
     setPdfPreviewOpen(true);
 
     try {
-      const response = await fetch("/api/download/reports", {
+      // POST to generate endpoint — backend generates PDF, caches it, returns temp_id
+      const response = await fetch("/api/pdf/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestBody),
@@ -959,23 +975,14 @@ export default function HistoryPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || `下載失敗 (${response.status})`);
+        throw new Error(errorData.detail || `PDF 產生失敗 (${response.status})`);
       }
 
-      // Use arrayBuffer → explicit Blob to guarantee MIME type (fixes Safari iframe PDF preview)
-      const arrayBuffer = await response.arrayBuffer();
-      const pdfBlob = new Blob([arrayBuffer], { type: 'application/pdf' });
+      const { temp_id, filename } = await response.json();
 
-      // Extract filename from Content-Disposition header
-      const contentDisposition = response.headers.get("Content-Disposition");
-      let filename = `${report.ticker}_Combined_Report_${report.analysis_date}.pdf`;
-      if (contentDisposition) {
-        const match = contentDisposition.match(/filename=(.+)/);
-        if (match) filename = match[1];
-      }
-
-      const blobUrl = window.URL.createObjectURL(pdfBlob);
-      setPdfPreviewUrl(blobUrl);
+      // Set iframe src to a plain URL — Safari can render PDFs from real URLs fine
+      setPdfTempId(temp_id);
+      setPdfPreviewUrl(`/api/pdf/serve/${temp_id}`);
       setPdfPreviewFilename(filename);
     } catch (error: any) {
       console.error("PDF generation error:", error);

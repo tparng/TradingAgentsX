@@ -57,9 +57,12 @@ async function proxyRequest(req: NextRequest, { params }: { params: Promise<{ pa
       contentType.startsWith("image/")
     ) {
       const buffer = await response.arrayBuffer();
+      const binaryHeaders: Record<string, string> = { "Content-Type": contentType };
+      const cd = response.headers.get("content-disposition");
+      if (cd) binaryHeaders["Content-Disposition"] = cd;
       return new NextResponse(buffer, {
         status: response.status,
-        headers: { "Content-Type": contentType },
+        headers: binaryHeaders,
       });
     }
 

@@ -5,6 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from datetime import datetime
 import logging
 import threading
+import uuid
+import time
 
 from backend.app.models.schemas import (
     AnalysisRequest,
@@ -27,6 +29,19 @@ logger = logging.getLogger(__name__)
 
 # Create API router
 router = APIRouter(prefix="/api", tags=["TradingAgentsX"])
+
+# ── Temporary PDF cache ─────────────────────────────────────────────────────
+# Stores generated PDFs briefly so the browser can load them via a plain URL
+# (avoids blob-URL issues in Safari). Auto-expires after PDF_TTL seconds.
+_pdf_cache: dict[str, dict] = {}
+_PDF_TTL = 600  # 10 minutes
+
+def _schedule_pdf_cleanup(temp_id: str, delay: float = _PDF_TTL):
+    def _do():
+        _pdf_cache.pop(temp_id, None)
+    t = threading.Timer(delay, _do)
+    t.daemon = True
+    t.start()
 
 
 @router.get("/health", response_model=HealthResponse)
@@ -384,6 +399,151 @@ async def download_reports(request: DownloadRequest):
             "Content-Disposition": f"attachment; filename={filename}"
         }
     )
+
+
+@router.post("/pdf/generate")
+async def generate_pdf_temp(request: DownloadRequest):
+    """
+    Generate PDF and store it temporarily in memory, returning a temp_id.
+    The frontend uses the temp_id to load the PDF via a plain URL (GET /api/pdf/serve/{temp_id}),
+    which fixes Safari's inability to render PDF blob URLs inside iframes.
+    Auto-expires after 10 minutes.
+    """
+    from fastapi.responses import Response
+    from backend.app.services.download_service import download_service
+
+    if request.task_id:
+        task = task_manager.get_task_status(request.task_id)
+        if not task:
+            raise HTTPException(status_code=404, detail=f"Task {request.task_id} not found")
+        if task.get("status") != "completed":
+            raise HTTPException(status_code=400, detail="Task is not completed yet")
+        result = task.get("result")
+        if not result:
+            raise HTTPException(status_code=404, detail="No analysis result found")
+        reports_data = result.get("reports", {})
+        price_data = result.get("price_data")
+        price_stats = result.get("price_stats")
+    else:
+        if not request.reports:
+            raise HTTPException(status_code=400, detail="Either task_id or reports data is required")
+        reports_data = request.reports
+        price_data = request.price_data
+        price_stats = request.price_stats
+
+    language = request.language or "zh-TW"
+
+    if language == "en":
+        ANALYST_MAPPING = {
+            "market": ("Market Analyst", "market_report"),
+            "social": ("Social Media Analyst", "sentiment_report"),
+            "news": ("News Analyst", "news_report"),
+            "fundamentals": ("Fundamentals Analyst", "fundamentals_report"),
+            "bull": ("Bull Researcher", "investment_debate_state.bull_history"),
+            "bear": ("Bear Researcher", "investment_debate_state.bear_history"),
+            "research_manager": ("Research Manager", "investment_debate_state.judge_decision"),
+            "trader": ("Trader", "trader_investment_plan"),
+            "risky": ("Aggressive Analyst", "risk_debate_state.risky_history"),
+            "safe": ("Conservative Analyst", "risk_debate_state.safe_history"),
+            "neutral": ("Neutral Analyst", "risk_debate_state.neutral_history"),
+            "risk_manager": ("Risk Manager", "risk_debate_state.judge_decision"),
+        }
+    else:
+        ANALYST_MAPPING = {
+            "market": ("市場分析師", "market_report"),
+            "social": ("社群媒體分析師", "sentiment_report"),
+            "news": ("新聞分析師", "news_report"),
+            "fundamentals": ("基本面分析師", "fundamentals_report"),
+            "bull": ("看漲研究員", "investment_debate_state.bull_history"),
+            "bear": ("看跌研究員", "investment_debate_state.bear_history"),
+            "research_manager": ("研究經理", "investment_debate_state.judge_decision"),
+            "trader": ("交易員", "trader_investment_plan"),
+            "risky": ("激進分析師", "risk_debate_state.risky_history"),
+            "safe": ("保守分析師", "risk_debate_state.safe_history"),
+            "neutral": ("中立分析師", "risk_debate_state.neutral_history"),
+            "risk_manager": ("風險經理", "risk_debate_state.judge_decision"),
+        }
+
+    def get_nested_value(obj: dict, path: str):
+        keys = path.split('.')
+        for key in keys:
+            if isinstance(obj, dict):
+                obj = obj.get(key)
+            else:
+                return None
+        return obj
+
+    reports_to_download = []
+    for analyst_key in request.analysts:
+        if analyst_key not in ANALYST_MAPPING:
+            continue
+        analyst_name, report_key = ANALYST_MAPPING[analyst_key]
+        report_content = get_nested_value(reports_data, report_key)
+        if report_content:
+            reports_to_download.append({
+                "analyst_name": analyst_name,
+                "report_content": report_content,
+            })
+
+    if not reports_to_download:
+        raise HTTPException(status_code=404, detail="No reports found for selected analysts")
+
+    pdf_bytes, filename = download_service.create_combined_pdf(
+        ticker=request.ticker,
+        analysis_date=request.analysis_date,
+        reports=reports_to_download,
+        price_data=price_data,
+        price_stats=price_stats,
+        language=language,
+    )
+
+    temp_id = str(uuid.uuid4())
+    _pdf_cache[temp_id] = {
+        "bytes": pdf_bytes,
+        "filename": filename,
+        "created": time.time(),
+    }
+    _schedule_pdf_cleanup(temp_id)
+
+    print(f"📦 PDF cached: {temp_id} ({len(pdf_bytes)} bytes, expires in {_PDF_TTL}s)")
+    return {"temp_id": temp_id, "filename": filename}
+
+
+@router.get("/pdf/serve/{temp_id}")
+async def serve_pdf_temp(temp_id: str, download: bool = False):
+    """
+    Serve a temporarily cached PDF.
+    - Default (inline): browser renders in iframe — for preview
+    - ?download=true: browser downloads as file — for the Download button
+    Cache entry is removed after a successful download request.
+    """
+    from fastapi.responses import Response
+
+    entry = _pdf_cache.get(temp_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail="PDF not found or expired")
+
+    filename = entry["filename"]
+    pdf_bytes = entry["bytes"]
+
+    if download:
+        _pdf_cache.pop(temp_id, None)  # auto-delete after download
+        disposition = f'attachment; filename="{filename}"'
+    else:
+        disposition = f'inline; filename="{filename}"'
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": disposition},
+    )
+
+
+@router.delete("/pdf/temp/{temp_id}")
+async def delete_pdf_temp(temp_id: str):
+    """Delete a cached PDF (called when user closes the preview modal without downloading)."""
+    _pdf_cache.pop(temp_id, None)
+    return {"ok": True}
 
 
 @router.post("/chat", response_model=ChatResponse)

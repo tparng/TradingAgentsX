@@ -316,10 +316,12 @@ class PDFGenerator:
             for cell_idx, cell in enumerate(row):
                 text = self._clean_markdown(str(cell))
                 text = self._replace_emojis(text)
-                # Truncate long cell content to fit
-                max_chars = max(8, int(col_w * 1.5))
-                if len(text) > max_chars:
-                    text = text[:max_chars - 2] + '..'
+                # Truncate using actual font metrics so CJK chars don't overflow
+                avail = col_w - 2.0  # 1 mm padding on each side
+                if pdf.get_string_width(text) > avail:
+                    while len(text) > 1 and pdf.get_string_width(text + '..') > avail:
+                        text = text[:-1]
+                    text = text + '..'
                 border = 1  # full border on all cells (matches 0311 style)
                 pdf.cell(col_w, row_h, text, border=border, fill=fill, align='L')
 
