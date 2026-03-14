@@ -527,7 +527,6 @@ async def serve_pdf_temp(temp_id: str, download: bool = False):
     pdf_bytes = entry["bytes"]
 
     if download:
-        _pdf_cache.pop(temp_id, None)  # auto-delete after download
         disposition = f'attachment; filename="{filename}"'
     else:
         disposition = f'inline; filename="{filename}"'

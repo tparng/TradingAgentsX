@@ -37,7 +37,6 @@ import {
   Download,
   MessageCircle,
   X,
-  ExternalLink,
 } from "lucide-react";
 import {
   getReportsByMarketType,
@@ -863,13 +862,13 @@ export default function HistoryPage() {
 
   // PDF Preview Modal state
   const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false);
-  // pdfPreviewUrl is now a plain path like /api/pdf/serve/{temp_id} — not a blob URL.
-  // Loading from a real URL (not blob:) fixes Safari iframe PDF rendering.
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
   const [pdfTempId, setPdfTempId] = useState<string | null>(null);
   const [pdfPreviewFilename, setPdfPreviewFilename] = useState<string>("");
   const [pdfGenerating, setPdfGenerating] = useState(false);
   const [pdfPreviewReport, setPdfPreviewReport] = useState<SavedReport | null>(null);
+  const [pdfError, setPdfError] = useState<string | null>(null);
+  const [pdfIframeLoaded, setPdfIframeLoaded] = useState(false);
 
   const handleClosePdfPreview = () => {
     setPdfPreviewOpen(false);
@@ -881,20 +880,20 @@ export default function HistoryPage() {
     setPdfPreviewUrl(null);
     setPdfPreviewFilename("");
     setPdfPreviewReport(null);
+    setPdfError(null);
+    setPdfIframeLoaded(false);
   };
 
   const handleDownloadFromPreview = () => {
     if (!pdfTempId || !pdfPreviewFilename) return;
     // Download via ?download=true — backend serves with Content-Disposition: attachment
-    // and removes the cached entry afterwards.
     const link = document.createElement("a");
     link.href = `/api/pdf/serve/${pdfTempId}?download=true`;
     link.download = pdfPreviewFilename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    // Clear temp_id locally (backend already deleted it on download)
-    setPdfTempId(null);
+    // Note: backend no longer auto-deletes on download, cleanup happens on modal close
   };
 
   // Helper: build PDF request body for a report
@@ -949,6 +948,8 @@ export default function HistoryPage() {
     setPdfPreviewUrl(null);
     setPdfPreviewFilename(`${report.ticker}_Combined_Report_${report.analysis_date}.pdf`);
     setPdfGenerating(true);
+    setPdfError(null);
+    setPdfIframeLoaded(false);
     setPdfPreviewOpen(true);
 
     try {
@@ -969,14 +970,9 @@ export default function HistoryPage() {
       setPdfTempId(temp_id);
       setPdfPreviewUrl(`/api/pdf/serve/${temp_id}`);
       setPdfPreviewFilename(filename);
-
-      // Auto-open PDF in a new browser tab — works reliably in ALL browsers
-      // including Safari 16+ which no longer renders PDFs inside <iframe>.
-      window.open(`/api/pdf/serve/${temp_id}`, "_blank");
     } catch (error: any) {
       console.error("PDF generation error:", error);
-      setPdfPreviewOpen(false);
-      alert(error.message || "PDF 產生失敗，請稍後再試");
+      setPdfError(error.message || "PDF 產生失敗，請稍後再試");
     } finally {
       setPdfGenerating(false);
     }
@@ -1234,9 +1230,10 @@ export default function HistoryPage() {
             </div>
 
             {/* Modal Body */}
-            <div className="flex-1 flex flex-col items-center justify-center gap-6 p-8 bg-gray-50 dark:bg-gray-900 text-center">
-              {pdfGenerating ? (
-                <>
+            <div className="flex-1 relative overflow-hidden bg-gray-100 dark:bg-gray-800">
+              {/* Generating spinner */}
+              {pdfGenerating && (
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-white dark:bg-gray-900">
                   <div className="h-16 w-16 rounded-full border-4 border-purple-200 border-t-purple-600 animate-spin" />
                   <p className="text-gray-600 dark:text-gray-300 font-medium">
                     {locale === "zh-TW" ? "正在產生 PDF 報告…" : "Generating PDF report…"}
@@ -1244,37 +1241,44 @@ export default function HistoryPage() {
                   <p className="text-sm text-gray-400 dark:text-gray-500">
                     {locale === "zh-TW" ? "請稍候，通常需要 10–30 秒" : "This usually takes 10–30 seconds"}
                   </p>
-                </>
-              ) : pdfTempId ? (
-                <>
-                  {/* Success icon */}
-                  <div className="h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                    <FileText className="h-8 w-8 text-green-600 dark:text-green-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1">
-                      {locale === "zh-TW" ? "PDF 已在新分頁開啟" : "PDF Opened in New Tab"}
-                    </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {locale === "zh-TW"
-                        ? "已自動在新分頁預覽，可在下方下載儲存"
-                        : "Opened automatically for preview. Use the button below to download."}
-                    </p>
-                  </div>
-                  {/* Re-open button */}
+                </div>
+              )}
+
+              {/* Error state */}
+              {!pdfGenerating && pdfError && (
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-white dark:bg-gray-900 p-8 text-center">
+                  <p className="text-red-500 font-medium">
+                    {locale === "zh-TW" ? "PDF 產生失敗" : "Failed to generate PDF"}
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{pdfError}</p>
                   <Button
                     variant="outline"
-                    className="gap-2"
-                    onClick={() => window.open(`/api/pdf/serve/${pdfTempId}`, "_blank")}
+                    onClick={() => pdfPreviewReport && handleDownloadPdf(pdfPreviewReport)}
                   >
-                    <ExternalLink className="h-4 w-4" />
-                    {locale === "zh-TW" ? "再次開啟預覽" : "Open Preview Again"}
+                    {locale === "zh-TW" ? "重試" : "Retry"}
                   </Button>
-                </>
-              ) : (
-                <p className="text-red-500">
-                  {locale === "zh-TW" ? "PDF 產生失敗" : "Failed to generate PDF"}
-                </p>
+                </div>
+              )}
+
+              {/* iframe loading overlay — shown until iframe fires onLoad */}
+              {pdfPreviewUrl && !pdfIframeLoaded && !pdfGenerating && !pdfError && (
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-white dark:bg-gray-900">
+                  <div className="h-10 w-10 rounded-full border-4 border-purple-200 border-t-purple-600 animate-spin" />
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {locale === "zh-TW" ? "載入中…" : "Loading…"}
+                  </p>
+                </div>
+              )}
+
+              {/* Inline PDF iframe */}
+              {pdfPreviewUrl && (
+                <iframe
+                  key={pdfPreviewUrl}
+                  src={pdfPreviewUrl}
+                  className="w-full h-full border-0"
+                  title={pdfPreviewFilename}
+                  onLoad={() => setPdfIframeLoaded(true)}
+                />
               )}
             </div>
 
@@ -1285,7 +1289,7 @@ export default function HistoryPage() {
               </Button>
               <Button
                 onClick={handleDownloadFromPreview}
-                disabled={!pdfPreviewUrl || pdfGenerating}
+                disabled={!pdfTempId || pdfGenerating || !!pdfError}
                 className="gap-2 bg-purple-600 hover:bg-purple-700 text-white"
               >
                 <Download className="h-4 w-4" />
