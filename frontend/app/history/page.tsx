@@ -484,10 +484,13 @@ export default function HistoryPage() {
         (r) => !cloudKeys.has(getReportSignature(r)),
       );
 
+      // Track signatures that failed to upload so we don't purge them below
+      const uploadFailedSigs = new Set<string>();
       if (toUpload.length > 0) {
         console.log(`☁️ Sync: Uploading ${toUpload.length} local reports to cloud...`);
         let uploadSuccess = 0;
         for (const report of toUpload) {
+          const sig = getReportSignature(report as any);
           try {
             const cloudId = await saveCloudReport({
               ticker: report.ticker,
@@ -496,9 +499,13 @@ export default function HistoryPage() {
               result: report.result,
               language: report.language || detectReportLanguage(report.result?.reports),
             });
-            if (cloudId) uploadSuccess++;
+            if (cloudId) {
+              uploadSuccess++;
+            } else {
+              uploadFailedSigs.add(sig);
+            }
           } catch (e) {
-            // Silently continue on error
+            uploadFailedSigs.add(sig); // preserve on network error
           }
         }
         if (uploadSuccess > 0) {
@@ -506,8 +513,35 @@ export default function HistoryPage() {
         }
       }
 
+      // Re-fetch cloud after uploads so the authoritative list includes just-uploaded reports.
+      // Without this, successfully uploaded reports would appear absent from cloudKeys
+      // and incorrectly be purged in the next step.
+      const authoritativeCloud = toUpload.length > 0
+        ? (await fetchCloudReportsCached(true) || cloudReports)
+        : cloudReports;
+      const authoritativeKeys = new Set(authoritativeCloud.map((r) => getReportSignature(r)));
+
+      // === PURGE: Remove local reports deleted on another device ===
+      // If a report exists locally but is absent from the authoritative cloud list,
+      // it was deleted on another device. Delete it locally too.
+      // Exception: skip reports whose upload just failed (preserve local data on error).
+      const toPurgeLocally = allLocal.filter((r) => {
+        const sig = getReportSignature(r as any);
+        return !authoritativeKeys.has(sig) && !uploadFailedSigs.has(sig);
+      });
+
+      if (toPurgeLocally.length > 0) {
+        const idsToRemove = toPurgeLocally
+          .filter((r) => r.id !== undefined)
+          .map((r) => r.id!);
+        if (idsToRemove.length > 0) {
+          await deleteReports(idsToRemove);
+          console.log(`☁️ Sync: Removed ${idsToRemove.length} report(s) deleted on another device`);
+        }
+      }
+
       // === DOWNLOAD: Cloud -> Local ===
-      const toDownload = cloudReports.filter(
+      const toDownload = authoritativeCloud.filter(
         (r) => !localKeys.has(getReportSignature(r)),
       );
 
@@ -529,7 +563,7 @@ export default function HistoryPage() {
       }
 
       // Reload UI if any changes
-      if (toUpload.length > 0 || toDownload.length > 0) {
+      if (toUpload.length > 0 || toDownload.length > 0 || toPurgeLocally.length > 0) {
         await loadReports();
         await loadCounts();
       } else {
