@@ -77,7 +77,7 @@ PDF_LABELS = {
         'cover_subtitle': 'AI 驅動多角度投資分析',
         'toc_title': '目錄',
         'report_content': '報告內容',
-        'price_chart': '價格走勢 & 成交量',
+        'price_chart': '價格走勢圖 & 交易量柱狀圖',
         'price_stats': '價格統計',
         'item': '項目',
         'value': '數值',
@@ -92,7 +92,7 @@ PDF_LABELS = {
         'analysts_team': '分析師團隊',
         'research_team': '研究團隊',
         'trading_risk_team': '交易與風險團隊',
-        'members': '位成員',
+        'members': '位',
         'market_analyst': '市場分析師',
         'fundamentals_analyst': '基本面分析師',
         'social_analyst': '社群媒體分析師',
@@ -297,10 +297,10 @@ class PDFGenerator:
             row = (list(row) + [''] * num_cols)[:num_cols]
 
             if row_idx == 0:
-                # Header row
+                # Header row — light gray background, black text (matches 0311 style)
                 pdf.set_font(fn, 'B', size=9)
-                self._set_color(pdf, '#2c3e50', is_text=False)
-                pdf.set_text_color(255, 255, 255)
+                self._set_color(pdf, '#e8eaed', is_text=False)
+                pdf.set_text_color(30, 30, 30)
                 fill = True
             else:
                 # Alternate row shading
@@ -320,7 +320,7 @@ class PDFGenerator:
                 max_chars = max(8, int(col_w * 1.5))
                 if len(text) > max_chars:
                     text = text[:max_chars - 2] + '..'
-                border = 'B' if row_idx == 0 else 1
+                border = 1  # full border on all cells (matches 0311 style)
                 pdf.cell(col_w, row_h, text, border=border, fill=fill, align='L')
 
             pdf.ln()
@@ -496,9 +496,9 @@ class PDFGenerator:
         # Vertical center — push down ~80mm
         pdf.ln(60)
 
-        # Ticker — large, letter-spaced
+        # Ticker — large, letter-spaced, regular weight
         spaced_ticker = '  '.join(ticker)
-        pdf.set_font(fn, 'B', size=48)
+        pdf.set_font(fn, '', size=48)
         self._set_color(pdf, '#1a1a1a')
         pdf.cell(0, 20, spaced_ticker, align='C', new_x='LMARGIN', new_y='NEXT')
 
@@ -523,29 +523,32 @@ class PDFGenerator:
         fn = self._fn()
         pdf.add_page()
 
-        # TOC title
-        pdf.set_font(fn, 'B', size=22)
+        # TOC title — centered, regular weight (matches 0311 style)
+        pdf.set_font(fn, '', size=26)
         self._set_color(pdf, '#1e3a5f')
-        pdf.cell(0, 12, get_pdf_label('toc_title', language), align='L', new_x='LMARGIN', new_y='NEXT')
+        pdf.cell(0, 14, get_pdf_label('toc_title', language), align='C', new_x='LMARGIN', new_y='NEXT')
 
-        # Horizontal rule
+        # Horizontal rule under title
         pdf.set_draw_color(44, 62, 80)
         pdf.line(pdf.l_margin, pdf.get_y(), pdf.l_margin + pdf.epw, pdf.get_y())
-        pdf.ln(6)
+        pdf.ln(8)
 
         report_analyst_names = [r.get('analyst_name', '') for r in reports]
 
-        # Report Content header
-        pdf.set_font(fn, 'B', size=12)
+        # Report Content header — with underline
+        pdf.set_font(fn, '', size=12)
         self._set_color(pdf, '#2c3e50')
-        pdf.cell(0, 8, get_pdf_label('report_content', language), new_x='LMARGIN', new_y='NEXT')
+        pdf.cell(0, 7, get_pdf_label('report_content', language), new_x='LMARGIN', new_y='NEXT')
+        pdf.set_draw_color(180, 180, 180)
+        pdf.line(pdf.l_margin, pdf.get_y(), pdf.l_margin + pdf.epw, pdf.get_y())
+        pdf.ln(2)
 
         # Chart entry
         if has_chart:
-            pdf.set_font(fn, size=11)
+            pdf.set_font(fn, '', size=11)
             self._set_color(pdf, '#555555')
-            pdf.cell(8, 7, '')  # indent
-            pdf.cell(0, 7, get_pdf_label('price_chart', language),
+            pdf.cell(16, 6, '')  # indent
+            pdf.cell(0, 6, get_pdf_label('price_chart', language),
                      new_x='LMARGIN', new_y='NEXT')
 
         if teams:
@@ -554,19 +557,23 @@ class PDFGenerator:
                 if team_count == 0:
                     continue
 
-                pdf.ln(3)
-                pdf.set_font(fn, 'B', size=12)
+                pdf.ln(4)
+                # Team header — regular weight with underline (matches 0311)
+                pdf.set_font(fn, '', size=14)
                 self._set_color(pdf, '#2c3e50')
                 members_label = get_pdf_label('members', language)
-                pdf.cell(0, 8, f"{team['name']}  ({team_count} {members_label})",
+                pdf.cell(0, 8, f"{team['name']} ({team_count} {members_label})",
                          new_x='LMARGIN', new_y='NEXT')
+                pdf.set_draw_color(180, 180, 180)
+                pdf.line(pdf.l_margin, pdf.get_y(), pdf.l_margin + pdf.epw, pdf.get_y())
+                pdf.ln(2)
 
-                pdf.set_font(fn, size=11)
+                pdf.set_font(fn, '', size=11)
                 self._set_color(pdf, '#555555')
                 for member in team['members']:
                     if member in report_analyst_names:
-                        pdf.cell(12, 7, '')  # indent
-                        pdf.cell(0, 7, f'- {member}', new_x='LMARGIN', new_y='NEXT')
+                        pdf.cell(16, 6, '')  # indent
+                        pdf.cell(0, 6, f'- {member}', new_x='LMARGIN', new_y='NEXT')
 
         pdf.set_text_color(0, 0, 0)
 
@@ -576,13 +583,11 @@ class PDFGenerator:
         fn = self._fn()
         pdf.add_page()
 
-        # Section title
-        pdf.set_font(fn, 'B', size=18)
+        # Section title — centered, large, regular weight (matches 0311 style)
+        pdf.set_font(fn, '', size=22)
         self._set_color(pdf, '#1e3a5f')
-        pdf.cell(0, 10, get_pdf_label('price_chart', language),
-                 new_x='LMARGIN', new_y='NEXT')
-        pdf.set_draw_color(44, 62, 80)
-        pdf.line(pdf.l_margin, pdf.get_y(), pdf.l_margin + pdf.epw, pdf.get_y())
+        pdf.cell(0, 12, get_pdf_label('price_chart', language),
+                 align='C', new_x='LMARGIN', new_y='NEXT')
         pdf.ln(4)
 
         # Chart image
@@ -601,11 +606,14 @@ class PDFGenerator:
 
         # Price statistics table
         if price_stats:
-            pdf.set_font(fn, 'B', size=13)
+            pdf.set_font(fn, '', size=14)
             self._set_color(pdf, '#2c3e50')
             pdf.cell(0, 8, get_pdf_label('price_stats', language),
                      new_x='LMARGIN', new_y='NEXT')
-            pdf.ln(2)
+            # Underline under section header (matches 0311 style)
+            pdf.set_draw_color(180, 180, 180)
+            pdf.line(pdf.l_margin, pdf.get_y(), pdf.l_margin + pdf.epw, pdf.get_y())
+            pdf.ln(4)
 
             growth_rate = price_stats.get('growth_rate', 0)
             growth_text = f'+{growth_rate:.2f}%' if growth_rate >= 0 else f'{growth_rate:.2f}%'
@@ -638,14 +646,15 @@ class PDFGenerator:
         else:
             spaced_name = team_name
 
-        pdf.set_font(fn, 'B', size=36)
-        self._set_color(pdf, '#2c3e50')
+        # Regular weight, lighter color (matches 0311 style)
+        pdf.set_font(fn, '', size=34)
+        self._set_color(pdf, '#4a6fa5')
         pdf.cell(0, 18, spaced_name, align='C', new_x='LMARGIN', new_y='NEXT')
 
         # Member count
         members_label = get_pdf_label('members', language)
-        pdf.set_font(fn, size=18)
-        self._set_color(pdf, '#7f8c8d')
+        pdf.set_font(fn, '', size=16)
+        self._set_color(pdf, '#9aa5b4')
         pdf.cell(0, 12, f'({member_count} {members_label})',
                  align='C', new_x='LMARGIN', new_y='NEXT')
 
@@ -658,16 +667,16 @@ class PDFGenerator:
         fn = self._fn()
         pdf.add_page()
 
-        # Section title
-        pdf.set_font(fn, 'B', size=18)
+        # Analyst name — centered, regular weight, large (matches 0311 style)
+        pdf.set_font(fn, '', size=26)
         self._set_color(pdf, '#1e3a5f')
-        pdf.cell(0, 10, analyst_name, new_x='LMARGIN', new_y='NEXT')
+        pdf.cell(0, 13, analyst_name, align='C', new_x='LMARGIN', new_y='NEXT')
 
-        # Subtitle
-        pdf.set_font(fn, size=11)
-        self._set_color(pdf, '#666666')
-        pdf.cell(0, 7, f'{ticker}  |  {analysis_date}',
-                 new_x='LMARGIN', new_y='NEXT')
+        # Subtitle — centered
+        pdf.set_font(fn, '', size=11)
+        self._set_color(pdf, '#888888')
+        pdf.cell(0, 7, f'{ticker} | {analysis_date}',
+                 align='C', new_x='LMARGIN', new_y='NEXT')
 
         # Divider
         pdf.set_draw_color(44, 62, 80)

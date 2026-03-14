@@ -962,7 +962,9 @@ export default function HistoryPage() {
         throw new Error(errorData.detail || `下載失敗 (${response.status})`);
       }
 
-      const blob = await response.blob();
+      // Use arrayBuffer → explicit Blob to guarantee MIME type (fixes Safari iframe PDF preview)
+      const arrayBuffer = await response.arrayBuffer();
+      const pdfBlob = new Blob([arrayBuffer], { type: 'application/pdf' });
 
       // Extract filename from Content-Disposition header
       const contentDisposition = response.headers.get("Content-Disposition");
@@ -972,7 +974,7 @@ export default function HistoryPage() {
         if (match) filename = match[1];
       }
 
-      const blobUrl = window.URL.createObjectURL(blob);
+      const blobUrl = window.URL.createObjectURL(pdfBlob);
       setPdfPreviewUrl(blobUrl);
       setPdfPreviewFilename(filename);
     } catch (error: any) {
