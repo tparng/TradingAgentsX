@@ -37,6 +37,7 @@ import {
   Download,
   MessageCircle,
   X,
+  ExternalLink,
 } from "lucide-react";
 import {
   getReportsByMarketType,
@@ -318,35 +319,17 @@ const extractDecisionFromReport = (
  * Detect report language from content (for backward compatibility with old reports)
  * Checks trader_investment_plan for Chinese/English keywords
  */
-const detectReportLanguage = (reports: any): "en" | "zh-TW" => {
-  const traderPlan = reports?.trader_investment_plan;
-  if (!traderPlan || typeof traderPlan !== "string") {
-    // If no trader plan, check other reports for Chinese characters
-    const allText = JSON.stringify(reports || {});
-    const chineseRegex = /[\u4e00-\u9fa5]/;
-    return chineseRegex.test(allText) ? "zh-TW" : "en";
-  }
-
-  // Check for Chinese decision keywords
-  const chineseKeywords = ["買入", "賣出", "持有", "最終交易提案"];
-  for (const keyword of chineseKeywords) {
-    if (traderPlan.includes(keyword)) {
-      return "zh-TW";
-    }
-  }
-
-  // Check for English decision keywords
-  const englishKeywords = ["buy", "sell", "hold", "final trading proposal"];
-  const lowerPlan = traderPlan.toLowerCase();
-  for (const keyword of englishKeywords) {
-    if (lowerPlan.includes(keyword.toLowerCase())) {
-      return "en";
-    }
-  }
-
-  // Fallback: check for Chinese characters in the content
-  const chineseRegex = /[\u4e00-\u9fa5]/;
-  return chineseRegex.test(traderPlan) ? "zh-TW" : "en";
+/**
+ * Detect the language of a report by scanning ANY part of its data for CJK characters.
+ * Accepts anything — the full result object, a nested reports sub-object, or a plain string.
+ * Returns "zh-TW" if ANY Chinese character is found; otherwise "en".
+ * This is deliberately broad so old/incomplete reports that lack a `language` field
+ * are still classified correctly instead of defaulting to "en".
+ */
+const detectReportLanguage = (data: any): "en" | "zh-TW" => {
+  if (!data) return "en";
+  const text = typeof data === "string" ? data : JSON.stringify(data);
+  return /[\u4e00-\u9fa5]/.test(text) ? "zh-TW" : "en";
 };
 
 /**
@@ -619,7 +602,12 @@ export default function HistoryPage() {
     const currentLocale = locale;
     const filterByLang = (reports: SavedReport[]) =>
       reports.filter((report) => {
-        const reportLang = report.language || detectReportLanguage(report.result?.reports);
+        // Use explicit language field when available; otherwise scan the FULL
+        // result object so even old reports without a language field are
+        // detected correctly (report.result?.reports may be undefined for
+        // some report shapes — scanning the whole object is more robust).
+        const reportLang =
+          report.language || detectReportLanguage(report.result);
         return reportLang === currentLocale;
       });
 
@@ -680,14 +668,12 @@ export default function HistoryPage() {
   const loadCounts = async () => {
     try {
       // Helper to filter reports by language (matches current UI locale)
-      const filterByLanguage = (reports: SavedReport[]) => {
-        return reports.filter((report) => {
-          // Get report language - use stored value or detect from content
-          const reportLang = report.language || detectReportLanguage(report.result?.reports);
-          // Match against current locale
+      const filterByLanguage = (reports: SavedReport[]) =>
+        reports.filter((report) => {
+          const reportLang =
+            report.language || detectReportLanguage(report.result);
           return reportLang === locale;
         });
-      };
       
       if (isAuthenticated && isCloudSyncEnabled()) {
         const cloudReports = await fetchCloudReportsCached();
@@ -980,10 +966,13 @@ export default function HistoryPage() {
 
       const { temp_id, filename } = await response.json();
 
-      // Set iframe src to a plain URL — Safari can render PDFs from real URLs fine
       setPdfTempId(temp_id);
       setPdfPreviewUrl(`/api/pdf/serve/${temp_id}`);
       setPdfPreviewFilename(filename);
+
+      // Auto-open PDF in a new browser tab — works reliably in ALL browsers
+      // including Safari 16+ which no longer renders PDFs inside <iframe>.
+      window.open(`/api/pdf/serve/${temp_id}`, "_blank");
     } catch (error: any) {
       console.error("PDF generation error:", error);
       setPdfPreviewOpen(false);
@@ -1245,31 +1234,47 @@ export default function HistoryPage() {
             </div>
 
             {/* Modal Body */}
-            <div className="flex-1 overflow-hidden bg-gray-100 dark:bg-gray-800">
+            <div className="flex-1 flex flex-col items-center justify-center gap-6 p-8 bg-gray-50 dark:bg-gray-900 text-center">
               {pdfGenerating ? (
-                <div className="flex flex-col items-center justify-center h-full gap-4">
-                  <div className="relative">
-                    <div className="h-16 w-16 rounded-full border-4 border-purple-200 border-t-purple-600 animate-spin" />
-                  </div>
+                <>
+                  <div className="h-16 w-16 rounded-full border-4 border-purple-200 border-t-purple-600 animate-spin" />
                   <p className="text-gray-600 dark:text-gray-300 font-medium">
                     {locale === "zh-TW" ? "正在產生 PDF 報告…" : "Generating PDF report…"}
                   </p>
                   <p className="text-sm text-gray-400 dark:text-gray-500">
                     {locale === "zh-TW" ? "請稍候，通常需要 10–30 秒" : "This usually takes 10–30 seconds"}
                   </p>
-                </div>
-              ) : pdfPreviewUrl ? (
-                <iframe
-                  src={pdfPreviewUrl}
-                  className="w-full h-full border-0"
-                  title="PDF Preview"
-                />
+                </>
+              ) : pdfTempId ? (
+                <>
+                  {/* Success icon */}
+                  <div className="h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                    <FileText className="h-8 w-8 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1">
+                      {locale === "zh-TW" ? "PDF 已在新分頁開啟" : "PDF Opened in New Tab"}
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {locale === "zh-TW"
+                        ? "已自動在新分頁預覽，可在下方下載儲存"
+                        : "Opened automatically for preview. Use the button below to download."}
+                    </p>
+                  </div>
+                  {/* Re-open button */}
+                  <Button
+                    variant="outline"
+                    className="gap-2"
+                    onClick={() => window.open(`/api/pdf/serve/${pdfTempId}`, "_blank")}
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    {locale === "zh-TW" ? "再次開啟預覽" : "Open Preview Again"}
+                  </Button>
+                </>
               ) : (
-                <div className="flex items-center justify-center h-full">
-                  <p className="text-red-500">
-                    {locale === "zh-TW" ? "PDF 載入失敗" : "Failed to load PDF"}
-                  </p>
-                </div>
+                <p className="text-red-500">
+                  {locale === "zh-TW" ? "PDF 產生失敗" : "Failed to generate PDF"}
+                </p>
               )}
             </div>
 

@@ -275,7 +275,8 @@ class PDFGenerator:
         return table_rows, i
 
     def _add_table(self, pdf: FPDF, table_data: list):
-        """Render a parsed markdown table using fpdf2 cells"""
+        """Render a parsed markdown table using fpdf2's Table class.
+        Cells auto-expand in height — text is never truncated or clipped."""
         if not table_data or len(table_data) < 1:
             return
 
@@ -289,43 +290,60 @@ class PDFGenerator:
         if num_cols == 0:
             return
 
-        col_w = pdf.epw / num_cols
-        row_h = 7
+        pdf.set_font(fn, size=9)
+        pdf.set_text_color(51, 51, 51)
 
-        for row_idx, row in enumerate(table_data):
-            # Pad row to num_cols
-            row = (list(row) + [''] * num_cols)[:num_cols]
+        try:
+            from fpdf.table import FontFace
 
-            if row_idx == 0:
-                # Header row — light gray background, black text (matches 0311 style)
-                pdf.set_font(fn, 'B', size=9)
-                self._set_color(pdf, '#e8eaed', is_text=False)
-                pdf.set_text_color(30, 30, 30)
-                fill = True
-            else:
-                # Alternate row shading
-                pdf.set_font(fn, size=9)
-                pdf.set_text_color(51, 51, 51)
-                if row_idx % 2 == 0:
-                    self._set_color(pdf, '#f3f4f6', is_text=False)
-                    fill = True
+            headings_style = FontFace(
+                emphasis="B",            # bold via emphasis flag
+                fill_color=(232, 234, 237),
+                color=(30, 30, 30),
+            )
+
+            with pdf.table(
+                width=pdf.epw,
+                col_widths=tuple([1] * num_cols),  # equal proportional widths
+                line_height=5,
+                borders_layout="ALL",
+                first_row_as_headings=True,
+                headings_style=headings_style,
+                text_align="LEFT",
+                wrapmode="CHAR",  # character-level wrap — required for CJK text
+            ) as table:
+                for row_data in table_data:
+                    row_data_padded = (list(row_data) + [''] * num_cols)[:num_cols]
+                    row = table.row()
+                    for cell_text in row_data_padded:
+                        text = self._clean_markdown(str(cell_text))
+                        text = self._replace_emojis(text)
+                        row.cell(text)
+
+        except Exception as e:
+            # Fallback: single-line cells with truncation (backup only)
+            print(f"⚠️  Table class error ({e}), falling back to cell() rendering")
+            col_w = pdf.epw / num_cols
+            for row_idx, row_data in enumerate(table_data):
+                row_data_padded = (list(row_data) + [''] * num_cols)[:num_cols]
+                if row_idx == 0:
+                    pdf.set_font(fn, 'B', size=9)
+                    self._set_color(pdf, '#e8eaed', is_text=False)
+                    pdf.set_text_color(30, 30, 30)
                 else:
+                    pdf.set_font(fn, size=9)
+                    pdf.set_text_color(51, 51, 51)
                     pdf.set_fill_color(255, 255, 255)
-                    fill = True
-
-            for cell_idx, cell in enumerate(row):
-                text = self._clean_markdown(str(cell))
-                text = self._replace_emojis(text)
-                # Truncate using actual font metrics so CJK chars don't overflow
-                avail = col_w - 2.0  # 1 mm padding on each side
-                if pdf.get_string_width(text) > avail:
-                    while len(text) > 1 and pdf.get_string_width(text + '..') > avail:
-                        text = text[:-1]
-                    text = text + '..'
-                border = 1  # full border on all cells (matches 0311 style)
-                pdf.cell(col_w, row_h, text, border=border, fill=fill, align='L')
-
-            pdf.ln()
+                for cell_text in row_data_padded:
+                    text = self._clean_markdown(str(cell_text))
+                    text = self._replace_emojis(text)
+                    avail = col_w - 2.0
+                    if pdf.get_string_width(text) > avail:
+                        while len(text) > 1 and pdf.get_string_width(text + '..') > avail:
+                            text = text[:-1]
+                        text = text + '..'
+                    pdf.cell(col_w, 7, text, border=1, fill=(row_idx == 0), align='L')
+                pdf.ln()
 
         pdf.set_text_color(0, 0, 0)
         pdf.set_fill_color(255, 255, 255)
