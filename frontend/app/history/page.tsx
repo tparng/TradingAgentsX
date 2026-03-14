@@ -1291,9 +1291,6 @@ export default function HistoryPage() {
 
             {/* Modal Footer */}
             <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-gray-200 dark:border-gray-700 shrink-0">
-              <Button variant="outline" onClick={handleClosePdfPreview}>
-                {locale === "zh-TW" ? "關閉" : "Close"}
-              </Button>
               <Button
                 onClick={handleDownloadFromPreview}
                 disabled={!pdfTempId || pdfGenerating || !!pdfError}
