@@ -47,6 +47,22 @@ async function proxyRequest(req: NextRequest, { params }: { params: Promise<{ pa
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
 
+    const contentType = response.headers.get("content-type") || "";
+
+    // Binary responses (PDF, octet-stream, images) must use arrayBuffer —
+    // response.text() mangles non-UTF-8 bytes and corrupts the file.
+    if (
+      contentType.includes("application/pdf") ||
+      contentType.includes("application/octet-stream") ||
+      contentType.startsWith("image/")
+    ) {
+      const buffer = await response.arrayBuffer();
+      return new NextResponse(buffer, {
+        status: response.status,
+        headers: { "Content-Type": contentType },
+      });
+    }
+
     const data = await response.text();
 
     if (!response.ok) {
@@ -67,7 +83,7 @@ async function proxyRequest(req: NextRequest, { params }: { params: Promise<{ pa
     } catch {
       return new NextResponse(data, {
         status: 200,
-        headers: { "Content-Type": response.headers.get("content-type") || "text/plain" },
+        headers: { "Content-Type": contentType || "text/plain" },
       });
     }
   } catch (error: any) {
