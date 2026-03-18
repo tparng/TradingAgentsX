@@ -393,17 +393,19 @@ You are a Bull Researcher responsible for presenting buy arguments, emphasizing 
 5. **Rebut Bears**: **Strongly refute bearish arguments, pointing out flaws and excessive pessimism**
 
 【Output Requirements】
+**STRICT LIMIT: Total response must not exceed 800 words. Stop when limit is reached.**
+
 **Content Structure**:
-1. Core Thesis (150+ words): Clear and confident bullish reasoning
-2. Growth Arguments (450-500 words): Data-supported growth logic
-3. Bearish Rebuttal (100+ words): **Aggressively counter bearish views**
-4. Investment Recommendation (100+ words): Clear and positive action suggestions
+1. Core Thesis (~150 words): Clear and confident bullish reasoning
+2. Growth Arguments (~350 words): Data-supported growth logic
+3. Bearish Rebuttal (~150 words): **Aggressively counter bearish views**
+4. Investment Recommendation (~100 words): Clear and positive action suggestions
 
 **Closing**:
 ---
 ※ This is a bullish research analysis with an optimistic stance. Recommend combining with bearish views and risk assessment. Investment involves risk, please evaluate carefully.
 
-Please provide a persuasive and aggressive bullish analysis report.
+Please provide a persuasive and aggressive bullish analysis report, strictly within 800 words.
 
 {lang_closing}"""
 
@@ -421,17 +423,19 @@ Please provide a persuasive and aggressive bullish analysis report.
 
 【輸出要求】
 
+**字數限制：整份回應嚴格控制在 800 字以內，超過即截止。**
+
 **內容結構**：
-1. 核心論點：清晰且強勢地陳述看漲理由
-2. 成長論證：用詳實數據支撐成長邏輯
-3. 反駁看跌：**激進地反駁看跌觀點**
-4. 投資建議：明確且積極的操作建議
+1. 核心論點（約 150 字）：清晰且強勢地陳述看漲理由
+2. 成長論證（約 350 字）：用詳實數據支撐成長邏輯
+3. 反駁看跌（約 150 字）：**激進地反駁看跌觀點**
+4. 投資建議（約 100 字）：明確且積極的操作建議
 
 **結尾提示**：
 ---
 ※ 本報告為看漲方研究分析，立場偏向積極樂觀。建議搭配看跌方觀點與風險評估綜合研判。投資有風險，請謹慎評估。
 
-請提供有說服力且激進的看漲分析報告。
+請提供有說服力且激進的看漲分析報告，嚴格控制在 800 字以內。
 
 {lang_closing}"""
 
@@ -459,17 +463,19 @@ You are a Bear Researcher responsible for presenting sell arguments, emphasizing
 5. **Rebut Bulls**: **Strongly refute bullish arguments, exposing blind optimism**
 
 【Output Requirements】
+**STRICT LIMIT: Total response must not exceed 800 words. Stop when limit is reached.**
+
 **Content Structure**:
-1. Core Warning (150+ words): Clear and firm bearish reasoning
-2. Risk Arguments (450-500 words): Data-supported risk analysis
-3. Bullish Rebuttal (100+ words): **Aggressively counter bullish views**
-4. Investment Recommendation (100+ words): Cautious action suggestions
+1. Core Warning (~150 words): Clear and firm bearish reasoning
+2. Risk Arguments (~350 words): Data-supported risk analysis
+3. Bullish Rebuttal (~150 words): **Aggressively counter bullish views**
+4. Investment Recommendation (~100 words): Cautious action suggestions
 
 **Closing**:
 ---
 ※ This is a bearish research analysis with a cautious stance. Recommend combining with bullish views and market sentiment. Investment involves risk, please evaluate carefully.
 
-Please provide a persuasive and aggressive bearish analysis report.
+Please provide a persuasive and aggressive bearish analysis report, strictly within 800 words.
 
 {lang_closing}"""
 
@@ -487,17 +493,19 @@ Please provide a persuasive and aggressive bearish analysis report.
 
 【輸出要求】
 
+**字數限制：整份回應嚴格控制在 800 字以內，超過即截止。**
+
 **內容結構**：
-1. 核心警示：清晰且強勢地陳述看跌理由
-2. 風險論證：用詳實數據支撐風險分析
-3. 反駁看漲：**激進地反駁看漲觀點**
-4. 投資建議：明確且謹慎的操作建議
+1. 核心警示（約 150 字）：清晰且強勢地陳述看跌理由
+2. 風險論證（約 350 字）：用詳實數據支撐風險分析
+3. 反駁看漲（約 150 字）：**激進地反駁看漲觀點**
+4. 投資建議（約 100 字）：明確且謹慎的操作建議
 
 **結尾提示**：
 ---
 ※ 本報告為看跌方研究分析，立場偏向謹慎保守。建議搭配看漲方觀點與市場情緒綜合研判。投資有風險，請謹慎評估。
 
-請提供有說服力且激進的看跌分析報告。
+請提供有說服力且激進的看跌分析報告，嚴格控制在 800 字以內。
 
 {lang_closing}"""
 
