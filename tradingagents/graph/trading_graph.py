@@ -136,14 +136,14 @@ class TradingAgentsXGraph:
                 )
 
         # Initialize LLMs independently
-        # deep: 8192 tokens（managers/trader 需要較長輸出）
-        # quick: 4096 tokens（analysts/researchers/debaters 夠用，降低費用）
+        # deep: 16384 tokens（managers/trader 需要較長輸出）
+        # quick: 8192 tokens（analysts/researchers/debaters）
         print(f"DEBUG: Initializing Deep Thinking LLM: Model={self.config['deep_think_llm']}, BaseURL={deep_base_url}, Key=**********")
         self.deep_thinking_llm = _create_llm(
             self.config["deep_think_llm"],
             deep_base_url,
             deep_api_key,
-            max_tokens=8192,
+            max_tokens=16384,
         )
 
         print(f"DEBUG: Initializing Quick Thinking LLM: Model={self.config['quick_think_llm']}, BaseURL={quick_base_url}, Key=**********")
@@ -151,7 +151,7 @@ class TradingAgentsXGraph:
             self.config["quick_think_llm"],
             quick_base_url,
             quick_api_key,
-            max_tokens=4096,
+            max_tokens=8192,
         )
 
         # 初始化記憶體
