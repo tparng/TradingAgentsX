@@ -70,16 +70,16 @@ export function ReportChat({ reports, ticker, analysisDate }: ReportChatProps) {
       // Determine which model/key to use (prefer quick think model)
       // We'll try to detect the model from saved settings
       // Default to the first available key
-      let model = "gpt-5-mini";
+      let model = "claude-haiku-4-5-20251001";
       let apiKey = "";
-      let baseUrl = "https://api.openai.com/v1";
+      let baseUrl = "https://api.anthropic.com/v1";
 
       // Try each provider in order of preference
       const providers = [
-        { key: settings.openai_api_key, model: "gpt-5-mini", prefix: "gpt-" },
-        { key: settings.anthropic_api_key, model: "claude-sonnet-4-20250514", prefix: "claude-" },
+        { key: settings.anthropic_api_key, model: "claude-haiku-4-5-20251001", prefix: "claude-" },
+        { key: settings.openai_api_key, model: "gpt-5.4-mini", prefix: "gpt-" },
         { key: settings.google_api_key, model: "gemini-2.5-flash", prefix: "gemini-" },
-        { key: settings.grok_api_key, model: "grok-3-mini", prefix: "grok-" },
+        { key: settings.grok_api_key, model: "grok-4-1-fast-reasoning", prefix: "grok-" },
         { key: settings.deepseek_api_key, model: "deepseek-chat", prefix: "deepseek-" },
         { key: settings.qwen_api_key, model: "qwen-flash", prefix: "qwen" },
       ];

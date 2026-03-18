@@ -121,6 +121,11 @@ class GraphSetup:
         )
         trader_node = create_trader(self.quick_thinking_llm, self.trader_memory, self.language)
 
+        # 建立報告摘要節點（壓縮 4 份分析師報告為 ~600 字，減少下游 agent input tokens）
+        report_summarizer_node = create_report_summarizer(
+            self.quick_thinking_llm, self.language
+        )
+
         # 建立風險分析節點
         risky_analyst = create_risky_debator(self.quick_thinking_llm, self.language)
         neutral_analyst = create_neutral_debator(self.quick_thinking_llm, self.language)
@@ -141,6 +146,7 @@ class GraphSetup:
             workflow.add_node(f"tools_{analyst_type}", tool_nodes[analyst_type])
 
         # 新增其他節點
+        workflow.add_node("Report Summarizer", report_summarizer_node)
         workflow.add_node("Bull Researcher", bull_researcher_node)
         workflow.add_node("Bear Researcher", bear_researcher_node)
         workflow.add_node("Research Manager", research_manager_node)
@@ -168,12 +174,15 @@ class GraphSetup:
             )
             workflow.add_edge(current_tools, current_analyst)
 
-            # 順序串連：清除節點連接到下一個分析師，最後一個連接到看漲研究員
+            # 順序串連：清除節點連接到下一個分析師，最後一個連接到報告摘要員
             if i < len(selected_analysts) - 1:
                 next_analyst = f"{selected_analysts[i + 1].capitalize()} Analyst"
                 workflow.add_edge(current_clear, next_analyst)
             else:
-                workflow.add_edge(current_clear, "Bull Researcher")
+                workflow.add_edge(current_clear, "Report Summarizer")
+
+        # 報告摘要員完成後進入看漲研究員
+        workflow.add_edge("Report Summarizer", "Bull Researcher")
 
         # 新增剩餘的邊
         workflow.add_conditional_edges(

@@ -89,25 +89,42 @@ class TradingAgentsXGraph:
         deep_base_url = self.config.get("deep_think_base_url", self.config.get("backend_url"))
         quick_base_url = self.config.get("quick_think_base_url", self.config.get("backend_url"))
         
-        # Get API keys from config
-        deep_api_key = self.config.get("deep_think_api_key", os.getenv("OPENAI_API_KEY"))
-        quick_api_key = self.config.get("quick_think_api_key", os.getenv("OPENAI_API_KEY"))
+        # Get API keys from config (auto-detect provider from model name)
+        def _get_default_api_key(model: str) -> str:
+            """Get the appropriate default API key based on model name."""
+            if model.startswith("claude-"):
+                return os.getenv("ANTHROPIC_API_KEY", "")
+            elif model.startswith("gemini-"):
+                return os.getenv("GEMINI_API_KEY", "")
+            elif model.startswith("grok-"):
+                return os.getenv("XAI_API_KEY", "")
+            elif model.startswith("deepseek-"):
+                return os.getenv("DEEPSEEK_API_KEY", "")
+            elif model.startswith("qwen"):
+                return os.getenv("DASHSCOPE_API_KEY", "")
+            else:
+                return os.getenv("OPENAI_API_KEY", "")
+        
+        deep_api_key = self.config.get("deep_think_api_key", _get_default_api_key(self.config["deep_think_llm"]))
+        quick_api_key = self.config.get("quick_think_api_key", _get_default_api_key(self.config["quick_think_llm"]))
         
         # Helper to initialize LLM based on model name/provider
-        def _create_llm(model: str, base_url: str, api_key: str):
+        def _create_llm(model: str, base_url: str, api_key: str, max_tokens: int = 8192):
             # Anthropic models require ChatAnthropic (different auth header: x-api-key)
             if model.startswith("claude-"):
                 return ChatAnthropic(
                     model=model,
                     anthropic_api_key=api_key,
-                    max_tokens=16384,
+                    max_tokens=max_tokens,
+                    # 啟用 Prompt Caching beta（實際快取效果需搭配 cache_control content block）
+                    model_kwargs={"extra_headers": {"anthropic-beta": "prompt-caching-2024-07-31"}},
                 )
             # Google Gemini models use ChatGoogleGenerativeAI
             elif model.startswith("gemini-"):
                 return ChatGoogleGenerativeAI(
                     model=model,
                     google_api_key=api_key,
-                    max_output_tokens=16384,
+                    max_output_tokens=max_tokens,
                 )
             # All other providers (OpenAI, Grok, DeepSeek, Qwen, custom) use OpenAI-compatible API
             else:
@@ -115,22 +132,26 @@ class TradingAgentsXGraph:
                     model=model,
                     base_url=base_url,
                     openai_api_key=api_key,
-                    max_tokens=16384,
+                    max_tokens=max_tokens,
                 )
 
         # Initialize LLMs independently
+        # deep: 8192 tokens（managers/trader 需要較長輸出）
+        # quick: 4096 tokens（analysts/researchers/debaters 夠用，降低費用）
         print(f"DEBUG: Initializing Deep Thinking LLM: Model={self.config['deep_think_llm']}, BaseURL={deep_base_url}, Key=**********")
         self.deep_thinking_llm = _create_llm(
             self.config["deep_think_llm"],
             deep_base_url,
-            deep_api_key
+            deep_api_key,
+            max_tokens=8192,
         )
-        
+
         print(f"DEBUG: Initializing Quick Thinking LLM: Model={self.config['quick_think_llm']}, BaseURL={quick_base_url}, Key=**********")
         self.quick_thinking_llm = _create_llm(
             self.config["quick_think_llm"],
             quick_base_url,
-            quick_api_key
+            quick_api_key,
+            max_tokens=4096,
         )
 
         # 初始化記憶體

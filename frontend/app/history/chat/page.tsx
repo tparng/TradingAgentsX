@@ -42,13 +42,9 @@ interface ChatMessage {
 
 const AVAILABLE_MODELS = [
   // OpenAI
-  { id: "gpt-5.2-2025-12-11", name: "GPT-5.2", provider: "openai", logo: "/logos/openai.svg" },
-  { id: "gpt-5.1", name: "GPT-5.1", provider: "openai", logo: "/logos/openai.svg" },
-  { id: "gpt-5-mini", name: "GPT-5 Mini", provider: "openai", logo: "/logos/openai.svg" },
-  { id: "gpt-5-nano", name: "GPT-5 Nano", provider: "openai", logo: "/logos/openai.svg" },
-  { id: "gpt-4.1-mini", name: "GPT-4.1 Mini", provider: "openai", logo: "/logos/openai.svg" },
-  { id: "gpt-4.1-nano", name: "GPT-4.1 Nano", provider: "openai", logo: "/logos/openai.svg" },
-  { id: "o4-mini", name: "o4-mini", provider: "openai", logo: "/logos/openai.svg" },
+  { id: "gpt-5.4", name: "GPT-5.4", provider: "openai", logo: "/logos/openai.svg" },
+  { id: "gpt-5.4-mini", name: "GPT-5.4 Mini", provider: "openai", logo: "/logos/openai.svg" },
+  { id: "gpt-5.4-nano", name: "GPT-5.4 Nano", provider: "openai", logo: "/logos/openai.svg" },
   
   // Anthropic
   { id: "claude-sonnet-4-5-20250929", name: "Claude Sonnet 4.5", provider: "anthropic", logo: "/logos/claude-color.svg" },
@@ -69,9 +65,6 @@ const AVAILABLE_MODELS = [
   { id: "grok-4-fast-reasoning", name: "Grok 4 Fast Reasoning", provider: "grok", logo: "/logos/grok.svg" },
   { id: "grok-4-fast-non-reasoning", name: "Grok 4 Fast Non Reasoning", provider: "grok", logo: "/logos/grok.svg" },
   { id: "grok-4-0709", name: "Grok 4", provider: "grok", logo: "/logos/grok.svg" },
-  { id: "grok-3", name: "Grok 3", provider: "grok", logo: "/logos/grok.svg" },
-  { id: "grok-3-mini", name: "Grok 3 Mini", provider: "grok", logo: "/logos/grok.svg" },
-
   // DeepSeek
   { id: "deepseek-reasoner", name: "DeepSeek Reasoner", provider: "deepseek", logo: "/logos/deepseek-color.svg" },
   { id: "deepseek-chat", name: "DeepSeek Chat", provider: "deepseek", logo: "/logos/deepseek-color.svg" },
@@ -98,8 +91,8 @@ function HistoryChatContent() {
   const [report, setReport] = useState<SavedReport | null>(null);
   const [loadingReport, setLoadingReport] = useState(true);
   
-  // Default to GPT-5 Mini
-  const [selectedModelId, setSelectedModelId] = useState<string>("gpt-5-mini");
+  // Default to Claude Haiku 4.5
+  const [selectedModelId, setSelectedModelId] = useState<string>("claude-haiku-4-5-20251001");
   const [customModel, setCustomModel] = useState<string>("");
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -190,15 +183,15 @@ function HistoryChatContent() {
     try {
       const settings = await getApiSettingsAsync();
 
-      let chatModel = "gpt-4o-mini";
+      let chatModel = "claude-haiku-4-5-20251001";
       let apiKey = "";
-      let baseUrl = "https://api.openai.com/v1";
+      let baseUrl = "https://api.anthropic.com/v1";
 
       const providers = {
-        openai: { key: settings.openai_api_key, defaultModel: "gpt-4o-mini" },
-        anthropic: { key: settings.anthropic_api_key, defaultModel: "claude-3-5-sonnet-20241022" },
+        anthropic: { key: settings.anthropic_api_key, defaultModel: "claude-haiku-4-5-20251001" },
+        openai: { key: settings.openai_api_key, defaultModel: "gpt-5.4-mini" },
         google: { key: settings.google_api_key, defaultModel: "gemini-2.5-flash" },
-        grok: { key: settings.grok_api_key, defaultModel: "grok-2-1212" },
+        grok: { key: settings.grok_api_key, defaultModel: "grok-3-mini" },
         deepseek: { key: settings.deepseek_api_key, defaultModel: "deepseek-chat" },
         qwen: { key: settings.qwen_api_key, defaultModel: "qwen-max" },
       };
@@ -381,12 +374,24 @@ function HistoryChatContent() {
                       "總結這份報告的重點",
                       "建議的進場策略是什麼？",
                       "看漲和看跌的觀點有何不同？",
+                      "這家公司有什麼值得注意的財務指標？", 
+                      "目前的市場情緒是偏向樂觀還是悲觀？",
+                      "公司在同行業競爭中具備哪些競爭優勢？",
+                      "報告中對該公司的估值分析如何？",
+                      "如果發生突發利空，建議的止損止盈策略為何？",
+                      "未來 3-6 個月有哪些值得關注的關鍵催化劑？",
                     ]
                   : [
                       "What are the key risk factors?",
                       "Summarize this report",
                       "What's the recommended entry strategy?",
                       "How do bull and bear views differ?",
+                      "What are the noteworthy financial metrics?",
+                      "Is the market sentiment bullish or bearish?",
+                      "What's the company's competitive advantage?",
+                      "What is the valuation analysis for this stock?",
+                      "What is the recommended risk management strategy?",
+                      "Key catalysts to watch in the next 3-6 months?",
                     ]
                 ).map((suggestion) => (
                   <button

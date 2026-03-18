@@ -11,9 +11,9 @@ async def test():
         "reports": large_reports,
         "ticker": "NVDA",
         "analysis_date": "2025-01-01",
-        "model": "gpt-4o-mini",
+        "model": "claude-haiku-4-5-20251001",
         "api_key": "dummy_key",
-        "base_url": "https://api.openai.com/v1",
+        "base_url": "https://api.anthropic.com/v1",
         "language": "zh-TW"
     }
 

@@ -26,8 +26,8 @@ class TradingService:
     def create_config(
         self,
         research_depth: int = 1,
-        deep_think_llm: str = "gpt-5-mini",
-        quick_think_llm: str = "gpt-5-mini",
+        deep_think_llm: str = "claude-sonnet-4-5-20250929",
+        quick_think_llm: str = "claude-haiku-4-5-20251001",
     ) -> Dict[str, Any]:
         """Create configuration for TradingAgentsX
 
@@ -51,8 +51,8 @@ class TradingService:
         analysis_date: str,
         openai_api_key: Optional[str] = None,
         openai_base_url: str = "https://api.openai.com/v1",
-        quick_think_base_url: str = "https://api.openai.com/v1",
-        deep_think_base_url: str = "https://api.openai.com/v1",
+        quick_think_base_url: str = "https://api.anthropic.com/v1",
+        deep_think_base_url: str = "https://api.anthropic.com/v1",
         quick_think_api_key: Optional[str] = None,
         deep_think_api_key: Optional[str] = None,
         embedding_base_url: str = "https://api.openai.com/v1",
@@ -63,8 +63,8 @@ class TradingService:
         market_type: str = "us",  # 市場類型：us (美股) 或 tw (台股)
         analysts: Optional[List[str]] = None,
         research_depth: int = 1,
-        deep_think_llm: str = "gpt-5-mini",
-        quick_think_llm: str = "gpt-5-mini",
+        deep_think_llm: str = "claude-sonnet-4-5-20250929",
+        quick_think_llm: str = "claude-haiku-4-5-20251001",
         language: str = "zh-TW",  # Language for agent reports: 'en' or 'zh-TW'
     ) -> Dict[str, Any]:
         """
@@ -360,12 +360,9 @@ class TradingService:
         """Get list of available OpenAI LLM models"""
         return [
             # OpenAI
-            "gpt-5.1",
-            "gpt-5-mini",
-            "gpt-5-nano",
-            "gpt-4.1-mini",
-            "gpt-4.1-nano",
-            "o4-mini",
+            "gpt-5.4",
+            "gpt-5.4-mini",
+            "gpt-5.4-nano",
             # Anthropic (Official model IDs)
             "claude-sonnet-4-5-20250929",
             "claude-haiku-4-5-20251001",
@@ -383,8 +380,6 @@ class TradingService:
             "grok-4-fast-reasoning",
             "grok-4-fast-non-reasoning",
             "grok-4-0709",
-            "grok-3",
-            "grok-3-mini",
             # DeepSeek
             "deepseek-reasoner",
             "deepseek-chat",
@@ -398,8 +393,8 @@ class TradingService:
         """Get default configuration"""
         return {
             "research_depth": 1,
-            "deep_think_llm": "gpt-5-mini",
-            "quick_think_llm": "gpt-5-mini",
+            "deep_think_llm": "claude-sonnet-4-5-20250929",
+            "quick_think_llm": "claude-haiku-4-5-20251001",
             "max_debate_rounds": 1,
             "max_risk_discuss_rounds": 1,
         }

@@ -49,8 +49,8 @@ class Settings(BaseSettings):
     results_dir: str = "./results"
     max_debate_rounds: int = 1
     max_risk_discuss_rounds: int = 1
-    deep_think_llm: str = "gpt-5-mini"
-    quick_think_llm: str = "gpt-5-mini"
+    deep_think_llm: str = "claude-sonnet-4-5-20250929"
+    quick_think_llm: str = "claude-haiku-4-5-20251001"
     
     class Config:
         env_file = ".env"

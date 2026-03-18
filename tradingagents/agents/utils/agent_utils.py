@@ -1,4 +1,25 @@
-from langchain_core.messages import HumanMessage, RemoveMessage
+from langchain_core.messages import HumanMessage, RemoveMessage, SystemMessage
+
+try:
+    from langchain_anthropic import ChatAnthropic
+    _HAS_ANTHROPIC = True
+except ImportError:
+    _HAS_ANTHROPIC = False
+
+
+def make_cached_system_message(text: str, llm) -> SystemMessage:
+    """建立 SystemMessage，若使用 Claude 則自動加上 cache_control 啟用 Prompt Caching。
+
+    - Claude (ChatAnthropic) → content block 格式 + cache_control，cache read 只需原價 10%
+    - GPT / Gemini / 其他 → 純文字 SystemMessage，完全正常運作
+    """
+    if _HAS_ANTHROPIC and isinstance(llm, ChatAnthropic):
+        return SystemMessage(content=[{
+            "type": "text",
+            "text": text,
+            "cache_control": {"type": "ephemeral"}
+        }])
+    return SystemMessage(content=text)
 
 # 從獨立的工具程式檔案匯入工具
 from tradingagents.agents.utils.core_stock_tools import (

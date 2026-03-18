@@ -232,12 +232,9 @@ def select_shallow_thinking_agent(provider=None) -> str:
     # 定義不同供應商的淺層思維 LLM 引擎選項
     SHALLOW_AGENT_OPTIONS = {
         "OpenAI": [
-            ("GPT-5.1", "gpt-5.1"),
-            ("GPT-5-mini","gpt-5-mini"),
-            ("GPT-5-nano","gpt-5-nano"),
-            ("GPT-4.1-mini", "gpt-4.1-mini"),
-            ("GPT-4.1-nano", "gpt-4.1-nano"),
-            ("o4-mini", "o4-mini"),
+            ("GPT-5.4", "gpt-5.4"),
+            ("GPT-5.4-mini","gpt-5.4-mini"),
+            ("GPT-5.4-nano","gpt-5.4-nano"),
         ],
         "Anthropic": [
             ("Claude Sonnet 4.5", "claude-sonnet-4-5-20250929"),
@@ -258,8 +255,6 @@ def select_shallow_thinking_agent(provider=None) -> str:
             ("Grok 4 Fast Reasoning","grok-4-fast-reasoning"),
             ("Grok 4 Fast Non Reasoning","grok-4-fast-non-reasoning"),
             ("Grok 4","grok-4-0709"),
-            ("Grok 3","grok-3"),
-            ("Grok 3 Mini","grok-3-mini"),
         ],
         "DeepSeek": [
             ("DeepSeek Reasoner","deepseek-reasoner"),
@@ -355,12 +350,9 @@ def select_deep_thinking_agent(provider=None) -> str:
     # 定義不同供應商的深層思維 LLM 引擎選項
     DEEP_AGENT_OPTIONS = {
         "OpenAI": [
-            ("GPT-5.1", "gpt-5.1"),
-            ("GPT-5-mini","gpt-5-mini"),
-            ("GPT-5-nano","gpt-5-nano"),
-            ("GPT-4.1-mini", "gpt-4.1-mini"),
-            ("GPT-4.1-nano", "gpt-4.1-nano"),
-            ("o4-mini", "o4-mini"),
+            ("GPT-5.4", "gpt-5.4"),
+            ("GPT-5.4-mini","gpt-5.4-mini"),
+            ("GPT-5.4-nano","gpt-5.4-nano"),
         ],
         "Anthropic": [
             ("Claude Sonnet 4.5", "claude-sonnet-4-5-20250929"),
@@ -381,8 +373,6 @@ def select_deep_thinking_agent(provider=None) -> str:
             ("Grok 4 Fast Reasoning","grok-4-fast-reasoning"),
             ("Grok 4 Fast Non Reasoning","grok-4-fast-non-reasoning"),
             ("Grok 4","grok-4-0709"),
-            ("Grok 3","grok-3"),
-            ("Grok 3 Mini","grok-3-mini"),
         ],
         "DeepSeek":[
             ("DeepSeek Reasoner","deepseek-reasoner"),

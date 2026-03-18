@@ -60,7 +60,7 @@ export const en = {
     alphaVantageDesc:
       "For US stock fundamental data (recommended for US stocks)",
     openaiDesc:
-      "For OpenAI models (GPT-4, GPT-5, o4, etc.) and OpenAI embeddings",
+      "For OpenAI models and OpenAI embeddings",
     anthropicDesc: "For Claude models",
     googleDesc: "For Gemini models",
     grokDesc: "For Grok models",

@@ -232,10 +232,9 @@ export default function HomePage() {
             <LLMProviderCard
               name="OpenAI"
               models={[
-                "GPT-5.1",
-                "GPT-5 Mini/Nano",
-                "GPT-4.1 Mini/Nano",
-                "o4-mini",
+                "GPT-5.4",
+                "GPT-5.4 Mini",
+                "GPT-5.4 Nano",
               ]}
               icon="🟢"
             />
@@ -255,7 +254,7 @@ export default function HomePage() {
             />
             <LLMProviderCard
               name="Grok (xAI)"
-              models={["Grok-4.1 Fast", "Grok-4 Fast", "Grok-3 Mini"]}
+              models={["Grok-4.1 Fast", "Grok-4 Fast"]}
               icon="⚫"
             />
             <LLMProviderCard

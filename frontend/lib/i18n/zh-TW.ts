@@ -504,7 +504,7 @@ export const zhTW = {
     alphaVantageKey: "Alpha Vantage API Key（美股）",
     alphaVantagePlaceholder: "輸入 Alpha Vantage API Key",
     alphaVantageDesc: "用於獲取美股基本面數據（分析美股時建議填寫）",
-    openaiDesc: "用於 OpenAI 模型（GPT-4, GPT-5, o4 等）及 OpenAI 嵌入式模型",
+    openaiDesc: "用於 OpenAI 模型及 OpenAI 嵌入式模型",
     anthropicDesc: "用於 Claude 模型",
     googleDesc: "用於 Gemini 模型",
     grokDesc: "用於 Grok 模型",

@@ -112,13 +112,13 @@ export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
       analysts: ["market", "social", "news", "fundamentals"], // 預設全選
       research_depth: 3, // 預設中等層級
       market_type: "us", // 預設美股
-      quick_think_llm: "gpt-5-mini",
-      deep_think_llm: "gpt-5-mini",
+      quick_think_llm: "claude-haiku-4-5-20251001",
+      deep_think_llm: "claude-sonnet-4-5-20250929",
       embedding_model: "all-MiniLM-L6-v2", // 預設使用本地開源模型
       custom_quick_think_model: "",
       custom_deep_think_model: "",
-      quick_think_base_url: "https://api.openai.com/v1",
-      deep_think_base_url: "https://api.openai.com/v1",
+      quick_think_base_url: "https://api.anthropic.com/v1",
+      deep_think_base_url: "https://api.anthropic.com/v1",
       quick_think_api_key: "",
       deep_think_api_key: "",
       embedding_base_url: "https://api.openai.com/v1",
@@ -527,49 +527,24 @@ export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
                         </FormControl>
                         <SelectContent>
                           {/* OpenAI */}
-                          <SelectItem value="gpt-5.2-2025-12-11">
+                          <SelectItem value="gpt-5.4">
                             <div className="flex items-center gap-2">
                               <Image src="/logos/openai.svg" alt="OpenAI" width={16} height={16} className="shrink-0" />
-                              <span>GPT-5.2</span>
+                              <span>GPT-5.4</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="gpt-5.1">
+                          <SelectItem value="gpt-5.4-mini">
                             <div className="flex items-center gap-2">
                               <Image src="/logos/openai.svg" alt="OpenAI" width={16} height={16} className="shrink-0" />
-                              <span>GPT-5.1</span>
+                              <span>GPT-5.4 Mini</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="gpt-5-mini">
+                          <SelectItem value="gpt-5.4-nano">
                             <div className="flex items-center gap-2">
                               <Image src="/logos/openai.svg" alt="OpenAI" width={16} height={16} className="shrink-0" />
-                              <span>GPT-5 Mini</span>
+                              <span>GPT-5.4 Nano</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="gpt-5-nano">
-                            <div className="flex items-center gap-2">
-                              <Image src="/logos/openai.svg" alt="OpenAI" width={16} height={16} className="shrink-0" />
-                              <span>GPT-5 Nano</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="gpt-4.1-mini">
-                            <div className="flex items-center gap-2">
-                              <Image src="/logos/openai.svg" alt="OpenAI" width={16} height={16} className="shrink-0" />
-                              <span>GPT-4.1 Mini</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="gpt-4.1-nano">
-                            <div className="flex items-center gap-2">
-                              <Image src="/logos/openai.svg" alt="OpenAI" width={16} height={16} className="shrink-0" />
-                              <span>GPT-4.1 Nano</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="o4-mini">
-                            <div className="flex items-center gap-2">
-                              <Image src="/logos/openai.svg" alt="OpenAI" width={16} height={16} className="shrink-0" />
-                              <span>o4-mini</span>
-                            </div>
-                          </SelectItem>
-
                           {/* Anthropic (Official model IDs) */}
                           <SelectItem value="claude-sonnet-4-5-20250929">
                             <div className="flex items-center gap-2">
@@ -657,18 +632,6 @@ export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
                             <div className="flex items-center gap-2">
                               <Image src="/logos/grok.svg" alt="Grok" width={16} height={16} className="shrink-0" />
                               <span>Grok 4</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="grok-3">
-                            <div className="flex items-center gap-2">
-                              <Image src="/logos/grok.svg" alt="Grok" width={16} height={16} className="shrink-0" />
-                              <span>Grok 3</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="grok-3-mini">
-                            <div className="flex items-center gap-2">
-                              <Image src="/logos/grok.svg" alt="Grok" width={16} height={16} className="shrink-0" />
-                              <span>Grok 3 Mini</span>
                             </div>
                           </SelectItem>
 
@@ -755,49 +718,24 @@ export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
                         </FormControl>
                         <SelectContent>
                           {/* OpenAI */}
-                          <SelectItem value="gpt-5.2-2025-12-11">
+                          <SelectItem value="gpt-5.4">
                             <div className="flex items-center gap-2">
                               <Image src="/logos/openai.svg" alt="OpenAI" width={16} height={16} className="shrink-0" />
-                              <span>GPT-5.2</span>
+                              <span>GPT-5.4</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="gpt-5.1">
+                          <SelectItem value="gpt-5.4-mini">
                             <div className="flex items-center gap-2">
                               <Image src="/logos/openai.svg" alt="OpenAI" width={16} height={16} className="shrink-0" />
-                              <span>GPT-5.1</span>
+                              <span>GPT-5.4 Mini</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="gpt-5-mini">
+                          <SelectItem value="gpt-5.4-nano">
                             <div className="flex items-center gap-2">
                               <Image src="/logos/openai.svg" alt="OpenAI" width={16} height={16} className="shrink-0" />
-                              <span>GPT-5 Mini</span>
+                              <span>GPT-5.4 Nano</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="gpt-5-nano">
-                            <div className="flex items-center gap-2">
-                              <Image src="/logos/openai.svg" alt="OpenAI" width={16} height={16} className="shrink-0" />
-                              <span>GPT-5 Nano</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="gpt-4.1-mini">
-                            <div className="flex items-center gap-2">
-                              <Image src="/logos/openai.svg" alt="OpenAI" width={16} height={16} className="shrink-0" />
-                              <span>GPT-4.1 Mini</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="gpt-4.1-nano">
-                            <div className="flex items-center gap-2">
-                              <Image src="/logos/openai.svg" alt="OpenAI" width={16} height={16} className="shrink-0" />
-                              <span>GPT-4.1 Nano</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="o4-mini">
-                            <div className="flex items-center gap-2">
-                              <Image src="/logos/openai.svg" alt="OpenAI" width={16} height={16} className="shrink-0" />
-                              <span>o4-mini</span>
-                            </div>
-                          </SelectItem>
-
                           {/* Anthropic (Official model IDs) */}
                           <SelectItem value="claude-sonnet-4-5-20250929">
                             <div className="flex items-center gap-2">
@@ -885,18 +823,6 @@ export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
                             <div className="flex items-center gap-2">
                               <Image src="/logos/grok.svg" alt="Grok" width={16} height={16} className="shrink-0" />
                               <span>Grok 4</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="grok-3">
-                            <div className="flex items-center gap-2">
-                              <Image src="/logos/grok.svg" alt="Grok" width={16} height={16} className="shrink-0" />
-                              <span>Grok 3</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="grok-3-mini">
-                            <div className="flex items-center gap-2">
-                              <Image src="/logos/grok.svg" alt="Grok" width={16} height={16} className="shrink-0" />
-                              <span>Grok 3 Mini</span>
                             </div>
                           </SelectItem>
 

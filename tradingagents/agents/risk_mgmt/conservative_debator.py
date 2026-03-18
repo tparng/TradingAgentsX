@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
-import time
-import json
+from langchain_core.messages import HumanMessage
+from tradingagents.agents.utils.agent_utils import make_cached_system_message
 from tradingagents.agents.utils.output_filter import fix_common_llm_errors, validate_and_warn
 from tradingagents.agents.utils.prompts import get_conservative_debator_prompt
+
+# 辯論歷史截斷上限（字元），防止多輪辯論累積過多 tokens
+RISK_DEBATE_HISTORY_LIMIT = 3000
 
 
 def create_safe_debator(llm, language: str = "zh-TW"):
@@ -21,36 +24,34 @@ def create_safe_debator(llm, language: str = "zh-TW"):
         """保守辯論員節點的執行函式。"""
         risk_debate_state = state["risk_debate_state"]
         history = risk_debate_state.get("history", "")
-        safe_history = risk_debate_state.get("safe_history", "")
 
         current_risky_response = risk_debate_state.get("current_risky_response", "")
         current_neutral_response = risk_debate_state.get("current_neutral_response", "")
 
-        market_research_report = state["market_report"]
-        sentiment_report = state["sentiment_report"]
-        news_report = state["news_report"]
-        fundamentals_report = state["fundamentals_report"]
+        # 使用 analyst_summary（由 Report Summarizer 預先壓縮），節省約 75% input tokens
+        analyst_summary = state.get("analyst_summary", "")
         trader_decision = state["trader_investment_plan"]
 
-        # Get language-specific prompt
-        base_prompt = get_conservative_debator_prompt(language)
-        
-        if language == "en":
-            prompt = f"""{base_prompt}
+        # 辯論歷史截斷：保留最近 3000 字
+        if len(history) > RISK_DEBATE_HISTORY_LIMIT:
+            history = "...[truncated]\n" + history[-RISK_DEBATE_HISTORY_LIMIT:]
 
-【Available Information】
+        # base_prompt 為靜態指令，透過 make_cached_system_message 加上 cache_control（僅 Claude 生效）
+        base_prompt = get_conservative_debator_prompt(language)
+
+        # 動態資料放入 HumanMessage（不快取）
+        if language == "en":
+            human_text = f"""【Available Information】
 - Trader Plan: {trader_decision}
-- Reports: {market_research_report}, {sentiment_report}, {news_report}, {fundamentals_report}
+- Analyst Summary: {analyst_summary}
 - Debate History: {history}
 - Opponent Views: {current_risky_response}, {current_neutral_response}
 
 Please provide your conservative risk analysis."""
         else:
-            prompt = f"""{base_prompt}
-
-【可用資訊】
+            human_text = f"""【可用資訊】
 - 交易員計畫：{trader_decision}
-- 各類報告：{market_research_report}, {sentiment_report}, {news_report}, {fundamentals_report}
+- 分析摘要：{analyst_summary}
 - 辯論歷史：{history}
 - 對手觀點：{current_risky_response}, {current_neutral_response}
 
@@ -59,8 +60,13 @@ Please provide your conservative risk analysis."""
 
 請用繁體中文提供您的保守風險分析。"""
 
-        response = llm.invoke(prompt)
-        
+        messages = [
+            make_cached_system_message(base_prompt, llm),
+            HumanMessage(content=human_text),
+        ]
+
+        response = llm.invoke(messages)
+
         response.content = fix_common_llm_errors(response.content)
         validate_and_warn(response.content, "Conservative_Debator")
 
@@ -70,7 +76,7 @@ Please provide your conservative risk analysis."""
             argument = f"保守分析師：{response.content}"
 
         new_risk_debate_state = {
-            "history": history + "\n" + argument,
+            "history": risk_debate_state.get("history", "") + "\n" + argument,
             "safe_history": response.content,
             "risky_history": risk_debate_state.get("risky_history", ""),
             "neutral_history": risk_debate_state.get("neutral_history", ""),

@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
-from langchain_core.messages import AIMessage
-import time
-import json
+from langchain_core.messages import HumanMessage
+from tradingagents.agents.utils.agent_utils import make_cached_system_message
 from tradingagents.agents.utils.output_filter import fix_common_llm_errors, validate_and_warn
 from tradingagents.agents.utils.prompts import get_bull_researcher_prompt
+
+# 辯論歷史截斷上限（字元），防止多輪辯論累積過多 tokens
+DEBATE_HISTORY_LIMIT = 3000
 
 
 def create_bull_researcher(llm, memory, language: str = "zh-TW"):
@@ -23,55 +25,50 @@ def create_bull_researcher(llm, memory, language: str = "zh-TW"):
         """看漲研究員節點的執行函式。"""
         investment_debate_state = state["investment_debate_state"]
         history = investment_debate_state.get("history", "")
-        bull_history = investment_debate_state.get("bull_history", "")
         current_response = investment_debate_state.get("current_response", "")
 
-        market_research_report = state["market_report"]
-        sentiment_report = state["sentiment_report"]
-        news_report = state["news_report"]
-        fundamentals_report = state["fundamentals_report"]
+        # 使用 analyst_summary（由 Report Summarizer 預先壓縮），節省約 75% input tokens
+        analyst_summary = state.get("analyst_summary", "")
 
-        curr_situation = f"{market_research_report}\n\n{sentiment_report}\n\n{news_report}\n\n{fundamentals_report}"
-        
+        # 辯論歷史截斷：保留最近 3000 字，防止雪球效應
+        if len(history) > DEBATE_HISTORY_LIMIT:
+            history = "...[truncated]\n" + history[-DEBATE_HISTORY_LIMIT:]
+
+        # 記憶體查詢用 analyst_summary 作為情境
+        curr_situation = analyst_summary
         past_memories = memory.get_memories(curr_situation, n_matches=2)
         past_memory_str = ""
-        for i, rec in enumerate(past_memories, 1):
-            recommendation = rec["recommendation"]
-            past_memory_str += recommendation + "\n\n"
+        for rec in past_memories:
+            past_memory_str += rec["recommendation"] + "\n\n"
 
-        # Get language-specific prompt template
+        # base_prompt 為靜態指令，透過 make_cached_system_message 加上 cache_control（僅 Claude 生效）
         base_prompt = get_bull_researcher_prompt(language)
-        
-        # Build the full prompt with context
-        if language == "en":
-            prompt = f"""{base_prompt}
 
-【Available Data】
-- Market Analysis: {market_research_report}
-- Sentiment Report: {sentiment_report}
-- News Report: {news_report}
-- Fundamentals Report: {fundamentals_report}
+        # 動態資料放入 HumanMessage（不快取）
+        if language == "en":
+            human_text = f"""【Available Data】
+- Analyst Summary: {analyst_summary}
 - Debate History: {history}
 - Bearish Arguments: {current_response}
 - Past Experience: {past_memory_str}
 
 Please provide your bullish analysis now."""
         else:
-            prompt = f"""{base_prompt}
-
-【可用資料】
-- 市場分析：{market_research_report}
-- 社群情緒：{sentiment_report}
-- 新聞：{news_report}
-- 基本面：{fundamentals_report}
+            human_text = f"""【可用資料】
+- 分析摘要：{analyst_summary}
 - 辯論歷史：{history}
 - 看跌論點：{current_response}
 - 過往經驗：{past_memory_str}
 
 請提供您的看漲分析。"""
 
-        response = llm.invoke(prompt)
-        
+        messages = [
+            make_cached_system_message(base_prompt, llm),
+            HumanMessage(content=human_text),
+        ]
+
+        response = llm.invoke(messages)
+
         response.content = fix_common_llm_errors(response.content)
         validate_and_warn(response.content, "Bull_Researcher")
 
@@ -82,7 +79,7 @@ Please provide your bullish analysis now."""
             argument = f"看漲分析師：{response.content}"
 
         new_investment_debate_state = {
-            "history": history + "\n" + argument,
+            "history": investment_debate_state.get("history", "") + "\n" + argument,
             "bull_history": response.content,
             "bear_history": investment_debate_state.get("bear_history", ""),
             "current_response": argument,

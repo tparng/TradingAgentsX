@@ -61,6 +61,7 @@ class AgentState(MessagesState):
         str, "新聞研究員關於當前世界事務的報告"
     ]
     fundamentals_report: Annotated[str, "基本面研究員的報告"]
+    analyst_summary: Annotated[str, "報告摘要員彙整的 4 份分析師報告摘要"]
 
     # 研究團隊討論步驟
     investment_debate_state: Annotated[

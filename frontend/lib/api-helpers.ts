@@ -10,11 +10,7 @@ import { ApiSettings } from "./storage";
  */
 export function getBaseUrlForModel(model: string, customBaseUrl?: string): string {
   // OpenAI models - always use OpenAI API
-  if (
-    model.startsWith("gpt-") ||
-    model.startsWith("o4-") ||
-    model.startsWith("o1-")
-  ) {
+  if (model.startsWith("gpt-")) {
     return "https://api.openai.com/v1";
   }
 
@@ -61,11 +57,7 @@ export function getApiKeyForModel(
   settings: ApiSettings
 ): string {
   // OpenAI models - always use OpenAI API key
-  if (
-    model.startsWith("gpt-") ||
-    model.startsWith("o4-") ||
-    model.startsWith("o1-")
-  ) {
+  if (model.startsWith("gpt-")) {
     return settings.openai_api_key;
   }
 
