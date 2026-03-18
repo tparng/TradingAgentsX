@@ -116,6 +116,7 @@ class TradingAgentsXGraph:
                     model=model,
                     anthropic_api_key=api_key,
                     max_tokens=max_tokens,
+                    max_retries=5,  # 處理 529 overloaded_error，預設只重試 2 次
                     # 啟用 Prompt Caching beta（實際快取效果需搭配 cache_control content block）
                     model_kwargs={"extra_headers": {"anthropic-beta": "prompt-caching-2024-07-31"}},
                 )
