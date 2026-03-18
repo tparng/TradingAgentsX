@@ -27,16 +27,72 @@ def count_chinese_words(text: str) -> int:
     return len([c for c in clean_text if '\u4e00' <= c <= '\u9fff'])
 
 
-def fix_common_llm_errors(text: str) -> str:
+def strip_preamble(text: str) -> str:
     """
-    Fix common LLM character selection errors
-    
+    Strip AI-generated acknowledgment sentences that appear before the actual report.
+    These are phrases the model produces when transitioning from tool-use to report writing,
+    e.g. "完美。我已收集完數據，現在為您提供..." or "根據我獲取的近期新聞數據，現在為您提供..."
+
     Args:
         text: LLM output text
-        
+
+    Returns:
+        Text with preamble sentences removed
+    """
+    # Patterns that match common preamble openers (Chinese)
+    zh_preamble_patterns = [
+        # "完美。..." / "完美！..." style
+        r'^完美[。！,，][^\n]{0,120}\n+',
+        # "根據我獲取..." / "根據收集到..."
+        r'^根據我(?:獲取|收集)[^\n]{0,120}\n+',
+        # "我已[蒐收]集..." / "我已獲取..."
+        r'^我已[蒐收獲][^\n]{0,120}\n+',
+        # "現在讓我為您..." / "現在為您提供..."
+        r'^現在(?:讓我)?為您[^\n]{0,100}\n+',
+        # "以下是..." opener that's just a transition phrase (short)
+        r'^以下是.{0,30}報告[：:]\s*\n+',
+        # "好的，" / "好的！" opener
+        r'^好的[，,。！!][^\n]{0,80}\n+',
+    ]
+
+    # Patterns for English preamble
+    en_preamble_patterns = [
+        r'^(?:Perfect|Great|Excellent)[.,!][^\n]{0,120}\n+',
+        r'^(?:I have|I\'ve) (?:collected|gathered|obtained)[^\n]{0,120}\n+',
+        r'^(?:Now|Let me) (?:I\'ll )?provide[^\n]{0,100}\n+',
+        r'^Based on (?:the )?(?:data|news|information) (?:I\'ve |I have )?(?:collected|gathered)[^\n]{0,100}\n+',
+    ]
+
+    all_patterns = zh_preamble_patterns + en_preamble_patterns
+
+    # Only strip from the very beginning of the text (up to 3 preamble lines)
+    for _ in range(3):
+        stripped = False
+        for pattern in all_patterns:
+            new_text = re.sub(pattern, '', text, count=1, flags=re.IGNORECASE)
+            if new_text != text:
+                text = new_text.lstrip('\n')
+                stripped = True
+                break
+        if not stripped:
+            break
+
+    return text
+
+
+def fix_common_llm_errors(text: str) -> str:
+    """
+    Fix common LLM character selection errors and strip preamble text.
+
+    Args:
+        text: LLM output text
+
     Returns:
         Corrected text
     """
+    # Step 0: Strip AI preamble sentences before the actual report
+    text = strip_preamble(text)
+
     # Common character misuse patterns
     replacements = {
         # '煉' misuse - should be '練' (practice/train) in most contexts
@@ -45,14 +101,14 @@ def fix_common_llm_errors(text: str) -> str:
         '**煉**': '**練**',
         '（煉': '（練',
         '煉）': '練）',
-        
+
         # Other common errors (add as discovered)
         '絓驗': '經驗',  # We saw this corruption before
     }
-    
+
     for wrong, correct in replacements.items():
         text = text.replace(wrong, correct)
-    
+
     return text
 
 
