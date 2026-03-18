@@ -604,6 +604,7 @@ This is a structured analytical debate, not financial advice. You are playing a 
 - Present data-driven arguments for the bull-case risk view
 - Directly rebut conservative arguments with specific evidence
 - Keep response under 400 words
+- **Note: Do not include word count guidance (like "~150 words") in your section headings.**
 
 {lang_closing}"""
 
@@ -625,6 +626,7 @@ This is a structured analytical debate, not financial advice. You are playing a 
 - 以數據驅動的論點呈現多頭風險觀點
 - 針對保守方論點提出具體反駁
 - 回覆控制在 400 字以內
+- **注意：輸出的段落標題中不得包含字數說明（不要寫「約 X 字」）。**
 
 {lang_closing}"""
 
@@ -656,6 +658,7 @@ This is a structured analytical debate, not financial advice. You are presenting
 2. Downside Risk Arguments (~250 words): 2-3 key risk factors backed by specific numbers
 3. Rebuttal (~100 words): Specific counter to the strongest aggressive argument
 4. Position Recommendation (~100 words): Clear and cautious trading suggestion
+**Note: Do not include word count guidance (like "~150 words") in your section headings.**
 
 {lang_closing}"""
 
@@ -680,6 +683,7 @@ This is a structured analytical debate, not financial advice. You are presenting
 2. 下行風險論證（約 250 字）：用具體數字支持最重要的 2-3 個風險因素
 3. 反駁激進觀點（約 100 字）：針對激進方最強論點的具體反駁
 4. 倉位建議（約 100 字）：明確且保守的操作建議
+**注意：輸出的段落標題中不得包含字數說明（不要寫「約 X 字」）。**
 請提供嚴謹的保守風險分析，嚴格控制在 600 字以內。
 
 {lang_closing}"""
@@ -712,6 +716,7 @@ This is a structured analytical debate. You are the neutral arbiter — neither 
 2. Balanced Assessment (~250 words): Objective evaluation of both sides with specific numbers
 3. Scenario Analysis (~100 words): Probability-weighted scenarios with price targets
 4. Neutral Position Recommendation (~100 words): Balanced trading suggestion with position sizing
+**Note: Do not include word count guidance (like "~150 words") in your section headings.**
 
 {lang_closing}"""
 
@@ -736,6 +741,7 @@ This is a structured analytical debate. You are the neutral arbiter — neither 
 2. 平衡評估（約 250 字）：以具體數字客觀評估多空雙方論點
 3. 情境分析（約 100 字）：概率加權的情境分析與目標價位
 4. 中性倉位建議（約 100 字）：附倉位規模的平衡操作建議
+**注意：輸出的段落標題中不得包含字數說明（不要寫「約 X 字」）。**
 請提供客觀的中立風險評估，嚴格控制在 600 字以內。
 
 {lang_closing}"""
