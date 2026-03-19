@@ -43,8 +43,8 @@ def strip_preamble(text: str) -> str:
     zh_preamble_patterns = [
         # "完美。..." / "完美！..." style
         r'^完美[。！,，][^\n]{0,120}\n+',
-        # "根據我獲取..." / "根據收集到..."
-        r'^根據我(?:獲取|收集)[^\n]{0,120}\n+',
+        # "根據我獲取..." / "根據收集到的數據..." / "根據獲取的..."
+        r'^根據(?:我)?(?:收集|獲取)[^\n]{0,120}\n+',
         # "我已[蒐收]集..." / "我已獲取..."
         r'^我已[蒐收獲][^\n]{0,120}\n+',
         # "現在讓我為您..." / "現在為您提供..."
@@ -53,6 +53,8 @@ def strip_preamble(text: str) -> str:
         r'^以下是.{0,30}報告[：:]\s*\n+',
         # "好的，" / "好的！" opener
         r'^好的[，,。！!][^\n]{0,80}\n+',
+        # "為您提供..." opener
+        r'^為您提供[^\n]{0,100}\n+',
     ]
 
     # Patterns for English preamble
@@ -80,6 +82,24 @@ def strip_preamble(text: str) -> str:
     return text
 
 
+def strip_word_counts_from_headings(text: str) -> str:
+    """
+    Strip word count annotations that models insert into section headings.
+    Examples removed:
+      - "核心論點(150字)"          → "核心論點"
+      - "核心論點（約 150 字）"     → "核心論點"
+      - "Core Arguments (~150 words)" → "Core Arguments"
+      - "一、核心風險診斷（約150字）" → "一、核心風險診斷"
+
+    Applies globally since these annotations only appear in headings by convention.
+    """
+    # Chinese: （約150字）（150字）（约150字）（150字以內）（约 150 字）
+    text = re.sub(r'[（(][約约]?\s*\d+\s*[字][）)]', '', text)
+    # English: (~150 words) (150 words) (approximately 150 words)
+    text = re.sub(r'\s*\(~?\s*\d+\s*words?\)', '', text, flags=re.IGNORECASE)
+    return text
+
+
 def fix_common_llm_errors(text: str) -> str:
     """
     Fix common LLM character selection errors and strip preamble text.
@@ -92,6 +112,9 @@ def fix_common_llm_errors(text: str) -> str:
     """
     # Step 0: Strip AI preamble sentences before the actual report
     text = strip_preamble(text)
+
+    # Step 0b: Strip word count annotations from headings (e.g. "核心論點（約150字）")
+    text = strip_word_counts_from_headings(text)
 
     # Common character misuse patterns
     replacements = {
