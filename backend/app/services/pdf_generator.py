@@ -261,8 +261,12 @@ class PDFGenerator:
             return True
         if stripped.startswith('- ') or stripped.startswith('* '):
             return True
-        if stripped.startswith('· ') or stripped.startswith('\u2022'):
+        # "· content" or "• content" — lone bullet chars (no content) are NOT special here;
+        # they are handled separately as dangling bullets in _merge_soft_newlines.
+        if stripped.startswith('· ') or stripped.startswith('\u2022 '):
             return True
+        if len(stripped) > 1 and stripped[0] == '\u2022':
+            return True  # "•content" (no space) — treat as bullet item
         if stripped.startswith('|'):
             return True
         if re.match(r'^\d+[\.、]\s', stripped):
@@ -270,6 +274,12 @@ class PDFGenerator:
         if re.match(r'^[一二三四五六七八九十百]+[、．。]\s*\S', stripped):
             return True
         return False
+
+    @staticmethod
+    def _is_bullet_line(stripped: str) -> bool:
+        """Return True if the line is a bullet item (allows continuation merging)."""
+        return (stripped.startswith('- ') or stripped.startswith('* ') or
+                stripped.startswith('· ') or stripped.startswith('\u2022'))
 
     @staticmethod
     def _merge_separator(left: str, right: str) -> str:
@@ -297,9 +307,10 @@ class PDFGenerator:
         collapse those soft wraps into spaces while preserving intentional
         structure: blank lines, headings, bullets, tables, numbered lists.
 
-        Special case: a dangling numbered prefix alone on its own line (e.g.
-        "1." with no following text) is merged forward with the next content
-        line, skipping any intervening blank lines.
+        Special cases handled:
+        - Lone bullet char (• or · alone, no content) → merged forward with next content
+        - Dangling numbered prefix ("1." alone) → merged forward with next content
+        - Body text immediately following a bullet item → merged into the bullet (continuation)
         """
         lines = text.split('\n')
         result: list[str] = []
@@ -308,10 +319,25 @@ class PDFGenerator:
             line = lines[i]
             stripped = line.strip()
 
-            # Dangling numbered prefix: "1.", "2." etc. alone on a line
+            # ── Lone bullet character with no content (• · ‧) ──────────────────
+            # These are orphaned bullet markers the LLM placed on their own line.
+            # Merge them forward with the next non-empty, non-special content line.
+            if stripped in ('\u2022', '\u00b7', '\u2027', '·', '•'):
+                j = i + 1
+                while j < len(lines) and not lines[j].strip():
+                    j += 1
+                if j < len(lines) and not self._is_special_line(lines[j].strip()):
+                    # Rebuild as a proper "• content" bullet line
+                    result.append('\u2022 ' + lines[j].strip())
+                    i = j + 1
+                    continue
+                # No following content — drop the lone bullet entirely
+                i += 1
+                continue
+
+            # ── Dangling numbered prefix: "1.", "2." etc. alone on a line ───────
             if re.match(r'^\d+[\.、]$', stripped):
                 j = i + 1
-                # Skip blank lines to find the next content line
                 while j < len(lines) and not lines[j].strip():
                     j += 1
                 if j < len(lines) and not self._is_special_line(lines[j].strip()):
@@ -319,10 +345,15 @@ class PDFGenerator:
                     i = j + 1
                     continue
 
+            # ── Normal merge logic ───────────────────────────────────────────────
             if self._is_special_line(stripped):
                 result.append(line)
-            elif result and result[-1].strip() and not self._is_special_line(result[-1].strip()):
-                # Previous output line was also body text → merge
+            elif result and result[-1].strip() and (
+                not self._is_special_line(result[-1].strip())
+                or self._is_bullet_line(result[-1].strip())
+            ):
+                # Previous output line was body text OR a bullet item → merge
+                # (bullet items allow continuation lines to be appended)
                 prev = result[-1].rstrip()
                 result[-1] = prev + self._merge_separator(prev, stripped) + stripped
             else:
@@ -464,8 +495,17 @@ class PDFGenerator:
             pdf.multi_cell(w, 8, content, align='L')
             pdf.ln(3)
             self._set_color(pdf, '#333333')
-        elif text.startswith('- ') or text.startswith('* '):
-            content = self._clean_markdown(text[2:])
+        elif (text.startswith('- ') or text.startswith('* ') or
+              text.startswith('· ') or text.startswith('\u2022 ') or
+              (len(text) > 1 and text[0] == '\u2022')):
+            # Strip bullet prefix (1 or 2 chars depending on format)
+            if text.startswith('- ') or text.startswith('* ') or text.startswith('· '):
+                raw = text[2:]
+            elif text.startswith('\u2022 '):
+                raw = text[2:]
+            else:
+                raw = text[1:].lstrip()
+            content = self._clean_markdown(raw)
             pdf.set_font(fn, size=10)
             # Indent using leading spaces (multi_cell handles wrapping)
             pdf.multi_cell(w, 5.5, '    \u2022 ' + content, align='L')
