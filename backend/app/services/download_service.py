@@ -123,7 +123,7 @@ class DownloadService:
         )
         
         # Generate filename: TICKER_Combined_Report_DATE.pdf
-        filename = f"{ticker}_Combined_Report_{analysis_date}.pdf"
+        filename = f"{ticker}_Report_{analysis_date}.pdf"
         
         return pdf_bytes, filename
 

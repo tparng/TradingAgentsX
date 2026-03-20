@@ -252,6 +252,46 @@ class PDFGenerator:
         text = re.sub(r'\n{3,}', '\n\n', text)
         return text.strip()
 
+    @staticmethod
+    def _is_special_line(stripped: str) -> bool:
+        """Return True if a line should NOT be merged with adjacent body text."""
+        if not stripped:
+            return True
+        if stripped.startswith('#'):
+            return True
+        if stripped.startswith('- ') or stripped.startswith('* '):
+            return True
+        if stripped.startswith('· ') or stripped.startswith('\u2022'):
+            return True
+        if stripped.startswith('|'):
+            return True
+        if re.match(r'^\d+[\.、]\s', stripped):
+            return True
+        if re.match(r'^[一二三四五六七八九十百]+[、．。]\s*\S', stripped):
+            return True
+        return False
+
+    def _merge_soft_newlines(self, text: str) -> str:
+        """Join soft-wrapped lines within body paragraphs into a single line.
+
+        LLMs often insert \\n mid-sentence every ~40 characters (terminal-style
+        wrapping). The PDF renderer treats every \\n as a hard line break, so we
+        collapse those soft wraps into spaces while preserving intentional
+        structure: blank lines, headings, bullets, tables, numbered lists.
+        """
+        lines = text.split('\n')
+        result: list[str] = []
+        for line in lines:
+            stripped = line.strip()
+            if self._is_special_line(stripped):
+                result.append(line)
+            elif result and result[-1].strip() and not self._is_special_line(result[-1].strip()):
+                # Previous output line was also body text → merge
+                result[-1] = result[-1].rstrip() + ' ' + stripped
+            else:
+                result.append(line)
+        return '\n'.join(result)
+
     def _parse_markdown_table(self, lines: list, start_idx: int) -> tuple:
         """Parse markdown table. Returns (table_data, end_idx)."""
         table_rows = []
@@ -707,6 +747,7 @@ class PDFGenerator:
 
         # Process content
         content = self._replace_emojis(report_content)
+        content = self._merge_soft_newlines(content)
         lines = content.split('\n')
         i = 0
         while i < len(lines):

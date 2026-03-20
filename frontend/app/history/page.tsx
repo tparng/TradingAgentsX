@@ -953,7 +953,7 @@ export default function HistoryPage() {
     setPdfPreviewReport(report);
     setPdfTempId(null);
     setPdfPreviewUrl(null);
-    setPdfPreviewFilename(`${report.ticker}_Combined_Report_${report.analysis_date}.pdf`);
+    setPdfPreviewFilename(`${report.ticker}_Report_${report.analysis_date}.pdf`);
     setPdfGenerating(true);
     setPdfError(null);
     setPdfIframeLoaded(false);
