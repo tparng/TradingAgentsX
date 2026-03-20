@@ -335,14 +335,23 @@ class PDFGenerator:
                 i += 1
                 continue
 
-            # ── Dangling numbered prefix: "1.", "2." etc. alone on a line ───────
-            if re.match(r'^\d+[\.、]$', stripped):
+            # ── Dangling numbered prefix: "1.", "(1)", "(2)" etc. alone on a line ─
+            if re.match(r'^\d+[\.、]$', stripped) or re.match(r'^\(\d+\)$', stripped):
                 j = i + 1
                 while j < len(lines) and not lines[j].strip():
                     j += 1
                 if j < len(lines) and not self._is_special_line(lines[j].strip()):
-                    result.append(stripped + lines[j].strip())
+                    result.append(stripped + ' ' + lines[j].strip())
                     i = j + 1
+                    continue
+
+            # ── Blank line after an incomplete bullet — skip to allow merge ──────
+            if not stripped and result:
+                prev_s = result[-1].strip()
+                SENTENCE_END = frozenset('。！？…；;」』）)')
+                if (prev_s and self._is_bullet_line(prev_s) and
+                        prev_s[-1] not in SENTENCE_END and len(prev_s) < 30):
+                    i += 1
                     continue
 
             # ── Normal merge logic ───────────────────────────────────────────────
@@ -507,8 +516,15 @@ class PDFGenerator:
                 raw = text[1:].lstrip()
             content = self._clean_markdown(raw)
             pdf.set_font(fn, size=10)
-            # Indent using leading spaces (multi_cell handles wrapping)
-            pdf.multi_cell(w, 5.5, '    \u2022 ' + content, align='L')
+            # Hanging indent: temporarily shift left margin so wrapped lines
+            # align with the text after the bullet marker, not the page edge.
+            BULLET_INDENT = 6  # mm
+            orig_left = pdf.l_margin
+            pdf.set_left_margin(orig_left + BULLET_INDENT)
+            pdf.set_x(orig_left + BULLET_INDENT)
+            pdf.multi_cell(pdf.epw, 5.5, '\u2022 ' + content, align='L', wrapmode='CHAR')
+            pdf.set_left_margin(orig_left)
+            pdf.set_x(orig_left)
         else:
             content = self._clean_markdown(text)
             # Detect short "report title" lines
@@ -518,15 +534,29 @@ class PDFGenerator:
                 and ',' not in content and '，' not in content
                 and not content.endswith('。')
             )
-            if is_section_title:
+            # Detect numbered list items: "1. content", "(1) content", etc.
+            num_match = re.match(r'^(\d+[\.、]\s*|\(\d+\)\s*)', content)
+            if num_match and len(content) > len(num_match.group(1)):
+                # Hanging indent for numbered items — checked first to avoid
+                # false detection by is_section_title (e.g. "4. 分析師...")
+                prefix = num_match.group(1)
+                NUM_INDENT = 5  # mm
+                orig_left = pdf.l_margin
+                pdf.set_font(fn, size=10)
+                pdf.set_left_margin(orig_left + NUM_INDENT)
+                pdf.set_x(orig_left + NUM_INDENT)
+                pdf.multi_cell(pdf.epw, 5.5, content, align='L', wrapmode='CHAR')
+                pdf.set_left_margin(orig_left)
+                pdf.set_x(orig_left)
+            elif is_section_title:
                 pdf.set_font(fn, 'B', size=12)
                 self._set_color(pdf, '#2c3e50')
-                pdf.multi_cell(w, 6, content, align='L')
+                pdf.multi_cell(w, 6, content, align='L', wrapmode='CHAR')
                 pdf.ln(1)
                 self._set_color(pdf, '#333333')
             else:
                 pdf.set_font(fn, size=10)
-                pdf.multi_cell(w, 5.5, content, align='L')
+                pdf.multi_cell(w, 5.5, content, align='L', wrapmode='CHAR')
 
     # ------------------------------------------------------------------
     # Price chart (unchanged from original)
