@@ -271,6 +271,24 @@ class PDFGenerator:
             return True
         return False
 
+    @staticmethod
+    def _merge_separator(left: str, right: str) -> str:
+        """Return the separator to use when joining two text segments.
+
+        CJK text does not use spaces between characters, so we skip the
+        space whenever either side of the junction is a CJK character.
+        """
+        if not left or not right:
+            return ''
+        def _is_cjk(c: str) -> bool:
+            cp = ord(c)
+            return (0x4E00 <= cp <= 0x9FFF or 0x3400 <= cp <= 0x4DBF or
+                    0x3000 <= cp <= 0x303F or 0xFF00 <= cp <= 0xFFEF or
+                    0x20000 <= cp <= 0x2A6DF)
+        if _is_cjk(left[-1]) or _is_cjk(right[0]):
+            return ''
+        return ' '
+
     def _merge_soft_newlines(self, text: str) -> str:
         """Join soft-wrapped lines within body paragraphs into a single line.
 
@@ -278,18 +296,38 @@ class PDFGenerator:
         wrapping). The PDF renderer treats every \\n as a hard line break, so we
         collapse those soft wraps into spaces while preserving intentional
         structure: blank lines, headings, bullets, tables, numbered lists.
+
+        Special case: a dangling numbered prefix alone on its own line (e.g.
+        "1." with no following text) is merged forward with the next content
+        line, skipping any intervening blank lines.
         """
         lines = text.split('\n')
         result: list[str] = []
-        for line in lines:
+        i = 0
+        while i < len(lines):
+            line = lines[i]
             stripped = line.strip()
+
+            # Dangling numbered prefix: "1.", "2." etc. alone on a line
+            if re.match(r'^\d+[\.、]$', stripped):
+                j = i + 1
+                # Skip blank lines to find the next content line
+                while j < len(lines) and not lines[j].strip():
+                    j += 1
+                if j < len(lines) and not self._is_special_line(lines[j].strip()):
+                    result.append(stripped + lines[j].strip())
+                    i = j + 1
+                    continue
+
             if self._is_special_line(stripped):
                 result.append(line)
             elif result and result[-1].strip() and not self._is_special_line(result[-1].strip()):
                 # Previous output line was also body text → merge
-                result[-1] = result[-1].rstrip() + ' ' + stripped
+                prev = result[-1].rstrip()
+                result[-1] = prev + self._merge_separator(prev, stripped) + stripped
             else:
                 result.append(line)
+            i += 1
         return '\n'.join(result)
 
     def _parse_markdown_table(self, lines: list, start_idx: int) -> tuple:
