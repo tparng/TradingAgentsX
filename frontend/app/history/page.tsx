@@ -789,18 +789,27 @@ export default function HistoryPage() {
 
       // IMPORTANT: Delete from BOTH cloud AND local to prevent re-sync issues
       // 1. Delete from cloud: delete the specific report AND any other duplicates with the same key
+      const deleteDeep = reportToDelete.result?.deep_think_llm || "";
+      const deleteQuick = reportToDelete.result?.quick_think_llm || "";
       try {
         const allCloudReports = await fetchCloudReportsCached(true);
         if (allCloudReports) {
           const matchingCloudIds = allCloudReports
             .filter((r) => {
               const lang = r.language || "zh-TW";
-              return (
-                r.ticker === reportToDelete.ticker &&
-                r.analysis_date === reportToDelete.analysis_date &&
-                r.market_type === reportToDelete.market_type &&
-                lang === (targetLang || "zh-TW")
-              );
+              if (
+                r.ticker !== reportToDelete.ticker ||
+                r.analysis_date !== reportToDelete.analysis_date ||
+                r.market_type !== reportToDelete.market_type ||
+                lang !== (targetLang || "zh-TW")
+              ) return false;
+              // Also match by model so only the correct model's report is deleted
+              const cloudDeep = r.result?.deep_think_llm || "";
+              const cloudQuick = r.result?.quick_think_llm || "";
+              if ((deleteDeep || deleteQuick) && (cloudDeep || cloudQuick)) {
+                if (deleteDeep !== cloudDeep || deleteQuick !== cloudQuick) return false;
+              }
+              return true;
             })
             .map((r) => r.id);
 
@@ -833,14 +842,21 @@ export default function HistoryPage() {
         // Get language of report to delete (use stored or detect)
         const targetLang = reportToDelete.language || detectReportLanguage(reportToDelete.result?.reports);
 
-        // Find matching report with same ticker, date, market, AND language
+        // Find matching report with same ticker, date, market, language AND model
         const matchingLocal = localReports.find((r) => {
           if (r.ticker !== reportToDelete.ticker) return false;
           if (r.analysis_date !== reportToDelete.analysis_date) return false;
           if (r.market_type !== reportToDelete.market_type) return false;
           // Match language (detect if not stored)
           const localLang = r.language || detectReportLanguage(r.result?.reports);
-          return localLang === targetLang;
+          if (localLang !== targetLang) return false;
+          // Also match by model names to avoid deleting the wrong report
+          const localDeep = r.result?.deep_think_llm || "";
+          const localQuick = r.result?.quick_think_llm || "";
+          if ((deleteDeep || deleteQuick) && (localDeep || localQuick)) {
+            if (deleteDeep !== localDeep || deleteQuick !== localQuick) return false;
+          }
+          return true;
         });
 
         if (matchingLocal && matchingLocal.id) {
