@@ -137,6 +137,15 @@ class FinancialSituationMemory:
 
     def get_memories(self, current_situation, n_matches=1):
         """Find matching recommendations using embeddings"""
+        # Guard: return empty list if collection has no documents yet.
+        # ChromaDB raises ValueError when querying an empty collection.
+        collection_size = self.situation_collection.count()
+        if collection_size == 0:
+            return []
+
+        # Clamp n_matches to avoid requesting more results than available documents.
+        n_matches = min(n_matches, collection_size)
+
         query_embedding = self.get_embedding(current_situation)
 
         results = self.situation_collection.query(
