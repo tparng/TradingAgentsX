@@ -369,24 +369,20 @@ class TradingService:
             "claude-sonnet-4-20250514",
             "claude-3-haiku-20240307",
             # Google
-            "gemini-2.5-pro",
-            "gemini-2.5-flash",
-            "gemini-2.5-flash-lite",
-            "gemini-2.0-flash",
-            "gemini-2.0-flash-lite",
+            "gemini-3.1-pro-preview",
+            "gemini-3-flash-preview",
+            "gemini-3.1-flash-lite-preview",
             # Grok
-            "grok-4-1-fast-reasoning",
-            "grok-4-1-fast-non-reasoning",
-            "grok-4-fast-reasoning",
-            "grok-4-fast-non-reasoning",
-            "grok-4-0709",
+            "grok-4.20-multi-agent-0309",
+            "grok-4.20-0309-reasoning",
+            "grok-4.20-0309-non-reasoning",
             # DeepSeek
             "deepseek-reasoner",
             "deepseek-chat",
             # Qwen
             "qwen3-max",
-            "qwen-plus",
-            "qwen-flash",
+            "qwen3.5-plus",
+            "qwen3.5-flash",
         ]
     
     def get_default_config(self) -> Dict[str, Any]:

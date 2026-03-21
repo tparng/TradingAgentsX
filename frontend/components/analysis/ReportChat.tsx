@@ -78,10 +78,10 @@ export function ReportChat({ reports, ticker, analysisDate }: ReportChatProps) {
       const providers = [
         { key: settings.anthropic_api_key, model: "claude-haiku-4-5-20251001", prefix: "claude-" },
         { key: settings.openai_api_key, model: "gpt-5.4-mini", prefix: "gpt-" },
-        { key: settings.google_api_key, model: "gemini-2.5-flash", prefix: "gemini-" },
-        { key: settings.grok_api_key, model: "grok-4-1-fast-reasoning", prefix: "grok-" },
+        { key: settings.google_api_key, model: "gemini-3-flash-preview", prefix: "gemini-" },
+        { key: settings.grok_api_key, model: "grok-4.20-0309-reasoning", prefix: "grok-" },
         { key: settings.deepseek_api_key, model: "deepseek-chat", prefix: "deepseek-" },
-        { key: settings.qwen_api_key, model: "qwen-flash", prefix: "qwen" },
+        { key: settings.qwen_api_key, model: "qwen3.5-flash", prefix: "qwen" },
       ];
 
       for (const provider of providers) {

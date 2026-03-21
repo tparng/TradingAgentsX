@@ -53,26 +53,22 @@ const AVAILABLE_MODELS = [
   { id: "claude-3-haiku-20240307", name: "Claude 3 Haiku", provider: "anthropic", logo: "/logos/claude-color.svg" },
 
   // Google
-  { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro", provider: "google", logo: "/logos/gemini-color.svg" },
-  { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", provider: "google", logo: "/logos/gemini-color.svg" },
-  { id: "gemini-2.5-flash-lite", name: "Gemini 2.5 Flash Lite", provider: "google", logo: "/logos/gemini-color.svg" },
-  { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash", provider: "google", logo: "/logos/gemini-color.svg" },
-  { id: "gemini-2.0-flash-lite", name: "Gemini 2.0 Flash Lite", provider: "google", logo: "/logos/gemini-color.svg" },
+  { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro", provider: "google", logo: "/logos/gemini-color.svg" },
+  { id: "gemini-3-flash-preview", name: "Gemini 3 Flash", provider: "google", logo: "/logos/gemini-color.svg" },
+  { id: "gemini-3.1-flash-lite-preview", name: "Gemini 3.1 Flash Lite", provider: "google", logo: "/logos/gemini-color.svg" },
 
   // Grok
-  { id: "grok-4-1-fast-reasoning", name: "Grok 4.1 Fast Reasoning", provider: "grok", logo: "/logos/grok.svg" },
-  { id: "grok-4-1-fast-non-reasoning", name: "Grok 4.1 Fast Non Reasoning", provider: "grok", logo: "/logos/grok.svg" },
-  { id: "grok-4-fast-reasoning", name: "Grok 4 Fast Reasoning", provider: "grok", logo: "/logos/grok.svg" },
-  { id: "grok-4-fast-non-reasoning", name: "Grok 4 Fast Non Reasoning", provider: "grok", logo: "/logos/grok.svg" },
-  { id: "grok-4-0709", name: "Grok 4", provider: "grok", logo: "/logos/grok.svg" },
+  { id: "grok-4.20-multi-agent-0309", name: "Grok 4.2 Multi Agent", provider: "grok", logo: "/logos/grok.svg" },
+  { id: "grok-4.20-0309-reasoning", name: "Grok 4.2 Reasoning", provider: "grok", logo: "/logos/grok.svg" },
+  { id: "grok-4.20-0309-non-reasoning", name: "Grok 4.2 Non Reasoning", provider: "grok", logo: "/logos/grok.svg" },
   // DeepSeek
   { id: "deepseek-reasoner", name: "DeepSeek Reasoner", provider: "deepseek", logo: "/logos/deepseek-color.svg" },
   { id: "deepseek-chat", name: "DeepSeek Chat", provider: "deepseek", logo: "/logos/deepseek-color.svg" },
 
   // Qwen
   { id: "qwen3-max", name: "Qwen 3 Max", provider: "qwen", logo: "/logos/qwen-color.svg" },
-  { id: "qwen-plus", name: "Qwen Plus", provider: "qwen", logo: "/logos/qwen-color.svg" },
-  { id: "qwen-flash", name: "Qwen Flash", provider: "qwen", logo: "/logos/qwen-color.svg" },
+  { id: "qwen3.5-plus", name: "Qwen 3.5 Plus", provider: "qwen", logo: "/logos/qwen-color.svg" },
+  { id: "qwen3.5-flash", name: "Qwen 3.5 Flash", provider: "qwen", logo: "/logos/qwen-color.svg" },
 
   // Custom
   { id: "custom", name: "Other (自訂模型)", provider: "custom", logo: null },
@@ -190,7 +186,7 @@ function HistoryChatContent() {
       const providers = {
         anthropic: { key: settings.anthropic_api_key, defaultModel: "claude-haiku-4-5-20251001" },
         openai: { key: settings.openai_api_key, defaultModel: "gpt-5.4-mini" },
-        google: { key: settings.google_api_key, defaultModel: "gemini-2.5-flash" },
+        google: { key: settings.google_api_key, defaultModel: "gemini-3-flash-preview" },
         grok: { key: settings.grok_api_key, defaultModel: "grok-3-mini" },
         deepseek: { key: settings.deepseek_api_key, defaultModel: "deepseek-chat" },
         qwen: { key: settings.qwen_api_key, defaultModel: "qwen-max" },

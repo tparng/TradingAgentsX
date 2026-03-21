@@ -572,66 +572,42 @@ export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
                           </SelectItem>
 
                           {/* Google */}
-                          <SelectItem value="gemini-2.5-pro">
+                          <SelectItem value="gemini-3.1-pro-preview">
                             <div className="flex items-center gap-2">
                               <Image src="/logos/gemini-color.svg" alt="Gemini" width={16} height={16} className="shrink-0" />
-                              <span>Gemini 2.5 Pro</span>
+                              <span>Gemini 3.1 Pro</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="gemini-2.5-flash">
+                          <SelectItem value="gemini-3-flash-preview">
                             <div className="flex items-center gap-2">
                               <Image src="/logos/gemini-color.svg" alt="Gemini" width={16} height={16} className="shrink-0" />
-                              <span>Gemini 2.5 Flash</span>
+                              <span>Gemini 3 Flash</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="gemini-2.5-flash-lite">
+                          <SelectItem value="gemini-3.1-flash-lite-preview">
                             <div className="flex items-center gap-2">
                               <Image src="/logos/gemini-color.svg" alt="Gemini" width={16} height={16} className="shrink-0" />
-                              <span>Gemini 2.5 Flash Lite</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="gemini-2.0-flash">
-                            <div className="flex items-center gap-2">
-                              <Image src="/logos/gemini-color.svg" alt="Gemini" width={16} height={16} className="shrink-0" />
-                              <span>Gemini 2.0 Flash</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="gemini-2.0-flash-lite">
-                            <div className="flex items-center gap-2">
-                              <Image src="/logos/gemini-color.svg" alt="Gemini" width={16} height={16} className="shrink-0" />
-                              <span>Gemini 2.0 Flash Lite</span>
+                              <span>Gemini 3.1 Flash Lite</span>
                             </div>
                           </SelectItem>
 
                           {/* Grok */}
-                          <SelectItem value="grok-4-1-fast-reasoning">
+                          <SelectItem value="grok-4.20-multi-agent-0309">
                             <div className="flex items-center gap-2">
                               <Image src="/logos/grok.svg" alt="Grok" width={16} height={16} className="shrink-0" />
-                              <span>Grok 4.1 Fast Reasoning</span>
+                              <span>Grok 4.2 Multi Agent</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="grok-4-1-fast-non-reasoning">
+                          <SelectItem value="grok-4.20-0309-reasoning">
                             <div className="flex items-center gap-2">
                               <Image src="/logos/grok.svg" alt="Grok" width={16} height={16} className="shrink-0" />
-                              <span>Grok 4.1 Fast Non Reasoning</span>
+                              <span>Grok 4.2 Reasoning</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="grok-4-fast-reasoning">
+                          <SelectItem value="grok-4.20-0309-non-reasoning">
                             <div className="flex items-center gap-2">
                               <Image src="/logos/grok.svg" alt="Grok" width={16} height={16} className="shrink-0" />
-                              <span>Grok 4 Fast Reasoning</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="grok-4-fast-non-reasoning">
-                            <div className="flex items-center gap-2">
-                              <Image src="/logos/grok.svg" alt="Grok" width={16} height={16} className="shrink-0" />
-                              <span>Grok 4 Fast Non Reasoning</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="grok-4-0709">
-                            <div className="flex items-center gap-2">
-                              <Image src="/logos/grok.svg" alt="Grok" width={16} height={16} className="shrink-0" />
-                              <span>Grok 4</span>
+                              <span>Grok 4.2 Non Reasoning</span>
                             </div>
                           </SelectItem>
 
@@ -656,16 +632,16 @@ export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
                               <span>Qwen 3 Max</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="qwen-plus">
+                          <SelectItem value="qwen3.5-plus">
                             <div className="flex items-center gap-2">
                               <Image src="/logos/qwen-color.svg" alt="Qwen" width={16} height={16} className="shrink-0" />
-                              <span>Qwen Plus</span>
+                              <span>Qwen 3.5 Plus</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="qwen-flash">
+                          <SelectItem value="qwen3.5-flash">
                             <div className="flex items-center gap-2">
                               <Image src="/logos/qwen-color.svg" alt="Qwen" width={16} height={16} className="shrink-0" />
-                              <span>Qwen Flash</span>
+                              <span>Qwen 3.5 Flash</span>
                             </div>
                           </SelectItem>
 
@@ -763,66 +739,42 @@ export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
                           </SelectItem>
 
                           {/* Google */}
-                          <SelectItem value="gemini-2.5-pro">
+                          <SelectItem value="gemini-3.1-pro-preview">
                             <div className="flex items-center gap-2">
                               <Image src="/logos/gemini-color.svg" alt="Gemini" width={16} height={16} className="shrink-0" />
-                              <span>Gemini 2.5 Pro</span>
+                              <span>Gemini 3.1 Pro</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="gemini-2.5-flash">
+                          <SelectItem value="gemini-3-flash-preview">
                             <div className="flex items-center gap-2">
                               <Image src="/logos/gemini-color.svg" alt="Gemini" width={16} height={16} className="shrink-0" />
-                              <span>Gemini 2.5 Flash</span>
+                              <span>Gemini 3 Flash</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="gemini-2.5-flash-lite">
+                          <SelectItem value="gemini-3.1-flash-lite-preview">
                             <div className="flex items-center gap-2">
                               <Image src="/logos/gemini-color.svg" alt="Gemini" width={16} height={16} className="shrink-0" />
-                              <span>Gemini 2.5 Flash Lite</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="gemini-2.0-flash">
-                            <div className="flex items-center gap-2">
-                              <Image src="/logos/gemini-color.svg" alt="Gemini" width={16} height={16} className="shrink-0" />
-                              <span>Gemini 2.0 Flash</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="gemini-2.0-flash-lite">
-                            <div className="flex items-center gap-2">
-                              <Image src="/logos/gemini-color.svg" alt="Gemini" width={16} height={16} className="shrink-0" />
-                              <span>Gemini 2.0 Flash Lite</span>
+                              <span>Gemini 3.1 Flash Lite</span>
                             </div>
                           </SelectItem>
 
                           {/* Grok */}
-                          <SelectItem value="grok-4-1-fast-reasoning">
+                          <SelectItem value="grok-4.20-multi-agent-0309">
                             <div className="flex items-center gap-2">
                               <Image src="/logos/grok.svg" alt="Grok" width={16} height={16} className="shrink-0" />
-                              <span>Grok 4.1 Fast Reasoning</span>
+                              <span>Grok 4.2 Multi Agent</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="grok-4-1-fast-non-reasoning">
+                          <SelectItem value="grok-4.20-0309-reasoning">
                             <div className="flex items-center gap-2">
                               <Image src="/logos/grok.svg" alt="Grok" width={16} height={16} className="shrink-0" />
-                              <span>Grok 4.1 Fast Non Reasoning</span>
+                              <span>Grok 4.2 Reasoning</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="grok-4-fast-reasoning">
+                          <SelectItem value="grok-4.20-0309-non-reasoning">
                             <div className="flex items-center gap-2">
                               <Image src="/logos/grok.svg" alt="Grok" width={16} height={16} className="shrink-0" />
-                              <span>Grok 4 Fast Reasoning</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="grok-4-fast-non-reasoning">
-                            <div className="flex items-center gap-2">
-                              <Image src="/logos/grok.svg" alt="Grok" width={16} height={16} className="shrink-0" />
-                              <span>Grok 4 Fast Non Reasoning</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="grok-4-0709">
-                            <div className="flex items-center gap-2">
-                              <Image src="/logos/grok.svg" alt="Grok" width={16} height={16} className="shrink-0" />
-                              <span>Grok 4</span>
+                              <span>Grok 4.2 Non Reasoning</span>
                             </div>
                           </SelectItem>
 
@@ -847,16 +799,16 @@ export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
                               <span>Qwen 3 Max</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="qwen-plus">
+                          <SelectItem value="qwen3.5-plus">
                             <div className="flex items-center gap-2">
                               <Image src="/logos/qwen-color.svg" alt="Qwen" width={16} height={16} className="shrink-0" />
-                              <span>Qwen Plus</span>
+                              <span>Qwen 3.5 Plus</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="qwen-flash">
+                          <SelectItem value="qwen3.5-flash">
                             <div className="flex items-center gap-2">
                               <Image src="/logos/qwen-color.svg" alt="Qwen" width={16} height={16} className="shrink-0" />
-                              <span>Qwen Flash</span>
+                              <span>Qwen 3.5 Flash</span>
                             </div>
                           </SelectItem>
 

@@ -243,18 +243,14 @@ def select_shallow_thinking_agent(provider=None) -> str:
             ("Claude 3 Haiku", "claude-3-haiku-20240307"),
         ],
         "Google": [
-            ("Gemini 2.5 Pro", "gemini-2.5-pro"),
-            ("Gemini 2.5 Flash", "gemini-2.5-flash"),
-            ("Gemini 2.5 Flash Lite", "gemini-2.5-flash-lite"),
-            ("Gemini 2.0 Flash", "gemini-2.0-flash"),
-            ("Gemini 2.0 Flash-Lite", "gemini-2.0-flash-lite"),
+            ("Gemini 3.1 Pro", "gemini-3.1-pro-preview"),
+            ("Gemini 3 Flash", "gemini-3-flash-preview"),
+            ("Gemini 3.1 Flash Lite", "gemini-3.1-flash-lite-preview"),
         ],
         "Grok":[
-            ("Grok 4.1 Fast Reasoning","grok-4-1-fast-reasoning"),
-            ("Grok 4.1 Fast Non Reasoning","grok-4-1-fast-non-reasoning"),
-            ("Grok 4 Fast Reasoning","grok-4-fast-reasoning"),
-            ("Grok 4 Fast Non Reasoning","grok-4-fast-non-reasoning"),
-            ("Grok 4","grok-4-0709"),
+            ("Grok 4.2 Multi Agent", "grok-4.20-multi-agent-0309"),
+            ("Grok 4.2 Reasoning", "grok-4.20-0309-reasoning"),
+            ("Grok 4.2 Non Reasoning", "grok-4.20-0309-non-reasoning"),
         ],
         "DeepSeek": [
             ("DeepSeek Reasoner","deepseek-reasoner"),
@@ -262,8 +258,8 @@ def select_shallow_thinking_agent(provider=None) -> str:
         ],
         "Qwen":[
             ("Qwen 3 Max", "qwen3-max"),
-            ("Qwen Plus", "qwen-plus"),
-            ("Qwen Flash", "qwen-flash"),
+            ("Qwen 3.5 Plus", "qwen3.5-plus"),
+            ("Qwen 3.5 Flash", "qwen3.5-flash"),
         ]
     }
     
@@ -361,18 +357,14 @@ def select_deep_thinking_agent(provider=None) -> str:
             ("Claude 3 Haiku", "claude-3-haiku-20240307"),
         ],
         "Google": [
-            ("Gemini 2.5 Pro", "gemini-2.5-pro"),
-            ("Gemini 2.5 Flash", "gemini-2.5-flash"),
-            ("Gemini 2.5 Flash Lite", "gemini-2.5-flash-lite"),
-            ("Gemini 2.0 Flash", "gemini-2.0-flash"),
-            ("Gemini 2.0 Flash-Lite", "gemini-2.0-flash-lite"),
+            ("Gemini 3.1 Pro", "gemini-3.1-pro-preview"),
+            ("Gemini 3 Flash", "gemini-3-flash-preview"),
+            ("Gemini 3.1 Flash Lite", "gemini-3.1-flash-lite-preview"),
         ],
         "Grok":[
-            ("Grok 4.1 Fast Reasoning","grok-4-1-fast-reasoning"),
-            ("Grok 4.1 Fast Non Reasoning","grok-4-1-fast-non-reasoning"),
-            ("Grok 4 Fast Reasoning","grok-4-fast-reasoning"),
-            ("Grok 4 Fast Non Reasoning","grok-4-fast-non-reasoning"),
-            ("Grok 4","grok-4-0709"),
+            ("Grok 4.2 Multi Agent", "grok-4.20-multi-agent-0309"),
+            ("Grok 4.2 Reasoning", "grok-4.20-0309-reasoning"),
+            ("Grok 4.2 Non Reasoning", "grok-4.20-0309-non-reasoning"),
         ],
         "DeepSeek":[
             ("DeepSeek Reasoner","deepseek-reasoner"),
@@ -380,8 +372,8 @@ def select_deep_thinking_agent(provider=None) -> str:
         ],
         "Qwen":[
             ("Qwen 3 Max", "qwen3-max"),
-            ("Qwen Plus", "qwen-plus"),
-            ("Qwen Flash", "qwen-flash"),
+            ("Qwen 3.5 Plus", "qwen3.5-plus"),
+            ("Qwen 3.5 Flash", "qwen3.5-flash"),
         ]
     }
     
