@@ -222,12 +222,18 @@ async def create_report(
     user: User = Depends(get_current_user_required),
     db: AsyncSession = Depends(get_db)
 ):
-    """Save a report (upsert: update if same ticker/date/market_type/language exists)"""
+    """Save a report. Upserts only when ticker/date/market/language AND model names match.
+    Reports with different models on the same ticker/date are stored as separate entries."""
     # Normalize language: treat None as "zh-TW" to avoid NULL matching issues
     language = report_data.language or "zh-TW"
 
-    # Check for existing report with same key to prevent duplicates
-    existing_result = await db.execute(
+    # Extract model names from the incoming result payload
+    new_result = report_data.result or {}
+    new_deep = new_result.get("deep_think_llm") or ""
+    new_quick = new_result.get("quick_think_llm") or ""
+
+    # Fetch all reports for this ticker/date/market/language, then compare models in Python
+    existing_candidates_result = await db.execute(
         select(Report)
         .where(Report.user_id == user.id)
         .where(Report.ticker == report_data.ticker)
@@ -235,10 +241,20 @@ async def create_report(
         .where(Report.market_type == report_data.market_type)
         .where(func.coalesce(Report.language, "zh-TW") == language)
     )
-    existing = existing_result.scalar_one_or_none()
+    existing_candidates = existing_candidates_result.scalars().all()
+
+    existing = None
+    for candidate in existing_candidates:
+        candidate_result = candidate.result or {}
+        candidate_deep = candidate_result.get("deep_think_llm") or ""
+        candidate_quick = candidate_result.get("quick_think_llm") or ""
+        # Same model (or both have no model info) → treat as same report
+        if candidate_deep == new_deep and candidate_quick == new_quick:
+            existing = candidate
+            break
 
     if existing:
-        # Update existing report instead of creating a duplicate
+        # Same model + same ticker/date → update in place (true duplicate)
         existing.result = report_data.result
         existing.language = language
         await db.commit()
@@ -248,7 +264,7 @@ async def create_report(
             "message": "Report updated successfully"
         }
 
-    # No existing report found — create new
+    # Different model (or no prior report) — create new entry
     report = Report(
         user_id=user.id,
         ticker=report_data.ticker,

@@ -167,32 +167,43 @@ export async function checkDuplicateReport(
 }
 
 /**
- * Check if a report exists by ticker, date, market type, and language
+ * Check if a report exists by ticker, date, market type, language, AND model names.
  * Used for bidirectional sync to prevent duplicates.
- * Language is normalized so null/undefined matches "zh-TW".
+ * Reports with different models are NOT considered duplicates.
  */
 export async function findExistingReport(
   ticker: string,
   analysis_date: string,
   market_type: "us" | "twse" | "tpex",
   language?: "en" | "zh-TW",
+  deep_think_llm?: string,
+  quick_think_llm?: string,
 ): Promise<SavedReport | undefined> {
   const normalizedLang = normalizeLanguage(language);
   return await db.reports
     .where("ticker")
     .equals(ticker)
-    .and(
-      (report) =>
-        report.analysis_date === analysis_date &&
-        report.market_type === market_type &&
-        normalizeLanguage(report.language) === normalizedLang
-    )
+    .and((report) => {
+      if (report.analysis_date !== analysis_date) return false;
+      if (report.market_type !== market_type) return false;
+      if (normalizeLanguage(report.language) !== normalizedLang) return false;
+      // Also match on model names so different-model reports are kept separately
+      const existingDeep = report.result?.deep_think_llm || "";
+      const existingQuick = report.result?.quick_think_llm || "";
+      const newDeep = deep_think_llm || "";
+      const newQuick = quick_think_llm || "";
+      // If both sides have model info, compare; otherwise treat as same (old format)
+      if ((newDeep || newQuick) && (existingDeep || existingQuick)) {
+        if (newDeep !== existingDeep || newQuick !== existingQuick) return false;
+      }
+      return true;
+    })
     .first();
 }
 
 /**
  * Bulk save reports to the database (for syncing from cloud)
- * Skips reports that already exist locally
+ * Skips reports that already exist locally (same ticker/date/market/lang/model)
  */
 export async function bulkSaveReports(
   reports: Omit<SavedReport, "id">[]
@@ -203,7 +214,9 @@ export async function bulkSaveReports(
       report.ticker,
       report.analysis_date,
       report.market_type,
-      report.language
+      report.language,
+      report.result?.deep_think_llm,
+      report.result?.quick_think_llm,
     );
     if (!existing) {
       await db.reports.add(report as SavedReport);
