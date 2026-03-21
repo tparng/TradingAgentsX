@@ -60,9 +60,13 @@ export function getReportSignature(report: {
   analysis_date: string;
   market_type?: string;
   language?: string | null;
+  result?: { deep_think_llm?: string; quick_think_llm?: string } | null;
 }): string {
   const lang = normalizeLanguage(report.language);
-  return `${report.ticker}_${report.analysis_date}_${report.market_type || "us"}_${lang}`;
+  const deep = report.result?.deep_think_llm || "";
+  const quick = report.result?.quick_think_llm || "";
+  const modelSuffix = (deep || quick) ? `_${deep}_${quick}` : "";
+  return `${report.ticker}_${report.analysis_date}_${report.market_type || "us"}_${lang}${modelSuffix}`;
 }
 
 // Model ID → human-readable display name mapping (mirrors pdf_generator.py)

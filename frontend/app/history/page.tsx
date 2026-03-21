@@ -354,7 +354,10 @@ const parseUTCDate = (dateStr: string): Date => {
  */
 const getReportSignature = (report: any): string => {
   const lang = report.language || "zh-TW";
-  return `${report.ticker}_${report.analysis_date}_${report.market_type || 'us'}_${lang}`;
+  const deep = report.result?.deep_think_llm || "";
+  const quick = report.result?.quick_think_llm || "";
+  const modelSuffix = (deep || quick) ? `_${deep}_${quick}` : "";
+  return `${report.ticker}_${report.analysis_date}_${report.market_type || 'us'}_${lang}${modelSuffix}`;
 };
 
 export default function HistoryPage() {

@@ -339,9 +339,11 @@ async def cleanup_duplicate_reports(
     db: AsyncSession = Depends(get_db)
 ):
     """Remove duplicate reports using SQL-level deduplication.
-    Keeps only the most recent one per (ticker, analysis_date, market_type, language).
+    Keeps only the most recent one per (ticker, analysis_date, market_type, language, deep_model, quick_model).
+    Reports with different models are treated as distinct and are NOT deleted.
     """
     # Use SQL window function to find duplicates without loading all rows into memory
+    # Extract model names from JSON result field so different-model reports are kept separately
     result = await db.execute(text("""
         DELETE FROM reports
         WHERE id IN (
@@ -349,7 +351,9 @@ async def cleanup_duplicate_reports(
                 SELECT id,
                     ROW_NUMBER() OVER (
                         PARTITION BY user_id, ticker, analysis_date, market_type,
-                                     COALESCE(language, 'zh-TW')
+                                     COALESCE(language, 'zh-TW'),
+                                     COALESCE(result->>'deep_think_llm', ''),
+                                     COALESCE(result->>'quick_think_llm', '')
                         ORDER BY created_at DESC
                     ) as rn
                 FROM reports
