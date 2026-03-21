@@ -151,10 +151,13 @@ export async function checkDuplicateReport(
       if (report.analysis_date !== analysis_date) return false;
       if (market_type && report.market_type !== market_type) return false;
       if (normalizeLanguage(report.language) !== normalizedLang) return false;
-      // If both new and existing report have model info, compare them
+      // If new report has model info, compare with existing
       const existingDeep = report.result?.deep_think_llm;
       const existingQuick = report.result?.quick_think_llm;
-      if ((deep_think_llm || quick_think_llm) && (existingDeep || existingQuick)) {
+      if (deep_think_llm || quick_think_llm) {
+        // Old report has no model info (saved before model tracking) → not a duplicate
+        if (!existingDeep && !existingQuick) return false;
+        // Both sides have model info → compare
         if (deep_think_llm && existingDeep && deep_think_llm !== existingDeep) return false;
         if (quick_think_llm && existingQuick && quick_think_llm !== existingQuick) return false;
       }
