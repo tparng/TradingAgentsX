@@ -260,6 +260,8 @@ class TradingService:
                     "reports": reports,
                     "price_data": price_data,
                     "price_stats": price_stats,
+                    "deep_think_llm": deep_think_llm,
+                    "quick_think_llm": quick_think_llm,
                 }
                 
             finally:

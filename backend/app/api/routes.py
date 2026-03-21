@@ -390,8 +390,10 @@ async def download_reports(request: DownloadRequest):
         price_data=price_data,
         price_stats=price_stats,
         language=request.language or "zh-TW",
+        deep_think_llm=request.deep_think_llm,
+        quick_think_llm=request.quick_think_llm,
     )
-    
+
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",
@@ -495,6 +497,8 @@ async def generate_pdf_temp(request: DownloadRequest):
         price_data=price_data,
         price_stats=price_stats,
         language=language,
+        deep_think_llm=request.deep_think_llm,
+        quick_think_llm=request.quick_think_llm,
     )
 
     temp_id = str(uuid.uuid4())

@@ -55,10 +55,14 @@ export function PendingTaskRecovery() {
       if (taskStatus.status === 'completed' && taskStatus.result) {
         setMessage("分析已完成！正在儲存報告...");
         
-        // Check for duplicate
+        // Check for duplicate (include model names so different-model runs are saved separately)
         const duplicate = await checkDuplicateReport(
           taskStatus.result.ticker,
-          taskStatus.result.analysis_date
+          taskStatus.result.analysis_date,
+          undefined,
+          undefined,
+          taskStatus.result.deep_think_llm,
+          taskStatus.result.quick_think_llm,
         );
         
         if (duplicate) {

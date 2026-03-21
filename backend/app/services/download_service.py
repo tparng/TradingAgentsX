@@ -50,6 +50,8 @@ class DownloadService:
         price_data: list = None,
         price_stats: dict = None,
         language: str = "zh-TW",
+        deep_think_llm: str = None,
+        quick_think_llm: str = None,
     ) -> tuple[bytes, str]:
         """
         Create a single combined PDF containing all analyst reports
@@ -120,6 +122,8 @@ class DownloadService:
             price_data=price_data,
             price_stats=price_stats,
             language=language,
+            deep_think_llm=deep_think_llm,
+            quick_think_llm=quick_think_llm,
         )
         
         # Generate filename: TICKER_Combined_Report_DATE.pdf

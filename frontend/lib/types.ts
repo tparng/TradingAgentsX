@@ -58,6 +58,8 @@ export interface AnalysisResponse {
   quota_limit?: number;
   price_data?: PriceData[];
   price_stats?: PriceStats;
+  deep_think_llm?: string;   // Deep thinking model used for this analysis
+  quick_think_llm?: string;  // Quick thinking model used for this analysis
 }
 
 export interface Decision {

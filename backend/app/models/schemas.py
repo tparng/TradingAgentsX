@@ -99,6 +99,8 @@ class AnalysisResponse(BaseModel):
     error: Optional[str] = Field(None, description="Error message if analysis failed")
     price_data: Optional[List[PriceData]] = Field(None, description="Historical price data")
     price_stats: Optional[PriceStats] = Field(None, description="Price statistics")
+    deep_think_llm: Optional[str] = Field(None, description="Deep thinking LLM model used")
+    quick_think_llm: Optional[str] = Field(None, description="Quick thinking LLM model used")
 
 
 class ConfigResponse(BaseModel):
@@ -177,6 +179,10 @@ class DownloadRequest(BaseModel):
         default="zh-TW",
         description="Language for PDF labels: 'en' for English, 'zh-TW' for Traditional Chinese"
     )
+
+    # Model info for PDF cover page display
+    deep_think_llm: Optional[str] = Field(None, description="Deep thinking LLM model used (for PDF cover)")
+    quick_think_llm: Optional[str] = Field(None, description="Quick thinking LLM model used (for PDF cover)")
     
     # 防呆：自動將股票代碼轉換為大寫
     @field_validator('ticker')

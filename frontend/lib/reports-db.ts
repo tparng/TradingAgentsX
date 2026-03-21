@@ -132,13 +132,16 @@ export async function getReportCountByMarketType(): Promise<{
 
 /**
  * Check if a report with the same signature already exists.
- * Supports optional market_type and language for precise matching.
+ * Supports optional market_type, language, and model names for precise matching.
+ * When model names are provided, two reports with different models are NOT duplicates.
  */
 export async function checkDuplicateReport(
   ticker: string,
   analysis_date: string,
   market_type?: "us" | "twse" | "tpex",
   language?: "en" | "zh-TW",
+  deep_think_llm?: string,
+  quick_think_llm?: string,
 ): Promise<SavedReport | undefined> {
   const normalizedLang = normalizeLanguage(language);
   return await db.reports
@@ -148,6 +151,13 @@ export async function checkDuplicateReport(
       if (report.analysis_date !== analysis_date) return false;
       if (market_type && report.market_type !== market_type) return false;
       if (normalizeLanguage(report.language) !== normalizedLang) return false;
+      // If both new and existing report have model info, compare them
+      const existingDeep = report.result?.deep_think_llm;
+      const existingQuick = report.result?.quick_think_llm;
+      if ((deep_think_llm || quick_think_llm) && (existingDeep || existingQuick)) {
+        if (deep_think_llm && existingDeep && deep_think_llm !== existingDeep) return false;
+        if (quick_think_llm && existingQuick && quick_think_llm !== existingQuick) return false;
+      }
       return true;
     })
     .first();

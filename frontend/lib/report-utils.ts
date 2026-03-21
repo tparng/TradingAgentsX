@@ -65,6 +65,46 @@ export function getReportSignature(report: {
   return `${report.ticker}_${report.analysis_date}_${report.market_type || "us"}_${lang}`;
 }
 
+// Model ID → human-readable display name mapping (mirrors pdf_generator.py)
+const MODEL_DISPLAY_NAMES: Record<string, string> = {
+  // Anthropic Claude
+  "claude-opus-4-6": "Claude Opus 4.6",
+  "claude-sonnet-4-6": "Claude Sonnet 4.6",
+  "claude-haiku-4-5-20251001": "Claude Haiku 4.5",
+  "claude-sonnet-4-5-20250929": "Claude Sonnet 4.5",
+  "claude-sonnet-4-20250514": "Claude Sonnet 4",
+  "claude-3-haiku-20240307": "Claude 3 Haiku",
+  // Google Gemini
+  "gemini-3.1-pro-preview": "Gemini 3.1 Pro",
+  "gemini-3-flash-preview": "Gemini 3 Flash",
+  "gemini-3.1-flash-lite-preview": "Gemini 3.1 Flash Lite",
+  // OpenAI
+  "gpt-4o": "GPT-4o",
+  "gpt-4o-mini": "GPT-4o Mini",
+  "o1": "OpenAI o1",
+  "o3-mini": "OpenAI o3 Mini",
+  // Grok
+  "grok-4.20-multi-agent-0309": "Grok 4.2 Multi Agent",
+  "grok-4.20-0309-reasoning": "Grok 4.2 Reasoning",
+  "grok-4.20-0309-non-reasoning": "Grok 4.2",
+  // DeepSeek
+  "deepseek-reasoner": "DeepSeek Reasoner",
+  "deepseek-chat": "DeepSeek Chat",
+  // Qwen
+  "qwen3-max": "Qwen 3 Max",
+  "qwen3.5-plus": "Qwen 3.5 Plus",
+  "qwen3.5-flash": "Qwen 3.5 Flash",
+};
+
+/**
+ * Convert a model ID to a human-readable display name.
+ * Falls back to the raw model ID if not found in the mapping.
+ */
+export function getModelDisplayName(modelId: string | undefined | null): string | null {
+  if (!modelId) return null;
+  return MODEL_DISPLAY_NAMES[modelId] ?? modelId;
+}
+
 /**
  * Parse a date string from the backend as UTC.
  * Backend stores created_at in UTC but may not always include timezone info.

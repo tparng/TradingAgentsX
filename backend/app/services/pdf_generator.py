@@ -115,6 +115,46 @@ def get_pdf_label(key: str, language: str = 'zh-TW') -> str:
     return lang_labels.get(key, PDF_LABELS['zh-TW'].get(key, key))
 
 
+# Model ID → human-readable display name mapping
+_MODEL_DISPLAY_NAMES: dict[str, str] = {
+    # Anthropic Claude
+    "claude-opus-4-6": "Claude Opus 4.6",
+    "claude-sonnet-4-6": "Claude Sonnet 4.6",
+    "claude-haiku-4-5-20251001": "Claude Haiku 4.5",
+    "claude-sonnet-4-5-20250929": "Claude Sonnet 4.5",
+    "claude-sonnet-4-20250514": "Claude Sonnet 4",
+    "claude-3-haiku-20240307": "Claude 3 Haiku",
+    # Google Gemini
+    "gemini-3.1-pro-preview": "Gemini 3.1 Pro",
+    "gemini-3-flash-preview": "Gemini 3 Flash",
+    "gemini-3.1-flash-lite-preview": "Gemini 3.1 Flash Lite",
+    # OpenAI
+    "gpt-4o": "GPT-4o",
+    "gpt-4o-mini": "GPT-4o Mini",
+    "o1": "OpenAI o1",
+    "o3-mini": "OpenAI o3 Mini",
+    # Grok
+    "grok-4.20-multi-agent-0309": "Grok 4.2 Multi Agent",
+    "grok-4.20-0309-reasoning": "Grok 4.2 Reasoning",
+    "grok-4.20-0309-non-reasoning": "Grok 4.2",
+    # DeepSeek
+    "deepseek-reasoner": "DeepSeek Reasoner",
+    "deepseek-chat": "DeepSeek Chat",
+    # Qwen
+    "qwen3-max": "Qwen 3 Max",
+    "qwen3.5-plus": "Qwen 3.5 Plus",
+    "qwen3.5-flash": "Qwen 3.5 Flash",
+}
+
+
+def get_model_display_name(model_id: str | None) -> str | None:
+    """Convert a model ID to a human-readable display name.
+    Falls back to the raw model_id if not in the mapping."""
+    if not model_id:
+        return None
+    return _MODEL_DISPLAY_NAMES.get(model_id, model_id)
+
+
 # ============================================
 # CUSTOM FPDF CLASS WITH AUTO PAGE NUMBERING
 # ============================================
@@ -656,7 +696,8 @@ class PDFGenerator:
     # Page builders
     # ------------------------------------------------------------------
 
-    def _build_cover_page(self, pdf: FPDF, ticker: str, analysis_date: str, language: str):
+    def _build_cover_page(self, pdf: FPDF, ticker: str, analysis_date: str, language: str,
+                          deep_think_llm: str = None, quick_think_llm: str = None):
         """Cover page: large ticker, date, TradingAgentsX branding"""
         fn = self._fn()
         pdf.add_page()
@@ -682,6 +723,29 @@ class PDFGenerator:
         self._set_color(pdf, '#888888')
         pdf.cell(0, 8, get_pdf_label('cover_title', language), align='C', new_x='LMARGIN', new_y='NEXT')
         pdf.cell(0, 8, get_pdf_label('cover_subtitle', language), align='C', new_x='LMARGIN', new_y='NEXT')
+
+        # Model info (Deep / Quick)
+        deep_name = get_model_display_name(deep_think_llm)
+        quick_name = get_model_display_name(quick_think_llm)
+        if deep_name or quick_name:
+            pdf.ln(10)
+            pdf.set_font(fn, size=10)
+            self._set_color(pdf, '#aaaaaa')
+            if language == 'zh-TW':
+                if deep_name and quick_name and deep_name != quick_name:
+                    model_line = f'深度思維：{deep_name}　快速思維：{quick_name}'
+                elif deep_name:
+                    model_line = f'模型：{deep_name}'
+                else:
+                    model_line = f'模型：{quick_name}'
+            else:
+                if deep_name and quick_name and deep_name != quick_name:
+                    model_line = f'Deep: {deep_name}  |  Quick: {quick_name}'
+                elif deep_name:
+                    model_line = f'Model: {deep_name}'
+                else:
+                    model_line = f'Model: {quick_name}'
+            pdf.multi_cell(0, 6, model_line, align='C', wrapmode='CHAR')
 
         pdf.set_text_color(0, 0, 0)
 
@@ -893,6 +957,8 @@ class PDFGenerator:
         price_data: list = None,
         price_stats: dict = None,
         language: str = 'zh-TW',
+        deep_think_llm: str = None,
+        quick_think_llm: str = None,
     ) -> bytes:
         """
         Generate a combined PDF containing all analyst reports.
@@ -948,7 +1014,8 @@ class PDFGenerator:
         pdf = self._new_pdf()
 
         # 1. Cover page (page 1 — no footer)
-        self._build_cover_page(pdf, ticker, analysis_date, language)
+        self._build_cover_page(pdf, ticker, analysis_date, language,
+                               deep_think_llm=deep_think_llm, quick_think_llm=quick_think_llm)
 
         # 2. TOC page (page 2 — no footer)
         self._build_toc_page(pdf, reports, has_chart, TEAMS, language)

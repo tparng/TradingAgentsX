@@ -31,8 +31,15 @@ export default function AnalysisPage() {
     if (!result || hasSavedRef.current) return;
     
     try {
-      // Check for duplicate
-      const duplicate = await checkDuplicateReport(result.ticker, result.analysis_date);
+      // Check for duplicate (include model names so different-model runs are saved separately)
+      const duplicate = await checkDuplicateReport(
+        result.ticker,
+        result.analysis_date,
+        undefined,
+        undefined,
+        result.deep_think_llm,
+        result.quick_think_llm,
+      );
       if (duplicate) {
         console.log("Report already saved, skipping auto-save");
         return;

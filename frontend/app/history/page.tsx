@@ -52,6 +52,7 @@ import {
   saveCloudReport,
   isCloudSyncEnabled,
 } from "@/lib/user-api";
+import { getModelDisplayName } from "@/lib/report-utils";
 // import { LoginPrompt } from "@/components/auth/login-button";
 import { PendingTaskRecovery } from "@/components/PendingTaskRecovery";
 
@@ -939,6 +940,8 @@ export default function HistoryPage() {
       price_data: report.result.price_data,
       price_stats: report.result.price_stats,
       language: detectLang(report.result.reports),
+      deep_think_llm: report.result.deep_think_llm,
+      quick_think_llm: report.result.quick_think_llm,
     };
   };
 
@@ -1118,6 +1121,18 @@ export default function HistoryPage() {
                                   >
                                     {decision.action}
                                   </span>
+                                </p>
+                              );
+                            })()}
+                            {(() => {
+                              const deepName = getModelDisplayName(report.result?.deep_think_llm);
+                              const quickName = getModelDisplayName(report.result?.quick_think_llm);
+                              if (!deepName && !quickName) return null;
+                              return (
+                                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                                  {deepName === quickName && deepName
+                                    ? deepName
+                                    : [deepName, quickName].filter(Boolean).join(" / ")}
                                 </p>
                               );
                             })()}
