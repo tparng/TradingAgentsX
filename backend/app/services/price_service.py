@@ -246,9 +246,12 @@ class PriceService:
         Returns:
             Dictionary with statistics
         """
+        if df is None or df.is_empty():
+            return None
+
         # Use Adj Close if available, otherwise use Close
         close_field = "Adj Close" if "Adj Close" in df.columns else "Close"
-        
+
         start_price = float(df.row(0, named=True)[close_field])
         end_price = float(df.row(-1, named=True)[close_field])
         growth_rate = ((end_price - start_price) / start_price) * 100

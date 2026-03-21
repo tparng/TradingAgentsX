@@ -242,13 +242,21 @@ class TradingService:
                                 (pl_filter.col("Date") >= one_year_ago) &
                                 (pl_filter.col("Date") <= analysis_date_dt)
                             )
-                            logger.info(f"Filtered price data to 1-year window: {one_year_ago.strftime('%Y-%m-%d')} ~ {analysis_date}")
+                            if price_df.is_empty():
+                                logger.warning(f"Price data filtered to 0 rows for {ticker} (date range: {one_year_ago.strftime('%Y-%m-%d')} ~ {analysis_date}), skipping chart")
+                                price_df = None
+                            else:
+                                logger.info(f"Filtered price data to 1-year window: {one_year_ago.strftime('%Y-%m-%d')} ~ {analysis_date}")
                         except Exception as filter_err:
                             logger.warning(f"Could not filter price data to 1-year window: {filter_err}")
-                        
-                        price_data = PriceService.prepare_chart_data(price_df)
-                        price_stats = PriceService.calculate_stats(price_df)
-                        logger.info(f"Loaded {len(price_data)} price data points for {ticker}")
+
+                        if price_df is not None and not price_df.is_empty():
+                            price_data = PriceService.prepare_chart_data(price_df)
+                            price_stats = PriceService.calculate_stats(price_df)
+                            if price_data:
+                                logger.info(f"Loaded {len(price_data)} price data points for {ticker}")
+                            else:
+                                logger.warning(f"prepare_chart_data returned empty for {ticker}")
                 except Exception as e:
                     logger.warning(f"Could not load price data for {ticker}: {e}")
                 
