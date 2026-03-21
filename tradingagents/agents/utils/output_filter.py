@@ -6,6 +6,32 @@ Fixes common LLM output errors including character corruption and format issues
 import re
 
 
+def _normalize_content(text) -> str:
+    """
+    Normalize LLM response content to a plain string.
+
+    Some providers (e.g. Gemini via the OpenAI-compatible endpoint) return
+    response.content as a list of content blocks rather than a plain string:
+        [{'type': 'text', 'text': '...', 'extras': {...}}]
+
+    This helper extracts and joins the text so downstream functions always
+    receive a str.
+    """
+    if isinstance(text, str):
+        return text
+    if isinstance(text, list):
+        parts = []
+        for block in text:
+            if isinstance(block, dict):
+                # Standard content-block format used by Gemini / OpenAI multimodal
+                parts.append(block.get("text", "") or block.get("content", ""))
+            elif isinstance(block, str):
+                parts.append(block)
+        return "".join(parts)
+    # Fallback: coerce to string (should not normally reach here)
+    return str(text)
+
+
 def count_chinese_words(text: str) -> int:
     """
     Count Chinese characters in text (excluding markdown and tables)
@@ -100,16 +126,19 @@ def strip_word_counts_from_headings(text: str) -> str:
     return text
 
 
-def fix_common_llm_errors(text: str) -> str:
+def fix_common_llm_errors(text) -> str:
     """
     Fix common LLM character selection errors and strip preamble text.
 
     Args:
-        text: LLM output text
+        text: LLM output text (str or list of content blocks from Gemini etc.)
 
     Returns:
-        Corrected text
+        Corrected text as a plain string
     """
+    # Normalize: handle Gemini-style list content (e.g. [{'type':'text','text':'...'}])
+    text = _normalize_content(text)
+
     # Step 0: Strip AI preamble sentences before the actual report
     text = strip_preamble(text)
 
@@ -135,17 +164,19 @@ def fix_common_llm_errors(text: str) -> str:
     return text
 
 
-def validate_and_warn(content: str, agent_name: str) -> list:
+def validate_and_warn(content, agent_name: str) -> list:
     """
     Validate report content and return list of warnings
-    
+
     Args:
-        content: Report content
+        content: Report content (str or list of content blocks from Gemini etc.)
         agent_name: Name of the agent
-        
+
     Returns:
         List of warning messages
     """
+    # Normalize: handle Gemini-style list content
+    content = _normalize_content(content)
     warnings = []
     
     # Check for suspicious '煉' character
