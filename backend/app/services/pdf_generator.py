@@ -118,8 +118,7 @@ def get_pdf_label(key: str, language: str = 'zh-TW') -> str:
 # Model ID → human-readable display name mapping
 _MODEL_DISPLAY_NAMES: dict[str, str] = {
     # Anthropic Claude
-    "claude-opus-4-6": "Claude Opus 4.6",
-    "claude-sonnet-4-6": "Claude Sonnet 4.6",
+
     "claude-haiku-4-5-20251001": "Claude Haiku 4.5",
     "claude-sonnet-4-5-20250929": "Claude Sonnet 4.5",
     "claude-sonnet-4-20250514": "Claude Sonnet 4",
@@ -129,10 +128,9 @@ _MODEL_DISPLAY_NAMES: dict[str, str] = {
     "gemini-3-flash-preview": "Gemini 3 Flash",
     "gemini-3.1-flash-lite-preview": "Gemini 3.1 Flash Lite",
     # OpenAI
-    "gpt-4o": "GPT-4o",
-    "gpt-4o-mini": "GPT-4o Mini",
-    "o1": "OpenAI o1",
-    "o3-mini": "OpenAI o3 Mini",
+    "gpt-5.4": "GPT 5.4",
+    "gpt-5.4-mini": "GPT 5.4 Mini",
+    "gpt-5.4-nano": "GPT 5.4 Nano",
     # Grok
     "grok-4.20-multi-agent-0309": "Grok 4.2 Multi Agent",
     "grok-4.20-0309-reasoning": "Grok 4.2 Reasoning",
