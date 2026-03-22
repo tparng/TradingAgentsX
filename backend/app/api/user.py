@@ -1,10 +1,12 @@
 """
 User settings and reports API routes
 """
+import asyncio
 import json
 from typing import Optional, List
 from uuid import UUID
-from fastapi import APIRouter, HTTPException, Depends, Header
+from fastapi import APIRouter, HTTPException, Depends, Header, Query
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete, func, text
@@ -15,6 +17,67 @@ from backend.app.db import get_db, User, UserSettings, Report
 from backend.app.services.auth_utils import verify_access_token, encrypt_settings, decrypt_settings
 
 router = APIRouter(prefix="/api/user", tags=["User"])
+
+# ============== SSE: Real-time cross-device sync ==============
+
+# Per-user SSE queues: user_id (str) -> list of asyncio.Queue
+_user_queues: dict[str, list] = {}
+
+
+def _notify_user(user_id: str, event_type: str = "report_changed") -> None:
+    """Push a notification to all SSE connections open for this user."""
+    queues = _user_queues.get(str(user_id), [])
+    data = json.dumps({"type": event_type})
+    for q in queues:
+        try:
+            q.put_nowait(data)
+        except asyncio.QueueFull:
+            pass  # drop if consumer is too slow
+
+
+@router.get("/events")
+async def user_events(token: str = Query(...)):
+    """
+    SSE stream for real-time cross-device sync.
+    Token is passed as a query param because EventSource does not support headers.
+    Sends a 'report_changed' event whenever reports are added or deleted on another device.
+    """
+    payload = verify_access_token(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user_id = payload.get("sub")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    queue: asyncio.Queue = asyncio.Queue(maxsize=50)
+    _user_queues.setdefault(user_id, []).append(queue)
+
+    async def event_stream():
+        try:
+            yield "event: connected\ndata: {}\n\n"
+            while True:
+                try:
+                    data = await asyncio.wait_for(queue.get(), timeout=25)
+                    yield f"event: report_changed\ndata: {data}\n\n"
+                except asyncio.TimeoutError:
+                    yield ": heartbeat\n\n"  # keep connection alive through proxies
+        finally:
+            queues = _user_queues.get(user_id, [])
+            if queue in queues:
+                queues.remove(queue)
+            if not queues:
+                _user_queues.pop(user_id, None)
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",  # disable nginx buffering
+            "Connection": "keep-alive",
+        },
+    )
 
 
 # ============== Pydantic Models ==============
@@ -258,6 +321,7 @@ async def create_report(
         existing.result = report_data.result
         existing.language = language
         await db.commit()
+        _notify_user(str(user.id))
         return {
             "success": True,
             "report_id": str(existing.id),
@@ -276,6 +340,7 @@ async def create_report(
     db.add(report)
     await db.commit()
     await db.refresh(report)
+    _notify_user(str(user.id))
 
     return {
         "success": True,
@@ -381,6 +446,8 @@ async def cleanup_duplicate_reports(
 
     deleted_count = result.rowcount
     await db.commit()
+    if deleted_count > 0:
+        _notify_user(str(user.id))
 
     return {
         "success": True,
@@ -411,7 +478,8 @@ async def delete_report(
     
     await db.delete(report)
     await db.commit()
-    
+    _notify_user(str(user.id))
+
     return {"success": True, "message": "Report deleted successfully"}
 
 
@@ -425,5 +493,6 @@ async def delete_all_reports(
         delete(Report).where(Report.user_id == user.id)
     )
     await db.commit()
-    
+    _notify_user(str(user.id))
+
     return {"success": True, "message": "All reports deleted successfully"}

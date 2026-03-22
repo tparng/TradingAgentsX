@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { zhTW } from "date-fns/locale";
 import { useAnalysisContext } from "@/context/AnalysisContext";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth, getAuthToken } from "@/contexts/auth-context";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -595,18 +595,63 @@ export default function HistoryPage() {
     };
   }, [isAuthenticated]);
 
-  // Auto-poll every 8 seconds for real-time cross-device sync
+  // SSE: real-time cross-device sync via Server-Sent Events
+  // Falls back to 30s polling if SSE is unavailable (e.g. proxy strips streaming)
   useEffect(() => {
     if (!isAuthenticated || !isCloudSyncEnabled()) return;
 
-    const intervalId = setInterval(() => {
-      if (document.visibilityState === "visible") {
-        console.log("☁️ Auto-poll: checking for new reports...");
+    const token = getAuthToken();
+    if (!token) return;
+
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
+    let es: EventSource | null = null;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    let reconnectDelay = 2000;
+    let sseWorking = false;
+
+    // Fallback poll — used only when SSE is not working
+    const fallbackInterval = setInterval(() => {
+      if (!sseWorking && document.visibilityState === "visible") {
+        console.log("☁️ SSE fallback poll...");
         performBidirectionalSync(false);
       }
-    }, 8000);
+    }, 30000);
 
-    return () => clearInterval(intervalId);
+    const connect = () => {
+      es = new EventSource(
+        `${API_BASE}/api/user/events?token=${encodeURIComponent(token)}`
+      );
+
+      es.addEventListener("connected", () => {
+        console.log("☁️ SSE connected — real-time sync active");
+        sseWorking = true;
+        reconnectDelay = 2000; // reset backoff on success
+      });
+
+      es.addEventListener("report_changed", () => {
+        console.log("☁️ SSE: report_changed — syncing...");
+        performBidirectionalSync(false);
+      });
+
+      es.onerror = () => {
+        sseWorking = false;
+        es?.close();
+        es = null;
+        // Exponential backoff, cap at 60s
+        reconnectTimer = setTimeout(() => {
+          reconnectDelay = Math.min(reconnectDelay * 2, 60000);
+          connect();
+        }, reconnectDelay);
+      };
+    };
+
+    connect();
+
+    return () => {
+      es?.close();
+      clearInterval(fallbackInterval);
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+    };
   }, [isAuthenticated]);
 
   const loadReports = async () => {
