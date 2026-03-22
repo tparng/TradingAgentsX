@@ -227,6 +227,15 @@ export async function bulkSaveReports(
 }
 
 /**
+ * Update the cloud_id of a local report after successful upload to cloud.
+ * This marks the report as "previously synced", so if it disappears from cloud
+ * it can be identified as deleted on another device rather than never-uploaded.
+ */
+export async function updateReportCloudId(id: number, cloud_id: string): Promise<void> {
+  await db.reports.update(id, { cloud_id });
+}
+
+/**
  * Clear all reports from the database (for logout)
  */
 export async function clearAllReports(): Promise<void> {

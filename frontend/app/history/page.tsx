@@ -44,6 +44,7 @@ import {
   deleteReports,
   getAllReports,
   bulkSaveReports,
+  updateReportCloudId,
   type SavedReport,
 } from "@/lib/reports-db";
 import {
@@ -469,8 +470,11 @@ export default function HistoryPage() {
       const localKeys = new Set(allLocal.map((r) => getReportSignature(r)));
 
       // === UPLOAD: Local -> Cloud ===
+      // Only upload reports that have never been synced (no cloud_id).
+      // Reports with a cloud_id were previously synced; if they're absent from cloud
+      // now, they were deleted on another device — do NOT re-upload them.
       const toUpload = allLocal.filter(
-        (r) => !cloudKeys.has(getReportSignature(r)),
+        (r) => !cloudKeys.has(getReportSignature(r)) && !r.cloud_id,
       );
 
       // Track signatures that failed to upload so we don't purge them below
@@ -490,6 +494,12 @@ export default function HistoryPage() {
             });
             if (cloudId) {
               uploadSuccess++;
+              // Store cloud_id locally so future syncs know this report was synced.
+              // Without this, a remote deletion would be mistaken as "never uploaded"
+              // and the report would be re-uploaded instead of purged locally.
+              if (report.id !== undefined) {
+                await updateReportCloudId(report.id, cloudId);
+              }
             } else {
               uploadFailedSigs.add(sig);
             }
@@ -511,12 +521,13 @@ export default function HistoryPage() {
       const authoritativeKeys = new Set(authoritativeCloud.map((r) => getReportSignature(r)));
 
       // === PURGE: Remove local reports deleted on another device ===
-      // If a report exists locally but is absent from the authoritative cloud list,
-      // it was deleted on another device. Delete it locally too.
+      // A report can only be "deleted on another device" if it was previously synced
+      // to cloud (has a cloud_id). Without cloud_id, absence from cloud means it was
+      // never uploaded — not deleted remotely.
       // Exception: skip reports whose upload just failed (preserve local data on error).
       const toPurgeLocally = allLocal.filter((r) => {
         const sig = getReportSignature(r as any);
-        return !authoritativeKeys.has(sig) && !uploadFailedSigs.has(sig);
+        return r.cloud_id && !authoritativeKeys.has(sig) && !uploadFailedSigs.has(sig);
       });
 
       if (toPurgeLocally.length > 0) {
@@ -543,6 +554,7 @@ export default function HistoryPage() {
           saved_at: parseUTCDate(r.created_at),
           result: r.result,
           language: (r.language || detectReportLanguage(r.result?.reports)) as "en" | "zh-TW" | undefined,
+          cloud_id: r.id, // Mark as synced so future deletions can be tracked
         }));
 
         const savedCount = await bulkSaveReports(reportsToSave);
