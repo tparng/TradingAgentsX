@@ -37,6 +37,9 @@
 | 📱 **響應式設計**        | 支援桌面與手機瀏覽器                                            |
 | 🐳 **Docker 部署**       | 一鍵啟動前後端服務                                              |
 | 🧠 **Embeddings 模型選擇** | 支援 sentence-transformers（本地免費）或 OpenAI embeddings      |
+| 💬 **AI報告問答**        | 支援AI問答功能                                                  |
+| 📊 **PDF預覽**           | 支援PDF預覽功能                                                 |
+| 🌐 **多語言支援**        | 支援繁體中文、英文                                              |
 
 ---
 
@@ -324,7 +327,7 @@ docker compose down -v
 
 查看完整的 PDF 分析報告範例：
 
-📥 **[NVDA 博通公司分析報告 (2026-03-09)](report/zh_tw/NVDA_Combined_Report_2026-03-09.pdf)**
+📥 **[AVGO 博通公司分析報告 (2026-03-21)](report/zh_tw/AVGO_Report_2026-03-21.pdf)**
 
 ---
 
@@ -413,107 +416,28 @@ GET /api/task/{task_id}
 ![任務配置頁面](web_screenshot/3.png)
 
 ---
+### 分析歷史
 
-### 代理觀點選擇
-
-**12 個專業代理標籤**，點擊可切換查看不同代理的分析報告：
-
-- **分析師團隊 (4)**: 市場分析師、社群媒體分析師、新聞分析師、基本面分析師
-- **研究團隊 (3)**: 看漲研究員、看跌研究員、研究經理
-- **交易團隊 (1)**: 交易員
-- **風險管理團隊 (4)**: 激進分析師、保守分析師、中立分析師、風險經理
-
-![代理觀點選擇](web_screenshot/4.png)
+![分析歷史](web_screenshot/4.png)
 
 ---
 
-### 股價走勢圖表 (K 線圖)
+### 12位分析師報告
 
-![股價走勢圖表 - K線圖](web_screenshot/5.png)
-
----
-
-### 股價走勢圖表 (折線圖)
-
-![股價走勢圖表 - 折線圖](web_screenshot/6.png)
+![12位分析師報告](web_screenshot/5.png)
+![12位分析師報告](web_screenshot/5_1.png)
 
 ---
 
-### 市場分析師報告
+### PDF報告預覽與下載
 
-![市場分析師報告](web_screenshot/7.png)
-
----
-
-### 社群媒體分析師報告
-
-![社群媒體分析師報告](web_screenshot/8.png)
+![PDF報告預覽與下載](web_screenshot/6.png)
 
 ---
 
-### 新聞分析師報告
+### 報告AI問答
 
-![新聞分析師報告](web_screenshot/9.png)
-
----
-
-### 基本面分析師報告
-
-![基本面分析師報告](web_screenshot/10.png)
-
----
-
-### 看漲研究員報告
-
-![看漲研究員報告](web_screenshot/11.png)
-
----
-
-### 看跌研究員報告
-
-![看跌研究員報告](web_screenshot/12.png)
-
----
-
-### 研究經理報告
-
-![研究經理報告](web_screenshot/13.png)
-
----
-
-### 交易員報告
-
-![交易員報告](web_screenshot/14.png)
-
----
-
-### 激進分析師報告
-
-![激進分析師報告](web_screenshot/15.png)
-
----
-
-### 保守分析師報告
-
-![保守分析師報告](web_screenshot/16.png)
-
----
-
-### 中立分析師報告
-
-![中立分析師報告](web_screenshot/17.png)
-
----
-
-### 風險經理報告
-
-![風險經理報告](web_screenshot/18.png)
-
----
-
-## 歷史報告（需登錄才能查看）
-
-![歷史報告](web_screenshot/19.png)
+![報告AI問答](web_screenshot/7.png)
 
 ---
 

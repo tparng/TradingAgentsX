@@ -4,7 +4,7 @@
 
 <img src="frontend/public/icon-v8.png" alt="TradingAgentsX Logo" width="300" />
 
-**AI Stock Trading Analysis Platform Based on LangGraph, Combining Multiple Professional AI Agents for Collaborative Decision-Making**
+**An AI stock trading analysis platform based on LangGraph, combining multiple specialized AI agents for collaborative decision-making**
 
 [![GitHub](https://img.shields.io/badge/GitHub-MarkLo127/TradingAgentsX-blue?logo=github)](https://github.com/MarkLo127/TradingAgentsX)
 [![Python](https://img.shields.io/badge/Python-3.10+-blue?logo=python)](https://www.python.org/)
@@ -20,23 +20,26 @@
 
 ## 📖 Introduction
 
-**TradingAgentsX** is an advanced multi-agent AI trading analysis system that simulates the operational model of real-world trading firms. Through LangGraph orchestration of multiple specialized AI agents (Analysts, Researchers, Traders, Risk Managers), the system can analyze stock markets from different perspectives and produce high-quality trading decisions through structured debate and collaborative processes.
+**TradingAgentsX** is an advanced multi-agent AI trading analysis system that simulates the operation of a real-world trading firm. By orchestrating multiple specialized AI agents (analysts, researchers, traders, and risk managers) via LangGraph, the system analyzes the stock market from different perspectives and generates high-quality trading decisions through a structured debate and collaboration process.
 
-> 💡 **Tribute to the Original**: This project is based on improvements and extensions of [TauricResearch/TradingAgents](https://github.com/TauricResearch/TradingAgents).
+> 💡 **Acknowledgement**: This project is improved and extended based on [TauricResearch/TradingAgents](https://github.com/TauricResearch/TradingAgents).
 
 ### 🎯 Core Features
 
-| Feature                        | Description                                                                           |
-| ------------------------------ | ------------------------------------------------------------------------------------- |
-| 🤖 **Multi-Agent Collaboration** | 12 specialized AI agents (Analysts, Researchers, Traders, Risk Managers) work together |
-| 🌐 **Multi-Model Support**       | OpenAI, Anthropic, Gemini, Grok, DeepSeek, Qwen and other LLM providers               |
-| 🔒 **Google OAuth Login**        | Cloud sync API settings and historical reports, supporting multi-device sync          |
-| 📊 **US & Taiwan Stock Support** | Full support for US stocks (Yahoo Finance) and Taiwan stocks (FinMind) data           |
-| 🔑 **BYOK Mode**                 | Users bring their own API keys, encrypted frontend storage, ensuring privacy          |
-| 🛡️ **Security Protection**       | Rate Limiting, Security Headers, API Key masking                                      |
-| 📱 **Responsive Design**         | Supports desktop and mobile browsers                                                  |
-| 🐳 **Docker Deployment**         | One-click startup for frontend and backend services                                   |
-| 🧠 **Embeddings Model Choice**   | Supports sentence-transformers (local free) or OpenAI embeddings                      |
+| Feature                      | Description                                                                  |
+| ---------------------------- | ---------------------------------------------------------------------------- |
+| 🤖 **Multi-Agent Architecture** | 12 specialized AI agents (analysts, researchers, traders, risk managers) working together |
+| 🌐 **Multi-Model Support**   | LLM providers including OpenAI, Anthropic, Gemini, Grok, DeepSeek, Qwen, etc. |
+| 🔒 **Google OAuth Login**    | Cloud-synced API settings and history reports, supporting multi-device sync  |
+| 📊 **US & Taiwan Stock Support** | Full support for US stocks (Yahoo Finance) and Taiwan stocks (FinMind) data |
+| 🔑 **BYOK Mode**             | Users bring their own API keys; encrypted storage on the frontend for privacy |
+| 🛡️ **Security**              | Rate Limiting, Security Headers, API Key masking                             |
+| 📱 **Responsive Design**     | Supports desktop and mobile browsers                                         |
+| 🐳 **Docker Deployment**     | One-command startup for frontend and backend services                        |
+| 🧠 **Embeddings Model Choice** | Supports sentence-transformers (local, free) or OpenAI embeddings          |
+| 💬 **AI Report Q&A**         | Supports AI-powered Q&A on analysis reports                                  |
+| 📊 **PDF Preview**           | Supports PDF preview functionality                                           |
+| 🌐 **Multi-language Support** | Supports Traditional Chinese and English                                    |
 
 ---
 
@@ -44,132 +47,132 @@
 
 ```
 TradingAgentsX/
-├── frontend/                   # Next.js Frontend Application
-│   ├── app/                    # App Router Pages
-│   │   ├── page.tsx            # Home Page
-│   │   ├── layout.tsx          # Root Layout
-│   │   ├── globals.css         # Global Styles
-│   │   ├── analysis/           # Analysis Feature Pages
-│   │   ├── history/            # History Reports Page
-│   │   ├── auth/               # OAuth Callback
-│   │   └── api/                # API Routes (config, auth)
-│   ├── components/             # React Components
-│   │   ├── AgentFlowDiagram.tsx    # Agent Flow Diagram Component
-│   │   ├── PendingTaskRecovery.tsx # Task Recovery Component
-│   │   ├── analysis/           # Analysis Related Components
-│   │   ├── auth/               # Login Buttons
+├── frontend/                   # Next.js frontend application
+│   ├── app/                    # App Router pages
+│   │   ├── page.tsx            # Home page
+│   │   ├── layout.tsx          # Root layout
+│   │   ├── globals.css         # Global styles
+│   │   ├── analysis/           # Analysis feature pages
+│   │   ├── history/            # History report pages
+│   │   ├── auth/               # OAuth callback
+│   │   └── api/                # API routes (config, auth)
+│   ├── components/             # React components
+│   │   ├── AgentFlowDiagram.tsx    # Agent flow diagram component
+│   │   ├── PendingTaskRecovery.tsx # Task recovery component
+│   │   ├── analysis/           # Analysis-related components
+│   │   ├── auth/               # Login button
 │   │   ├── layout/             # Header, Footer
-│   │   ├── settings/           # API Settings Dialog
-│   │   ├── shared/             # Shared Components
-│   │   ├── theme/              # Theme Related Components
-│   │   └── ui/                 # shadcn/ui Base Components (16)
-│   ├── contexts/               # React Context (Auth State)
+│   │   ├── settings/           # API settings dialog
+│   │   ├── shared/             # Shared components
+│   │   ├── theme/              # Theme-related components
+│   │   └── ui/                 # shadcn/ui base components (16 total)
+│   ├── contexts/               # React Context (auth state)
 │   ├── hooks/                  # Custom Hooks
-│   └── lib/                    # Utility Functions
-│       ├── api.ts              # API Calls
-│       ├── api-helpers.ts      # API Helper Functions
-│       ├── crypto.ts           # Encryption Utils
-│       ├── storage.ts          # Local Storage
-│       ├── reports-db.ts       # IndexedDB Report Storage
-│       ├── pending-task.ts     # Pending Task Management
+│   └── lib/                    # Utility functions
+│       ├── api.ts              # API calls
+│       ├── api-helpers.ts      # API helper functions
+│       ├── crypto.ts           # Encryption utilities
+│       ├── storage.ts          # Local storage
+│       ├── reports-db.ts       # IndexedDB report storage
+│       ├── pending-task.ts     # Pending task management
 │       ├── user-api.ts         # User API
-│       ├── types.ts            # TypeScript Type Definitions
-│       └── utils.ts            # General Utilities
+│       ├── types.ts            # TypeScript type definitions
+│       └── utils.ts            # General utilities
 │
-├── backend/                    # FastAPI Backend Service
-│   ├── __main__.py             # Application Entry Point
+├── backend/                    # FastAPI backend service
+│   ├── __main__.py             # Application entry point
 │   └── app/
-│       ├── main.py             # FastAPI App (Middleware, Routes)
-│       ├── api/                # API Routes
+│       ├── main.py             # FastAPI app (middleware, routes)
+│       ├── api/                # API routes
 │       │   ├── routes.py       # Analysis API
 │       │   ├── auth.py         # Google OAuth
-│       │   ├── user.py         # User Data Sync
-│       │   └── dependencies.py # Dependency Injection
-│       ├── core/               # Core Configuration
-│       ├── db/                 # PostgreSQL Database
-│       ├── models/             # Pydantic Models
-│       └── services/           # Business Logic
-│           ├── trading_service.py  # Trading Analysis Service
-│           ├── task_manager.py     # Task Manager
-│           ├── pdf_generator.py    # PDF Report Generator
-│           ├── price_service.py    # Stock Price Data Service
-│           ├── download_service.py # Download Service
-│           ├── redis_client.py     # Redis Client
-│           └── auth_utils.py       # Auth Utilities
+│       │   ├── user.py         # User data sync
+│       │   └── dependencies.py # Dependency injection
+│       ├── core/               # Core configuration
+│       ├── db/                 # PostgreSQL database
+│       ├── models/             # Pydantic models
+│       └── services/           # Business logic
+│           ├── trading_service.py  # Trading analysis service
+│           ├── task_manager.py     # Task manager
+│           ├── pdf_generator.py    # PDF report generation
+│           ├── price_service.py    # Stock price data service
+│           ├── download_service.py # Download service
+│           ├── redis_client.py     # Redis client
+│           └── auth_utils.py       # Authentication utilities
 │
-└── tradingagents/              # Core AI Agent Package
-    ├── agents/                 # AI Agent Definitions
-    │   ├── analysts/           # Analyst Team
-    │   │   ├── market_analyst.py       # Market Analyst
-    │   │   ├── news_analyst.py         # News Analyst
-    │   │   ├── social_media_analyst.py # Social Media Analyst
-    │   │   └── fundamentals_analyst.py # Fundamentals Analyst
-    │   ├── researchers/        # Research Team
-    │   │   ├── bull_researcher.py      # Bull Researcher
-    │   │   └── bear_researcher.py      # Bear Researcher
+└── tradingagents/              # Core AI agent package
+    ├── agents/                 # AI agent definitions
+    │   ├── analysts/           # Analyst team
+    │   │   ├── market_analyst.py       # Market analyst
+    │   │   ├── news_analyst.py         # News analyst
+    │   │   ├── social_media_analyst.py # Social media analyst
+    │   │   └── fundamentals_analyst.py # Fundamentals analyst
+    │   ├── researchers/        # Research team
+    │   │   ├── bull_researcher.py      # Bull researcher
+    │   │   └── bear_researcher.py      # Bear researcher
     │   ├── trader/             # Trader
-    │   │   └── trader.py               # Trader Agent
-    │   ├── risk_mgmt/          # Risk Management Team
-    │   │   ├── aggresive_debator.py    # Aggressive Analyst
-    │   │   ├── conservative_debator.py # Conservative Analyst
-    │   │   └── neutral_debator.py      # Neutral Analyst
-    │   ├── managers/           # Manager Decision Makers
-    │   │   ├── research_manager.py     # Research Manager
-    │   │   └── risk_manager.py         # Risk Manager
-    │   └── utils/              # Agent Utility Functions
-    ├── dataflows/              # Data Fetching and Processing
-    │   ├── interface.py        # Unified Data Interface
-    │   ├── config.py           # Dataflow Configuration
-    │   ├── y_finance.py        # Yahoo Finance Data
-    │   ├── yfin_utils.py       # Yahoo Finance Utils
-    │   ├── alpha_vantage*.py   # Alpha Vantage Series (5)
-    │   ├── finmind*.py         # FinMind Taiwan Stock Data (6)
+    │   │   └── trader.py               # Trader agent
+    │   ├── risk_mgmt/          # Risk management team
+    │   │   ├── aggresive_debator.py    # Aggressive debator
+    │   │   ├── conservative_debator.py # Conservative debator
+    │   │   └── neutral_debator.py      # Neutral debator
+    │   ├── managers/           # Manager decision-makers
+    │   │   ├── research_manager.py     # Research manager
+    │   │   └── risk_manager.py         # Risk manager
+    │   └── utils/              # Agent utility functions
+    ├── dataflows/              # Data acquisition and processing
+    │   ├── interface.py        # Unified data interface
+    │   ├── config.py           # Dataflow configuration
+    │   ├── y_finance.py        # Yahoo Finance data
+    │   ├── yfin_utils.py       # Yahoo Finance utilities
+    │   ├── alpha_vantage*.py   # Alpha Vantage series (5 files)
+    │   ├── finmind*.py         # FinMind Taiwan stock data (6 files)
     │   ├── google.py           # Google Search
-    │   ├── googlenews_utils.py # Google News Utils
-    │   ├── reddit_utils.py     # Reddit Data
-    │   ├── openai.py           # OpenAI Embeddings
-    │   └── retry_utils.py      # Retry Utils
-    ├── graph/                  # LangGraph Workflow
-    │   ├── trading_graph.py    # Trading Analysis Graph
-    │   ├── setup.py            # Graph Setup
-    │   ├── propagation.py      # State Propagation
-    │   ├── reflection.py       # Reflection Mechanism
-    │   ├── conditional_logic.py    # Conditional Logic
-    │   └── signal_processing.py    # Signal Processing
-    ├── utils/                  # General Utils
-    └── default_config.py       # Default Configuration
+    │   ├── googlenews_utils.py # Google News utilities
+    │   ├── reddit_utils.py     # Reddit data
+    │   ├── openai.py           # OpenAI embeddings
+    │   └── retry_utils.py      # Retry utilities
+    ├── graph/                  # LangGraph workflow
+    │   ├── trading_graph.py    # Trading analysis graph
+    │   ├── setup.py            # Graph setup
+    │   ├── propagation.py      # State propagation
+    │   ├── reflection.py       # Reflection mechanism
+    │   ├── conditional_logic.py    # Conditional logic
+    │   └── signal_processing.py    # Signal processing
+    ├── utils/                  # General utilities
+    └── default_config.py       # Default configuration
 ```
 
 ---
 
 ## 🤖 AI Agent Team
 
-### Analyst Team (4 Members)
+### Analyst Team (4 Agents)
 
-| Agent                  | Responsibility        | Output                                                |
-| ---------------------- | --------------------- | ----------------------------------------------------- |
+| Agent                  | Role                  | Output                                              |
+| ---------------------- | --------------------- | --------------------------------------------------- |
 | Market Analyst         | Technical Analysis    | RSI, MACD, Bollinger Bands, Support/Resistance Levels |
-| Social Media Analyst   | Sentiment Assessment  | Reddit/Twitter Sentiment Indicators, Investor Confidence |
-| News Analyst           | News Analysis         | Latest News Summaries, Event Impact Assessment        |
-| Fundamentals Analyst   | Financial Analysis    | Financial Reports, P/E, P/B, Profitability            |
+| Social Media Analyst   | Sentiment Assessment  | Reddit/Twitter sentiment indicators, investor confidence |
+| News Analyst           | News Analysis         | Latest news summaries, event impact assessment     |
+| Fundamentals Analyst   | Financial Analysis    | Financial report data, P/E, P/B, profitability     |
 
-### Research Team (3 Members)
+### Research Team (3 Agents)
 
-| Agent            | Responsibility                                   |
-| ---------------- | ------------------------------------------------ |
-| Bull Researcher  | Bullish Argument, Upside Catalyst Analysis       |
-| Bear Researcher  | Bearish Argument, Downside Risk Warnings         |
-| Research Manager | Comprehensive Decision from Bull and Bear Views  |
+| Agent             | Role                                          |
+| ----------------- | --------------------------------------------- |
+| Bull Researcher   | Bullish argument development, upside catalyst analysis |
+| Bear Researcher   | Bearish argument development, downside risk warnings  |
+| Research Manager  | Integrated decision-making from bull and bear viewpoints |
 
-### Trading & Risk Team (5 Members)
+### Trading & Risk Team (5 Agents)
 
-| Agent              | Responsibility                               |
-| ------------------ | -------------------------------------------- |
-| Trader             | Integrates All Reports, Formulates Trade Plan |
-| Aggressive Analyst | High-Risk High-Return Strategy Analysis      |
-| Conservative Analyst | Stable Conservative Strategy & Risk Control |
-| Neutral Analyst    | Neutral Balanced Strategy Assessment         |
-| Risk Manager       | Comprehensive Risk Management & Final Advice |
+| Agent                  | Role                                                |
+| ---------------------- | --------------------------------------------------- |
+| Trader                 | Integrates all reports to formulate a trading plan  |
+| Aggressive Debator     | High-risk, high-reward strategy analysis            |
+| Conservative Debator   | Prudent, conservative strategy and risk control     |
+| Neutral Debator        | Neutral and balanced strategy assessment            |
+| Risk Manager           | Comprehensive risk management decision and final recommendation |
 
 ---
 
@@ -182,15 +185,15 @@ TradingAgentsX/
 
 ### Required API Keys
 
-| API                         | Purpose              | Apply URL                                            |
-| --------------------------- | -------------------- | ---------------------------------------------------- |
-| OpenAI                      | GPT Models           | https://platform.openai.com/api-keys                 |
-| Alpha Vantage (Optional)    | US Stock Fundamentals | https://www.alphavantage.co/support/#api-key         |
-| FinMind (Optional)          | Taiwan Stock Data    | https://finmindtrade.com/                            |
+| API                      | Purpose                    | Registration URL                                     |
+| ------------------------ | -------------------------- | ---------------------------------------------------- |
+| OpenAI                   | GPT models                 | https://platform.openai.com/api-keys                 |
+| Alpha Vantage (optional) | US stock fundamental data  | https://www.alphavantage.co/support/#api-key         |
+| FinMind (optional)       | Taiwan stock data          | https://finmindtrade.com/                            |
 
 ### Installation Steps
 
-#### 1️⃣ Clone the Project
+#### 1️⃣ Clone the Repository
 
 ```bash
 git clone https://github.com/MarkLo127/TradingAgentsX.git
@@ -200,7 +203,7 @@ cd TradingAgentsX
 #### 2️⃣ Backend Setup
 
 ```bash
-# Create virtual environment
+# Create a virtual environment
 conda create -n tradingagents python=3.13
 conda activate tradingagents
 
@@ -210,13 +213,13 @@ pip install -r backend/requirements.txt
 
 # Configure environment variables
 cp .env.example .env
-# Edit .env and fill in API keys
+# Edit .env and fill in your API keys
 
-# Start backend
+# Start the backend
 python -m backend
 ```
 
-Backend Services:
+Backend services:
 
 - API: http://localhost:8000
 - Swagger Docs: http://localhost:8000/docs
@@ -224,14 +227,14 @@ Backend Services:
 #### 3️⃣ Frontend Setup
 
 ```bash
-# Install dependencies (run from project root)
+# Install dependencies (run from the project root)
 bun install --cwd frontend
 
-# Start development server
+# Start the development server
 bun run --cwd frontend dev
 ```
 
-Frontend Application: http://localhost:3000
+Frontend application: http://localhost:3000
 
 ---
 
@@ -251,7 +254,7 @@ docker compose logs -f
 docker compose down -v
 ```
 
-Service Ports:
+Service ports:
 
 - Backend: http://localhost:8000
 - Frontend: http://localhost:3000
@@ -260,21 +263,21 @@ Service Ports:
 
 ## 🔒 Security Features
 
-### Local Development vs Production Environment
+### Local Development vs. Production Environment
 
-| Feature            | Local Development (localhost) | Production (Railway, etc.)   |
-| ------------------ | ----------------------------- | ---------------------------- |
-| Google Login       | Optional                      | Recommended                  |
-| Auto Data Cleanup  | ❌ No cleanup                 | ✅ Clears when leaving if not logged in |
-| PostgreSQL         | Optional                      | Required                     |
-| API Settings Storage | Permanently retained        | Cloud sync after login       |
-| History Reports Storage | Permanently retained     | Cloud sync after login       |
+| Feature              | Local Development (localhost) | Production (Railway, etc.)         |
+| -------------------- | ----------------------------- | ---------------------------------- |
+| Google Login         | Optional (not required)       | Recommended to enable              |
+| Auto Data Clearing   | ❌ Data is not cleared         | ✅ Cleared on exit when not logged in |
+| PostgreSQL           | Optional                      | Required                           |
+| API Settings Storage | Persistent                    | Cloud-synced after login           |
+| History Report Storage | Persistent                  | Cloud-synced after login           |
 
 ### Frontend Security
 
-- **API Key Encrypted Storage** - Uses AES-GCM to encrypt sensitive data in localStorage
-- **Auto Cleanup (Production Only)** - Automatically clears local data when non-logged-in users leave the page
-- **Safari Touch Optimization** - Fixed touch event issues on iOS Safari
+- **Encrypted API Key Storage** - Uses AES-GCM encryption for sensitive data in localStorage
+- **Auto-Clearing (Production Only)** - Local data is automatically cleared when unauthenticated users leave the page
+- **Safari Touch Optimization** - Fixes touch event issues on iOS Safari
 
 ### Backend Security
 
@@ -285,9 +288,9 @@ Service Ports:
 
 ### Cloud Sync
 
-- **Google OAuth 2.0** - Secure third-party login
+- **Google OAuth 2.0** - Secure third-party authentication
 - **JWT Token** - Stateless authentication
-- **Cloud Backup** - API settings and history reports sync to server
+- **Cloud Backup** - API settings and history reports synced to the server
 
 ---
 
@@ -295,36 +298,36 @@ Service Ports:
 
 ### 1. Configure API Keys
 
-Click the "Settings" button in the upper right corner and enter your API keys.
+Click the "Settings" button in the top-right corner and enter your API keys.
 
 ### 2. Select Analysis Parameters
 
-- **Market Type**: US Stock / Taiwan Listed / Taiwan OTC
-- **Stock Symbol**: e.g., NVDA, 2330
-- **Analyst Team**: Select the analysts you need
+- **Market Type**: US Stocks / Taiwan Listed Stocks / Taiwan OTC Stocks
+- **Stock Ticker**: e.g., NVDA, 2330
+- **Analyst Team**: Select the desired analysts
 - **Research Depth**: Shallow (Fast) / Medium / Deep (Detailed)
-- **LLM Model**: Quick Think Model + Deep Think Model
+- **LLM Models**: Quick-thinking model + Deep-thinking model
 
-### 3. Execute Analysis
+### 3. Run Analysis
 
-Click "Execute Analysis" and wait 1-5 minutes (depending on research depth).
+Click "Run Analysis" and wait 1–5 minutes (depending on research depth).
 
 ### 4. View Results
 
-- **Trading Decision Summary** - BUY / SELL / HOLD recommendations
-- **Stock Price Chart** - Toggle between Line Chart / Candlestick Chart
-- **12 Agent Reports** - Click tabs to view detailed analysis
+- **Trading Decision Summary** - BUY / SELL / HOLD recommendation
+- **Stock Price Chart** - Toggle between line chart and candlestick chart
+- **12 Agent Reports** - Click tabs to view detailed analysis from each agent
 
-### 5. Save & Download
+### 5. Save and Download
 
-- **Save Report** - Save to local / cloud
-- **Download PDF Report** - Export complete PDF analysis report
+- **Save Report** - Save locally or to the cloud
+- **Download PDF Report** - Export a full PDF analysis report
 
 ### 📄 Sample Report
 
-View a complete PDF analysis report sample:
+View a complete PDF analysis report example:
 
-📥 **[Broadcom Inc. Analysis Report (2026-03-09)](report/en/AVGO_Combined_Report_2026-03-09.pdf)**
+📥 **[AVGO Broadcom Inc. Analysis Report (2026-04-01)](report/en/AVGO_Report_2026-04-01.pdf)**
 
 ---
 
@@ -336,7 +339,7 @@ View a complete PDF analysis report sample:
 GET /api/health
 ```
 
-### Execute Analysis
+### Run Analysis
 
 ```bash
 POST /api/analyze
@@ -363,34 +366,34 @@ Content-Type: application/json
 GET /api/task/{task_id}
 ```
 
-Full Documentation: http://localhost:8000/docs
+Full documentation: http://localhost:8000/docs
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Technology Stack
 
 ### Backend
 
-| Technology           | Purpose                       |
-| -------------------- | ----------------------------- |
-| FastAPI              | Async Web Framework           |
-| LangGraph            | Multi-Agent Workflow Orchestration |
-| LangChain            | LLM Application Development   |
-| ChromaDB             | Vector Database (Memory System) |
-| PostgreSQL           | User Data Storage             |
-| SQLAlchemy + asyncpg | Async Database ORM            |
-| Pydantic             | Data Validation               |
+| Technology           | Purpose                            |
+| -------------------- | ---------------------------------- |
+| FastAPI              | Async web framework                |
+| LangGraph            | Multi-agent workflow orchestration |
+| LangChain            | LLM application development        |
+| ChromaDB             | Vector database (memory system)    |
+| PostgreSQL           | User data storage                  |
+| SQLAlchemy + asyncpg | Async database ORM                 |
+| Pydantic             | Data validation                    |
 
 ### Frontend
 
-| Technology   | Purpose                |
-| ------------ | ---------------------- |
-| Next.js 16   | React Full-Stack Framework |
-| TypeScript   | Static Typing          |
-| Tailwind CSS | Styling Framework      |
-| shadcn/ui    | UI Component Library   |
-| Dexie.js     | IndexedDB Wrapper      |
-| Recharts     | Data Visualization     |
+| Technology   | Purpose                   |
+| ------------ | ------------------------- |
+| Next.js 16   | React full-stack framework |
+| TypeScript   | Static typing             |
+| Tailwind CSS | Styling framework         |
+| shadcn/ui    | UI component library      |
+| Dexie.js     | IndexedDB wrapper         |
+| Recharts     | Data visualization        |
 
 ---
 
@@ -398,133 +401,55 @@ Full Documentation: http://localhost:8000/docs
 
 ### Home Page
 
-![Home Page](web_screenshot/1.png)
+![Home Page](web_screenshot/1_en.png)
 
 ---
 
 ### API Configuration Page
 
-![API Configuration Page](web_screenshot/2.png)
+![API Configuration Page](web_screenshot/2_en.png)
 
 ---
 
 ### Task Configuration Page
 
-![Task Configuration Page](web_screenshot/3.png)
+![Task Configuration Page](web_screenshot/3_en.png)
 
 ---
 
-### Agent View Selection
+### Analysis History
 
-**12 Professional Agent Tabs**, click to switch and view different agents' analysis reports:
-
-- **Analyst Team (4)**: Market Analyst, Social Media Analyst, News Analyst, Fundamentals Analyst
-- **Research Team (3)**: Bull Researcher, Bear Researcher, Research Manager
-- **Trading Team (1)**: Trader
-- **Risk Management Team (4)**: Aggressive Analyst, Conservative Analyst, Neutral Analyst, Risk Manager
-
-![Agent View Selection](web_screenshot/4.png)
+![Analysis History](web_screenshot/4_en.png)
 
 ---
 
-### Stock Price Chart (Candlestick)
+### 12 Analyst Reports
 
-![Stock Price Chart - Candlestick](web_screenshot/5.png)
-
----
-
-### Stock Price Chart (Line Chart)
-
-![Stock Price Chart - Line Chart](web_screenshot/6.png)
+![12 Analyst Reports](web_screenshot/5_en.png)
+![12 Analyst Reports](web_screenshot/5_1_en.png)
 
 ---
 
-### Market Analyst Report
+### PDF Report Preview and Download
 
-![Market Analyst Report](web_screenshot/7.png)
-
----
-
-### Social Media Analyst Report
-
-![Social Media Analyst Report](web_screenshot/8.png)
+![PDF Report Preview and Download](web_screenshot/6_en.png)
 
 ---
 
-### News Analyst Report
+### AI Report Q&A
 
-![News Analyst Report](web_screenshot/9.png)
-
----
-
-### Fundamentals Analyst Report
-
-![Fundamentals Analyst Report](web_screenshot/10.png)
-
----
-
-### Bull Researcher Report
-
-![Bull Researcher Report](web_screenshot/11.png)
-
----
-
-### Bear Researcher Report
-
-![Bear Researcher Report](web_screenshot/12.png)
-
----
-
-### Research Manager Report
-
-![Research Manager Report](web_screenshot/13.png)
-
----
-
-### Trader Report
-
-![Trader Report](web_screenshot/14.png)
-
----
-
-### Aggressive Analyst Report
-
-![Aggressive Analyst Report](web_screenshot/15.png)
-
----
-
-### Conservative Analyst Report
-
-![Conservative Analyst Report](web_screenshot/16.png)
-
----
-
-### Neutral Analyst Report
-
-![Neutral Analyst Report](web_screenshot/17.png)
-
----
-
-### Risk Manager Report
-
-![Risk Manager Report](web_screenshot/18.png)
-
----
-
-## History Reports (Login Required)
-
-![History Reports](web_screenshot/19.png)
+![AI Report Q&A](web_screenshot/7_en.png)
 
 ---
 
 ## 🙏 Acknowledgements
 
-- [TauricResearch/TradingAgents](https://github.com/TauricResearch/TradingAgents) - Original Project
-- [LangChain](https://github.com/langchain-ai/langchain) - LLM Application Framework
-- [LangGraph](https://github.com/langchain-ai/langgraph) - Multi-Agent Orchestration
-- [FastAPI](https://github.com/tiangolo/fastapi) - Web Framework
-- [Next.js](https://github.com/vercel/next.js) - React Framework
-- [shadcn/ui](https://github.com/shadcn/ui) - UI Component Library
+- [TauricResearch/TradingAgents](https://github.com/TauricResearch/TradingAgents) - Original project
+- [LangChain](https://github.com/langchain-ai/langchain) - LLM application framework
+- [LangGraph](https://github.com/langchain-ai/langgraph) - Multi-agent orchestration
+- [FastAPI](https://github.com/tiangolo/fastapi) - Web framework
+- [Next.js](https://github.com/vercel/next.js) - React framework
+- [shadcn/ui](https://github.com/shadcn/ui) - UI component library
 
 ---
 
