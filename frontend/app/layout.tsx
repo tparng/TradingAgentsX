@@ -63,6 +63,18 @@ export default function RootLayout({
           name="viewport"
           content="width=device-width, initial-scale=1, viewport-fit=cover"
         />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "name": "TradingAgentsX",
+              "alternateName": "TradingAgentsX - 多代理 LLM 金融交易",
+              "url": "https://tradingagentsx.up.railway.app",
+            }),
+          }}
+        />
         <link rel="manifest" href="/manifest.json?v=20241220-v8" />
         <meta name="google-site-verification" content="rKjd_gPy-7vtsGRcwVzAbAIYyIwVM9ezyXZOoXkC1KA" />
         <meta name="theme-color" content="#6B21A8" />
