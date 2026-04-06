@@ -18,7 +18,7 @@
 
 ---
 
-## 📖 Introduction
+## 📖 Introduction ll
 
 **TradingAgentsX** is an advanced multi-agent AI trading analysis system that simulates the operation of a real-world trading firm. By orchestrating multiple specialized AI agents (analysts, researchers, traders, and risk managers) via LangGraph, the system analyzes the stock market from different perspectives and generates high-quality trading decisions through a structured debate and collaboration process.
 
