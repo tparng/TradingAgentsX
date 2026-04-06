@@ -92,7 +92,7 @@ export default function AnalysisResultsPage() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50/30 via-pink-50/20 to-purple-50/30 dark:from-gray-950 dark:via-purple-950/40 dark:to-gray-950">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50/30 via-slate-50/20 to-blue-50/30 dark:from-gray-950 dark:via-blue-950/40 dark:to-gray-950">
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}

@@ -22,34 +22,36 @@ export function Header() {
   if (pathname === "/history/chat") return null;
 
   return (
-    <header className="border-b bg-gradient-to-r from-blue-500 to-pink-500 dark:from-blue-600 dark:to-purple-600 text-white pwa-safe-header">
-      <div className="container mx-auto px-4 py-4 md:py-6">
+    <header className="border-b border-border dark:border-slate-700/40 bg-white/80 dark:bg-[#0A0F1E]/85 backdrop-blur-xl pwa-safe-header shadow-[0_1px_8px_rgba(15,23,42,0.06)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
+      <div className="container mx-auto px-4 py-4 md:py-5">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0">
-            <div className="text-xl md:text-3xl font-bold">TradingAgentsX</div>
-            <div className="hidden lg:block text-sm font-light opacity-90">
+            <div className="text-xl md:text-2xl font-black text-blue-700 dark:text-blue-400" style={{ fontFamily: 'Nunito, sans-serif' }}>
+              TradingAgentsX
+            </div>
+            <div className="hidden lg:block text-xs font-medium text-slate-400 dark:text-slate-500 opacity-80">
               {t.nav.tagline}
             </div>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex gap-4 lg:gap-6 items-center">
+          <nav className="hidden md:flex gap-1 lg:gap-2 items-center">
             <Link
               href="/"
-              className="hover:opacity-80 transition-opacity font-medium text-sm lg:text-base"
+              className="px-4 py-2 rounded-xl font-semibold text-sm text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-300 transition-all duration-200"
             >
               {t.nav.home}
             </Link>
             <Link
               href="/analysis"
-              className="hover:opacity-80 transition-opacity font-medium text-sm lg:text-base"
+              className="px-4 py-2 rounded-xl font-semibold text-sm text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-300 transition-all duration-200"
             >
               {t.nav.analysis}
             </Link>
             <Link
               href="/history"
-              className="hover:opacity-80 transition-opacity font-medium text-sm lg:text-base"
+              className="px-4 py-2 rounded-xl font-semibold text-sm text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-300 transition-all duration-200"
             >
               {t.nav.history}
             </Link>
@@ -66,7 +68,7 @@ export function Header() {
             <Button
               variant="ghost"
               size="icon"
-              className="text-white hover:bg-white/20"
+              className="text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/20"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -76,24 +78,24 @@ export function Header() {
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <nav className="md:hidden mt-4 pt-4 border-t border-white/20 space-y-3">
+          <nav className="md:hidden mt-4 pt-4 border-t border-slate-100 dark:border-slate-700/40 space-y-1">
             <Link
               href="/"
-              className="block py-2 hover:opacity-80 transition-opacity font-medium"
+              className="block px-4 py-2 rounded-xl font-semibold text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-300 transition-all"
               onClick={() => setMobileMenuOpen(false)}
             >
               {t.nav.home}
             </Link>
             <Link
               href="/analysis"
-              className="block py-2 hover:opacity-80 transition-opacity font-medium"
+              className="block px-4 py-2 rounded-xl font-semibold text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-300 transition-all"
               onClick={() => setMobileMenuOpen(false)}
             >
               {t.nav.analysis}
             </Link>
             <Link
               href="/history"
-              className="block py-2 hover:opacity-80 transition-opacity font-medium"
+              className="block px-4 py-2 rounded-xl font-semibold text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-300 transition-all"
               onClick={() => setMobileMenuOpen(false)}
             >
               {t.nav.history}

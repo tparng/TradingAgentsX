@@ -23,6 +23,7 @@ interface AuthContextType {
   token: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  isOAuthConfigured: boolean;
   login: () => void;
   logout: () => Promise<void>;
   setAuthFromCallback: (token: string) => Promise<void>;
@@ -240,6 +241,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     token,
     isLoading,
     isAuthenticated: !!user,
+    isOAuthConfigured: !!googleClientId,
     login,
     logout,
     setAuthFromCallback,

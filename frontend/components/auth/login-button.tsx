@@ -41,7 +41,7 @@ function GoogleIcon({ className }: { className?: string }) {
 }
 
 export function LoginButton() {
-  const { user, isLoading, isAuthenticated, login, logout } = useAuth();
+  const { user, isLoading, isAuthenticated, isOAuthConfigured, login, logout } = useAuth();
   const { t } = useLanguage();
   const [loggingOut, setLoggingOut] = React.useState(false);
 
@@ -57,7 +57,7 @@ export function LoginButton() {
   if (isLoading || loggingOut) {
     return (
       <Button variant="outline" size="sm" disabled>
-        <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+        <div className="w-4 h-4 border-2 border-slate-200 border-t-slate-600 rounded-full animate-spin" />
         {loggingOut && <span className="ml-2 hidden sm:inline">{t.auth.loggingOut}</span>}
       </Button>
     );
@@ -67,10 +67,10 @@ export function LoginButton() {
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30 border"
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
           >
             {user.avatar_url ? (
               <img
@@ -84,7 +84,7 @@ export function LoginButton() {
             <span className="hidden sm:inline max-w-[100px] truncate">
               {user.name || user.email}
             </span>
-            <Cloud className="w-3 h-3 text-green-300" />
+            <Cloud className="w-3 h-3 text-green-500" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
@@ -108,15 +108,15 @@ export function LoginButton() {
   }
 
   return (
-    <Button 
-      variant="ghost" 
-      size="sm" 
-      onClick={login} 
-      className="gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30 border"
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={login}
+      className="gap-2"
     >
       <GoogleIcon />
       <span className="hidden sm:inline">{t.auth.login}</span>
-      <CloudOff className="w-3 h-3 text-white/60 sm:hidden" />
+      <CloudOff className="w-3 h-3 text-slate-400 sm:hidden" />
     </Button>
   );
 }

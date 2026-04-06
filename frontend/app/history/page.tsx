@@ -1065,7 +1065,7 @@ export default function HistoryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50/30 via-pink-50/20 to-purple-50/30 dark:from-gray-950 dark:via-purple-950/40 dark:to-gray-950">
+    <div className="gradient-page-bg">
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-6xl mx-auto space-y-8">
           {/* Header */}
@@ -1167,7 +1167,7 @@ export default function HistoryPage() {
                               <span className="text-xl font-bold gradient-text-primary">
                                 {report.ticker}
                               </span>
-                              <span className="text-xs px-2 py-1 rounded-full bg-gradient-to-r from-blue-100 to-pink-100 dark:from-blue-900 dark:to-purple-900 text-gray-600 dark:text-gray-300">
+                              <span className="text-xs px-3 py-1 rounded-2xl bg-gradient-to-r from-blue-100 to-blue-100 dark:from-blue-900/40 dark:to-blue-900/40 border-2 border-blue-200 dark:border-slate-600/30 text-blue-600 dark:text-blue-300 font-semibold shadow-[0_2px_0_rgba(147,197,253,0.5)]">
                                 {MARKET_LABELS[report.market_type].label}
                               </span>
                             </CardTitle>
@@ -1246,7 +1246,7 @@ export default function HistoryPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="col-span-2 w-full gap-2 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800 hover:bg-purple-50 dark:hover:bg-purple-950/50"
+                              className="col-span-2 w-full gap-2 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950/50"
                               onClick={() => router.push(`/history/chat?ticker=${report.ticker}&date=${report.analysis_date}&market=${report.market_type}`)}
                             >
                               <MessageCircle className="h-4 w-4" />
@@ -1313,7 +1313,7 @@ export default function HistoryPage() {
             {/* Modal Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
               <div className="flex items-center gap-2 min-w-0">
-                <FileText className="h-5 w-5 text-purple-500 shrink-0" />
+                <FileText className="h-5 w-5 text-blue-500 shrink-0" />
                 <span className="text-sm font-semibold text-gray-700 dark:text-gray-200 truncate">
                   {pdfPreviewFilename}
                 </span>
@@ -1332,7 +1332,7 @@ export default function HistoryPage() {
               {/* Generating spinner */}
               {pdfGenerating && (
                 <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-white dark:bg-gray-900">
-                  <div className="h-16 w-16 rounded-full border-4 border-purple-200 border-t-purple-600 animate-spin" />
+                  <div className="h-16 w-16 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin" />
                   <p className="text-gray-600 dark:text-gray-300 font-medium">
                     {locale === "zh-TW" ? "正在產生 PDF 報告…" : "Generating PDF report…"}
                   </p>
@@ -1361,7 +1361,7 @@ export default function HistoryPage() {
               {/* iframe loading overlay — shown until iframe fires onLoad */}
               {pdfPreviewUrl && !pdfIframeLoaded && !pdfGenerating && !pdfError && (
                 <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-white dark:bg-gray-900">
-                  <div className="h-10 w-10 rounded-full border-4 border-purple-200 border-t-purple-600 animate-spin" />
+                  <div className="h-10 w-10 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin" />
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     {locale === "zh-TW" ? "載入中…" : "Loading…"}
                   </p>
@@ -1385,7 +1385,7 @@ export default function HistoryPage() {
               <Button
                 onClick={handleDownloadFromPreview}
                 disabled={!pdfTempId || pdfGenerating || !!pdfError}
-                className="gap-2 bg-purple-600 hover:bg-purple-700 text-white"
+                className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
               >
                 <Download className="h-4 w-4" />
                 {locale === "zh-TW" ? "下載 PDF" : "Download PDF"}

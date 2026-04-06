@@ -2,6 +2,25 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import {
+  Bot,
+  Globe,
+  Wrench,
+  BarChart3,
+  RefreshCw,
+  Brain,
+  Palette,
+  Container,
+  Download,
+  TrendingUp,
+  TrendingDown,
+  Users,
+  Shield,
+  Zap,
+  Database,
+  Lock,
+  CheckCircle2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,34 +36,40 @@ export default function HomePage() {
   const { t } = useLanguage();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50/30 via-pink-50/20 to-purple-50/30 dark:from-gray-950 dark:via-purple-950/40 dark:to-gray-950">
+    <div className="min-h-screen gradient-page-bg">
       <div className="container mx-auto px-4 py-12">
         {/* Hero Section */}
-        <div className="text-center mb-16 animate-fade-in relative py-8">
+        <div className="text-center mb-16 animate-fade-in relative py-10">
           <div className="absolute inset-0 gradient-bg-radial -z-10" />
-          <div className="mb-6">
-            <Image
-              src="/logo.png"
-              alt="TradingAgentsX Logo"
-              width={120}
-              height={120}
-              className="mx-auto rounded-2xl shadow-2xl hover:scale-105 transition-transform duration-300"
-              priority
-            />
+          <div className="mb-8">
+            <div className="inline-block relative">
+              <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-br from-blue-300 to-blue-500 blur-xl opacity-40 scale-110" />
+              <Image
+                src="/logo.png"
+                alt="TradingAgentsX Logo"
+                width={120}
+                height={120}
+                className="relative mx-auto rounded-[2.5rem] shadow-[0_8px_0_rgba(30,64,175,0.4),0_16px_40px_rgba(37,99,235,0.35)] hover:scale-105 hover:-translate-y-2 transition-all duration-300"
+                priority
+              />
+            </div>
           </div>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 gradient-text-primary leading-tight">
+          <h1
+            className="text-4xl sm:text-5xl md:text-6xl font-black mb-6 gradient-text-primary leading-tight"
+            style={{ fontFamily: 'Nunito, sans-serif' }}
+          >
             {t.home.title}
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto">
+          <p className="text-lg text-blue-600/80 dark:text-blue-300/80 mb-10 max-w-2xl mx-auto font-medium">
             {t.nav.tagline}
           </p>
           <div className="flex gap-4 justify-center">
             <Link href="/analysis">
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-blue-500 to-pink-500 dark:from-blue-600 dark:to-purple-600 hover:from-blue-600 hover:to-pink-600 dark:hover:from-blue-700 dark:hover:to-purple-700 shadow-lg hover:shadow-xl transition-all animate-heartbeat"
+                className="animate-clay-bounce text-base px-8 py-3"
               >
-                {t.home.startAnalysis}
+                {t.home.startAnalysis} →
               </Button>
             </Link>
           </div>
@@ -52,171 +77,87 @@ export default function HomePage() {
 
         {/* Core Features Section */}
         <div className="mb-16 animate-slide-up animate-delay-200">
-          <h2 className="text-3xl font-bold text-center mb-4">{t.home.coreFeatures}</h2>
-          <p className="text-center text-gray-600 dark:text-gray-400 mb-8 max-w-3xl mx-auto">
+          <SectionHeading title={t.home.coreFeatures} />
+          <p className="text-center text-blue-500/80 dark:text-blue-400/80 mb-8 max-w-3xl mx-auto font-medium">
             {t.home.coreFeaturesDesc}
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <FeatureCard
-              title={t.home.features.multiAgent}
-              description={t.home.features.multiAgentDesc}
-              icon="🤖"
-            />
-            <FeatureCard
-              title={t.home.features.multiModel}
-              description={t.home.features.multiModelDesc}
-              icon="🌐"
-            />
-            <FeatureCard
-              title={t.home.features.customEndpoint}
-              description={t.home.features.customEndpointDesc}
-              icon="🔧"
-            />
-            <FeatureCard
-              title={t.home.features.fullAnalysis}
-              description={t.home.features.fullAnalysisDesc}
-              icon="📊"
-            />
-            <FeatureCard
-              title={t.home.features.structuredDecision}
-              description={t.home.features.structuredDecisionDesc}
-              icon="🔄"
-            />
-            <FeatureCard
-              title={t.home.features.longTermMemory}
-              description={t.home.features.longTermMemoryDesc}
-              icon="🧠"
-            />
-            <FeatureCard
-              title={t.home.features.modernUI}
-              description={t.home.features.modernUIDesc}
-              icon="🎨"
-            />
-            <FeatureCard
-              title={t.home.features.oneClickDeploy}
-              description={t.home.features.oneClickDeployDesc}
-              icon="🐳"
-            />
-            <FeatureCard
-              title={t.home.features.reportDownload}
-              description={t.home.features.reportDownloadDesc}
-              icon="📥"
-            />
+            <FeatureCard title={t.home.features.multiAgent} description={t.home.features.multiAgentDesc} icon={<Bot className="w-6 h-6 text-blue-500" />} />
+            <FeatureCard title={t.home.features.multiModel} description={t.home.features.multiModelDesc} icon={<Globe className="w-6 h-6 text-pink-500" />} />
+            <FeatureCard title={t.home.features.customEndpoint} description={t.home.features.customEndpointDesc} icon={<Wrench className="w-6 h-6 text-blue-500" />} />
+            <FeatureCard title={t.home.features.fullAnalysis} description={t.home.features.fullAnalysisDesc} icon={<BarChart3 className="w-6 h-6 text-pink-500" />} />
+            <FeatureCard title={t.home.features.structuredDecision} description={t.home.features.structuredDecisionDesc} icon={<RefreshCw className="w-6 h-6 text-blue-500" />} />
+            <FeatureCard title={t.home.features.longTermMemory} description={t.home.features.longTermMemoryDesc} icon={<Brain className="w-6 h-6 text-pink-500" />} />
+            <FeatureCard title={t.home.features.modernUI} description={t.home.features.modernUIDesc} icon={<Palette className="w-6 h-6 text-blue-500" />} />
+            <FeatureCard title={t.home.features.oneClickDeploy} description={t.home.features.oneClickDeployDesc} icon={<Container className="w-6 h-6 text-pink-500" />} />
+            <FeatureCard title={t.home.features.reportDownload} description={t.home.features.reportDownloadDesc} icon={<Download className="w-6 h-6 text-blue-500" />} />
           </div>
         </div>
 
         {/* 12 Professional Agents Section */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-4">
-            {t.home.professionalAgents}
-          </h2>
-          <p className="text-center text-gray-600 dark:text-gray-400 mb-8 max-w-3xl mx-auto">
+          <SectionHeading title={t.home.professionalAgents} />
+          <p className="text-center text-blue-500/80 dark:text-blue-400/80 mb-8 max-w-3xl mx-auto font-medium">
             {t.home.professionalAgentsDesc}
           </p>
 
           {/* Analyst Team */}
           <div className="mb-8">
-            <h3 className="text-2xl font-semibold mb-4 flex items-center">
+            <h3 className="text-xl font-bold mb-4 text-blue-700 dark:text-blue-300 flex items-center gap-2" style={{ fontFamily: 'Nunito, sans-serif' }}>
+              <BarChart3 className="w-5 h-5" />
               {t.home.analystsTeamTitle}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <AgentCard
-                name={t.agents.market_analyst}
-                role={t.agents.market_analyst_role}
-                description={t.agents.market_analyst_desc}
-              />
-              <AgentCard
-                name={t.agents.social_analyst}
-                role={t.agents.social_analyst_role}
-                description={t.agents.social_analyst_desc}
-              />
-              <AgentCard
-                name={t.agents.news_analyst}
-                role={t.agents.news_analyst_role}
-                description={t.agents.news_analyst_desc}
-              />
-              <AgentCard
-                name={t.agents.fundamentals_analyst}
-                role={t.agents.fundamentals_analyst_role}
-                description={t.agents.fundamentals_analyst_desc}
-              />
+              <AgentCard name={t.agents.market_analyst} role={t.agents.market_analyst_role} description={t.agents.market_analyst_desc} />
+              <AgentCard name={t.agents.social_analyst} role={t.agents.social_analyst_role} description={t.agents.social_analyst_desc} />
+              <AgentCard name={t.agents.news_analyst} role={t.agents.news_analyst_role} description={t.agents.news_analyst_desc} />
+              <AgentCard name={t.agents.fundamentals_analyst} role={t.agents.fundamentals_analyst_role} description={t.agents.fundamentals_analyst_desc} />
             </div>
           </div>
 
           {/* Research Team */}
           <div className="mb-8">
-            <h3 className="text-2xl font-semibold mb-4 flex items-center">
+            <h3 className="text-xl font-bold mb-4 text-blue-700 dark:text-blue-300 flex items-center gap-2" style={{ fontFamily: 'Nunito, sans-serif' }}>
+              <Brain className="w-5 h-5" />
               {t.home.researchTeamTitle}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <AgentCard
-                name={t.agents.bull_researcher}
-                role={t.agents.bull_researcher_role}
-                description={t.agents.bull_researcher_desc}
-              />
-              <AgentCard
-                name={t.agents.bear_researcher}
-                role={t.agents.bear_researcher_role}
-                description={t.agents.bear_researcher_desc}
-              />
-              <AgentCard
-                name={t.agents.research_manager}
-                role={t.agents.research_manager_role}
-                description={t.agents.research_manager_desc}
-              />
+              <AgentCard name={t.agents.bull_researcher} role={t.agents.bull_researcher_role} description={t.agents.bull_researcher_desc} accent="bull" />
+              <AgentCard name={t.agents.bear_researcher} role={t.agents.bear_researcher_role} description={t.agents.bear_researcher_desc} accent="bear" />
+              <AgentCard name={t.agents.research_manager} role={t.agents.research_manager_role} description={t.agents.research_manager_desc} />
             </div>
           </div>
 
           {/* Trading Team */}
           <div className="mb-8">
-            <h3 className="text-2xl font-semibold mb-4 flex items-center">
+            <h3 className="text-xl font-bold mb-4 text-blue-700 dark:text-blue-300 flex items-center gap-2" style={{ fontFamily: 'Nunito, sans-serif' }}>
+              <TrendingUp className="w-5 h-5" />
               {t.home.tradingTeamTitle}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-1 gap-4 max-w-md">
-              <AgentCard
-                name={t.agents.trader}
-                role={t.agents.trader_role}
-                description={t.agents.trader_desc}
-              />
+              <AgentCard name={t.agents.trader} role={t.agents.trader_role} description={t.agents.trader_desc} />
             </div>
           </div>
 
           {/* Risk Management Team */}
           <div className="mb-8">
-            <h3 className="text-2xl font-semibold mb-4 flex items-center">
+            <h3 className="text-xl font-bold mb-4 text-blue-700 dark:text-blue-300 flex items-center gap-2" style={{ fontFamily: 'Nunito, sans-serif' }}>
+              <Shield className="w-5 h-5" />
               {t.home.riskTeamTitle}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <AgentCard
-                name={t.agents.aggressive_debator}
-                role={t.agents.aggressive_debator_role}
-                description={t.agents.aggressive_debator_desc}
-              />
-              <AgentCard
-                name={t.agents.conservative_debator}
-                role={t.agents.conservative_debator_role}
-                description={t.agents.conservative_debator_desc}
-              />
-              <AgentCard
-                name={t.agents.neutral_debator}
-                role={t.agents.neutral_debator_role}
-                description={t.agents.neutral_debator_desc}
-              />
-              <AgentCard
-                name={t.agents.risk_manager}
-                role={t.agents.risk_manager_role}
-                description={t.agents.risk_manager_desc}
-              />
+              <AgentCard name={t.agents.aggressive_debator} role={t.agents.aggressive_debator_role} description={t.agents.aggressive_debator_desc} />
+              <AgentCard name={t.agents.conservative_debator} role={t.agents.conservative_debator_role} description={t.agents.conservative_debator_desc} />
+              <AgentCard name={t.agents.neutral_debator} role={t.agents.neutral_debator_role} description={t.agents.neutral_debator_desc} />
+              <AgentCard name={t.agents.risk_manager} role={t.agents.risk_manager_role} description={t.agents.risk_manager_desc} />
             </div>
           </div>
         </div>
 
         {/* Agent Flow Diagram Section */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-4">
-            {t.home.workflowTitle}
-          </h2>
-          <p className="text-center text-gray-600 dark:text-gray-400 mb-8 max-w-3xl mx-auto">
+          <SectionHeading title={t.home.workflowTitle} />
+          <p className="text-center text-blue-500/80 dark:text-blue-400/80 mb-8 max-w-3xl mx-auto font-medium">
             {t.home.workflowDescription}
           </p>
           <AgentFlowDiagram />
@@ -224,52 +165,20 @@ export default function HomePage() {
 
         {/* LLM Support Section */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-4">{t.home.llmSupport}</h2>
-          <p className="text-center text-gray-600 dark:text-gray-400 mb-8 max-w-3xl mx-auto">
+          <SectionHeading title={t.home.llmSupport} />
+          <p className="text-center text-blue-500/80 dark:text-blue-400/80 mb-8 max-w-3xl mx-auto font-medium">
             {t.home.llmSupportDesc}
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <LLMProviderCard
-              name="OpenAI"
-              models={[
-                "GPT-5.4",
-                "GPT-5.4 Mini",
-                "GPT-5.4 Nano",
-              ]}
-              icon="🟢"
-            />
-            <LLMProviderCard
-              name="Anthropic"
-              models={[
-                "Claude Haiku 4.5",
-                "Claude Sonnet 4.5/4.0",
-                "Claude 3.5 Haiku",
-              ]}
-              icon="🟣"
-            />
-            <LLMProviderCard
-              name="Google Gemini"
-              models={["Gemini 2.5 Pro/Flash/Lite", "Gemini 2.0 Flash/Lite"]}
-              icon="🔵"
-            />
-            <LLMProviderCard
-              name="Grok (xAI)"
-              models={["Grok-4.1 Fast", "Grok-4 Fast"]}
-              icon="⚫"
-            />
-            <LLMProviderCard
-              name="DeepSeek"
-              models={["DeepSeek Reasoner", "DeepSeek Chat"]}
-              icon="🔴"
-            />
-            <LLMProviderCard
-              name="Qwen (Alibaba)"
-              models={["Qwen3-Max", "Qwen-Plus", "Qwen Flash"]}
-              icon="🟠"
-            />
+            <LLMProviderCard name="OpenAI" models={["GPT-5.4", "GPT-5.4 Mini", "GPT-5.4 Nano"]} />
+            <LLMProviderCard name="Anthropic" models={["Claude Haiku 4.5", "Claude Sonnet 4.5/4.0", "Claude 3.5 Haiku"]} />
+            <LLMProviderCard name="Google Gemini" models={["Gemini 2.5 Pro/Flash/Lite", "Gemini 2.0 Flash/Lite"]} />
+            <LLMProviderCard name="Grok (xAI)" models={["Grok-4.1 Fast", "Grok-4 Fast"]} />
+            <LLMProviderCard name="DeepSeek" models={["DeepSeek Reasoner", "DeepSeek Chat"]} />
+            <LLMProviderCard name="Qwen (Alibaba)" models={["Qwen3-Max", "Qwen-Plus", "Qwen Flash"]} />
           </div>
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-blue-500/70 dark:text-blue-400/70 font-medium">
               {t.home.llmFeatures}
             </p>
           </div>
@@ -277,43 +186,16 @@ export default function HomePage() {
 
         {/* Workflow Section */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-4">⚙️ {t.home.workflowTitle}</h2>
-          <p className="text-center text-gray-600 dark:text-gray-400 mb-8 max-w-3xl mx-auto">
-            {t.home.coreFeaturesDesc}
-          </p>
-          <Card className="shadow-lg hover-lift">
+          <SectionHeading title={t.home.workflowTitle} />
+          <Card className="shadow-none">
             <CardContent className="pt-6">
               <div className="space-y-4">
-                <WorkflowStep
-                  number={1}
-                  title={t.home.processSteps.dataCollection.title}
-                  description={t.home.processSteps.dataCollection.description}
-                />
-                <WorkflowStep
-                  number={2}
-                  title={t.home.processSteps.analysts.title}
-                  description={t.home.processSteps.analysts.description}
-                />
-                <WorkflowStep
-                  number={3}
-                  title={t.home.processSteps.researchers.title}
-                  description={t.home.processSteps.researchers.description}
-                />
-                <WorkflowStep
-                  number={4}
-                  title={t.home.processSteps.trader.title}
-                  description={t.home.processSteps.trader.description}
-                />
-                <WorkflowStep
-                  number={5}
-                  title={t.home.processSteps.risk.title}
-                  description={t.home.processSteps.risk.description}
-                />
-                <WorkflowStep
-                  number={6}
-                  title={t.home.processSteps.finalDecision.title}
-                  description={t.home.processSteps.finalDecision.description}
-                />
+                <WorkflowStep number={1} title={t.home.processSteps.dataCollection.title} description={t.home.processSteps.dataCollection.description} />
+                <WorkflowStep number={2} title={t.home.processSteps.analysts.title} description={t.home.processSteps.analysts.description} />
+                <WorkflowStep number={3} title={t.home.processSteps.researchers.title} description={t.home.processSteps.researchers.description} />
+                <WorkflowStep number={4} title={t.home.processSteps.trader.title} description={t.home.processSteps.trader.description} />
+                <WorkflowStep number={5} title={t.home.processSteps.risk.title} description={t.home.processSteps.risk.description} />
+                <WorkflowStep number={6} title={t.home.processSteps.finalDecision.title} description={t.home.processSteps.finalDecision.description} />
               </div>
             </CardContent>
           </Card>
@@ -321,41 +203,29 @@ export default function HomePage() {
 
         {/* Technical Highlights */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-4">{t.home.techHighlights}</h2>
+          <SectionHeading title={t.home.techHighlights} />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <TechnicalCard
-              title={t.home.dynamicResearch}
-              features={t.home.dynamicResearchFeatures}
-            />
-            <TechnicalCard
-              title={t.home.memorySystem}
-              features={t.home.memorySystemFeatures}
-            />
-            <TechnicalCard
-              title={t.home.realTimeData}
-              features={t.home.realTimeDataFeatures}
-            />
-            <TechnicalCard
-              title={t.home.fullApiSupport}
-              features={t.home.fullApiSupportFeatures}
-            />
+            <TechnicalCard title={t.home.dynamicResearch} features={t.home.dynamicResearchFeatures} icon={<Zap className="w-5 h-5 text-blue-500" />} />
+            <TechnicalCard title={t.home.memorySystem} features={t.home.memorySystemFeatures} icon={<Database className="w-5 h-5 text-pink-500" />} />
+            <TechnicalCard title={t.home.realTimeData} features={t.home.realTimeDataFeatures} icon={<TrendingUp className="w-5 h-5 text-blue-500" />} />
+            <TechnicalCard title={t.home.fullApiSupport} features={t.home.fullApiSupportFeatures} icon={<Lock className="w-5 h-5 text-pink-500" />} />
           </div>
         </div>
 
         {/* Call to Action Section */}
         <div className="text-center py-16 relative">
           <div className="absolute inset-0 gradient-bg-radial opacity-60 -z-10" />
-          <h2 className="text-3xl font-bold mb-4 gradient-text-primary">
+          <h2
+            className="text-3xl font-black mb-4 gradient-text-primary"
+            style={{ fontFamily: 'Nunito, sans-serif' }}
+          >
             {t.home.readyToStart}
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto">
+          <p className="text-lg text-blue-500/80 dark:text-blue-400/80 mb-10 max-w-2xl mx-auto font-medium">
             {t.home.ctaDescription}
           </p>
           <Link href="/analysis">
-            <Button
-              size="lg"
-              className="bg-gradient-to-r from-blue-500 to-pink-500 dark:from-blue-600 dark:to-purple-600 hover:from-blue-600 hover:to-pink-600 dark:hover:from-blue-700 dark:hover:to-purple-700 text-lg px-8 py-6 shadow-lg hover:shadow-2xl transition-all animate-heartbeat"
-            >
+            <Button size="lg" className="text-lg px-10 py-4 animate-clay-bounce">
               {t.home.startAnalysis} →
             </Button>
           </Link>
@@ -365,63 +235,62 @@ export default function HomePage() {
   );
 }
 
-function FeatureCard({
-  title,
-  description,
-  icon,
-}: {
-  title: string;
-  description: string;
-  icon: string;
-}) {
+/* ── Shared sub-components ── */
+
+function SectionHeading({ title }: { title: string }) {
   return (
-    <Card className="hover-lift animate-slide-up">
+    <h2
+      className="text-2xl sm:text-3xl font-black text-center mb-4 gradient-text-primary"
+      style={{ fontFamily: 'Nunito, sans-serif' }}
+    >
+      {title}
+    </h2>
+  );
+}
+
+function FeatureCard({ title, description, icon }: { title: string; description: string; icon: React.ReactNode }) {
+  return (
+    <Card className="animate-slide-up">
       <CardHeader>
-        <div className="text-4xl mb-2">{icon}</div>
-        <CardTitle className="text-lg">{title}</CardTitle>
+        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-100 to-blue-100 dark:from-blue-900/40 dark:to-blue-900/40 flex items-center justify-center mb-2 shadow-[0_2px_0_rgba(147,197,253,0.5),0_4px_12px_rgba(37,99,235,0.1)]">
+          {icon}
+        </div>
+        <CardTitle className="text-base text-blue-800 dark:text-blue-200">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          {description}
-        </p>
+        <p className="text-sm text-blue-500/80 dark:text-blue-400/70">{description}</p>
       </CardContent>
     </Card>
   );
 }
 
-function AgentCard({
-  name,
-  role,
-  description,
-}: {
-  name: string;
-  role: string;
-  description: string;
-}) {
+function AgentCard({ name, role, description, accent }: { name: string; role: string; description: string; accent?: "bull" | "bear" }) {
+  const accentClass =
+    accent === "bull"
+      ? "border-emerald-300 dark:border-emerald-600/40"
+      : accent === "bear"
+      ? "border-rose-300 dark:border-rose-600/40"
+      : "";
+
   return (
-    <Card className="hover-lift animate-scale-up">
+    <Card className={`animate-scale-up ${accentClass}`}>
       <CardHeader>
-        <CardTitle className="text-base">{name}</CardTitle>
-        <CardDescription className="text-xs">{role}</CardDescription>
+        <div className="flex items-center gap-2">
+          {accent === "bull" && <TrendingUp className="w-4 h-4 text-emerald-500" />}
+          {accent === "bear" && <TrendingDown className="w-4 h-4 text-rose-500" />}
+          {!accent && <Users className="w-4 h-4 text-blue-400" />}
+          <CardTitle className="text-sm text-blue-800 dark:text-blue-200">{name}</CardTitle>
+        </div>
+        <CardDescription className="text-xs text-blue-400 dark:text-blue-400">{role}</CardDescription>
       </CardHeader>
       <CardContent>
-        <p className="text-xs text-gray-600 dark:text-gray-400">
-          {description}
-        </p>
+        <p className="text-xs text-blue-500/80 dark:text-blue-400/70">{description}</p>
       </CardContent>
     </Card>
   );
 }
 
-function LLMProviderCard({
-  name,
-  models,
-  icon,
-}: {
-  name: string;
-  models: string[];
-  icon: string;
-}) {
+function LLMProviderCard({ name, models }: { name: string; models: string[] }) {
   const logoMap: Record<string, string> = {
     OpenAI: "/logos/openai.svg",
     Anthropic: "/logos/claude-color.svg",
@@ -430,35 +299,30 @@ function LLMProviderCard({
     DeepSeek: "/logos/deepseek-color.svg",
     "Qwen (Alibaba)": "/logos/qwen-color.svg",
   };
-
   const logoSrc = logoMap[name];
 
   return (
-    <Card className="hover-lift animate-slide-up animate-delay-100">
+    <Card className="animate-slide-up animate-delay-100">
       <CardHeader>
         <div className="flex items-center gap-3">
           {logoSrc ? (
-            <div className="relative w-8 h-8 flex-shrink-0 transition-transform duration-300 hover:scale-110">
-              <Image
-                src={logoSrc}
-                alt={`${name} logo`}
-                width={32}
-                height={32}
-                className="object-contain"
-              />
+            <div className="w-10 h-10 rounded-2xl bg-white dark:bg-blue-900/30 flex items-center justify-center shadow-[0_2px_0_rgba(147,197,253,0.4),0_4px_10px_rgba(37,99,235,0.08)] flex-shrink-0">
+              <Image src={logoSrc} alt={`${name} logo`} width={28} height={28} className="object-contain" />
             </div>
           ) : (
-            <span className="text-2xl">{icon}</span>
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-100 to-blue-100 dark:from-blue-900/40 dark:to-blue-900/40 flex items-center justify-center shadow-[0_2px_0_rgba(147,197,253,0.4)] flex-shrink-0">
+              <Globe className="w-5 h-5 text-blue-500" />
+            </div>
           )}
-          <CardTitle className="text-lg">{name}</CardTitle>
+          <CardTitle className="text-base text-blue-800 dark:text-blue-200">{name}</CardTitle>
         </div>
       </CardHeader>
       <CardContent>
-        <ul className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
-          {models.map((model, index) => (
-            <li key={index} className="flex items-start">
-              <span className="mr-1">✓</span>
-              <span>{model}</span>
+        <ul className="space-y-1.5">
+          {models.map((model, i) => (
+            <li key={i} className="flex items-center gap-2 text-xs text-blue-500/80 dark:text-blue-400/70">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
+              {model}
             </li>
           ))}
         </ul>
@@ -467,24 +331,21 @@ function LLMProviderCard({
   );
 }
 
-function TechnicalCard({
-  title,
-  features,
-}: {
-  title: string;
-  features: string[];
-}) {
+function TechnicalCard({ title, features, icon }: { title: string; features: string[]; icon: React.ReactNode }) {
   return (
-    <Card className="hover-lift animate-slide-up animate-delay-300">
+    <Card className="animate-slide-up animate-delay-300">
       <CardHeader>
-        <CardTitle className="text-lg">{title}</CardTitle>
+        <div className="flex items-center gap-2">
+          {icon}
+          <CardTitle className="text-base text-blue-800 dark:text-blue-200">{title}</CardTitle>
+        </div>
       </CardHeader>
       <CardContent>
-        <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-          {features.map((feature, index) => (
-            <li key={index} className="flex items-start">
-              <span className="mr-2 text-green-500">✓</span>
-              <span>{feature}</span>
+        <ul className="space-y-2">
+          {features.map((feature, i) => (
+            <li key={i} className="flex items-start gap-2 text-sm text-blue-500/80 dark:text-blue-400/70">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+              {feature}
             </li>
           ))}
         </ul>
@@ -493,25 +354,15 @@ function TechnicalCard({
   );
 }
 
-function WorkflowStep({
-  number,
-  title,
-  description,
-}: {
-  number: number;
-  title: string;
-  description: string;
-}) {
+function WorkflowStep({ number, title, description }: { number: number; title: string; description: string }) {
   return (
     <div className="flex gap-4 items-start">
-      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-pink-500 dark:from-blue-600 dark:to-purple-600 text-white flex items-center justify-center font-bold">
+      <div className="flex-shrink-0 w-9 h-9 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 text-white flex items-center justify-center font-black text-sm shadow-[0_3px_0_rgba(30,64,175,0.4),0_6px_16px_rgba(37,99,235,0.3)]" style={{ fontFamily: 'Nunito, sans-serif' }}>
         {number}
       </div>
       <div>
-        <h4 className="font-semibold mb-1">{title}</h4>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          {description}
-        </p>
+        <h4 className="font-bold mb-1 text-blue-800 dark:text-blue-200" style={{ fontFamily: 'Nunito, sans-serif' }}>{title}</h4>
+        <p className="text-sm text-blue-500/80 dark:text-blue-400/70">{description}</p>
       </div>
     </div>
   );

@@ -273,8 +273,8 @@ function HistoryChatContent() {
 
   if (loadingReport) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50/30 via-pink-50/20 to-purple-50/30 dark:from-gray-950 dark:via-purple-950/40 dark:to-gray-950 flex flex-col items-center justify-center">
-        <Loader2 className="h-10 w-10 animate-spin text-purple-600 mb-4" />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50/30 via-slate-50/20 to-blue-50/30 dark:from-gray-950 dark:via-blue-950/40 dark:to-gray-950 flex flex-col items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-blue-600 mb-4" />
         <p className="text-gray-500">{t.history?.loading || "Loading..."}</p>
       </div>
     );
@@ -282,7 +282,7 @@ function HistoryChatContent() {
 
   if (!report) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50/30 via-pink-50/20 to-purple-50/30 dark:from-gray-950 dark:via-purple-950/40 dark:to-gray-950 flex flex-col items-center justify-center p-6 text-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50/30 via-slate-50/20 to-blue-50/30 dark:from-gray-950 dark:via-blue-950/40 dark:to-gray-950 flex flex-col items-center justify-center p-6 text-center">
         <AlertCircle className="h-16 w-16 text-gray-400 mb-4" />
         <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
           Report not found.
@@ -298,7 +298,7 @@ function HistoryChatContent() {
   const contextLabel = t.chat?.allReports || "All Reports";
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-br from-purple-50/30 via-pink-50/20 to-purple-50/30 dark:from-gray-950 dark:via-purple-950/40 dark:to-gray-950">
+    <div className="h-screen flex flex-col bg-gradient-to-br from-blue-50/30 via-slate-50/20 to-blue-50/30 dark:from-gray-950 dark:via-blue-950/40 dark:to-gray-950">
       {/* Header */}
       <div className="flex-shrink-0 px-4 py-4 md:px-8 md:py-6 border-b border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md sticky top-0 z-10 shadow-sm">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
@@ -313,11 +313,11 @@ function HistoryChatContent() {
             </Button>
             <div>
               <h1 className="flex items-center gap-2 text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
-                <Sparkles className="h-6 w-6 text-purple-500" />
+                <Sparkles className="h-6 w-6 text-blue-500" />
                 <span>
                   {t.chat?.title || "Report Chat"} — {report.ticker}
                 </span>
-                <span className="hidden sm:inline text-purple-600 dark:text-purple-400 text-sm md:text-base font-normal ml-2 bg-purple-100 dark:bg-purple-900/30 px-3 py-1 rounded-full">
+                <span className="hidden sm:inline text-blue-600 dark:text-blue-400 text-sm md:text-base font-normal ml-2 bg-blue-100 dark:bg-blue-900/30 px-3 py-1 rounded-full">
                   {contextLabel}
                 </span>
               </h1>
@@ -351,8 +351,8 @@ function HistoryChatContent() {
           {/* Empty state */}
           {messages.length === 0 && !isLoading && (
             <div className="flex flex-col items-center justify-center min-h-[50vh] text-center text-gray-400 dark:text-gray-500 gap-6">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 flex items-center justify-center shadow-inner">
-                <Bot className="h-10 w-10 text-purple-600 dark:text-purple-400" />
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-100 to-slate-100 dark:from-blue-900/30 dark:to-slate-900/30 flex items-center justify-center shadow-inner">
+                <Bot className="h-10 w-10 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
                 <p className="text-xl font-medium text-gray-700 dark:text-gray-200">
@@ -396,7 +396,7 @@ function HistoryChatContent() {
                       setInput(suggestion);
                       setTimeout(() => inputRef.current?.focus(), 50);
                     }}
-                    className="px-4 py-2 text-sm rounded-full border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 bg-white/50 dark:bg-gray-800/50 hover:bg-purple-50 dark:hover:bg-purple-900/50 transition-all duration-200 shadow-sm hover:shadow"
+                    className="px-4 py-2 text-sm rounded-full border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 bg-white/50 dark:bg-gray-800/50 hover:bg-blue-50 dark:hover:bg-blue-900/50 transition-all duration-200 shadow-sm hover:shadow"
                   >
                     {suggestion}
                   </button>
@@ -417,7 +417,7 @@ function HistoryChatContent() {
                   className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-white text-sm shadow-sm ${
                     msg.role === "user"
                       ? "bg-gradient-to-br from-blue-500 to-cyan-500"
-                      : "bg-gradient-to-br from-purple-600 to-pink-600"
+                      : "bg-gradient-to-br from-blue-600 to-slate-600"
                   }`}
                 >
                   {msg.role === "user" ? (
@@ -450,12 +450,12 @@ function HistoryChatContent() {
             {/* Loading indicator */}
             {isLoading && (
               <div className="flex gap-4">
-                <div className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-br from-purple-600 to-pink-600 text-white shadow-sm">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-br from-blue-600 to-slate-600 text-white shadow-sm">
                   <Bot className="h-5 w-5 text-white animate-pulse" />
                 </div>
                 <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl rounded-tl-sm px-5 py-4 shadow-sm">
                   <div className="flex items-center gap-3 text-base text-gray-500 dark:text-gray-400 font-medium">
-                    <Loader2 className="h-5 w-5 animate-spin text-purple-500" />
+                    <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
                     <span>{t.chat?.thinking || "Thinking..."}</span>
                   </div>
                 </div>
@@ -515,13 +515,13 @@ function HistoryChatContent() {
               onKeyDown={handleKeyDown}
               placeholder={t.chat?.placeholder || "Ask about this report..."}
               disabled={isLoading}
-              className="flex-1 text-base rounded-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus-visible:ring-purple-500 h-12 md:h-14 px-6 shadow-sm"
+              className="flex-1 text-base rounded-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus-visible:ring-blue-500 h-12 md:h-14 px-6 shadow-sm"
             />
             <Button
               onClick={handleSend}
               disabled={!input.trim() || isLoading}
               size="icon"
-              className="rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 h-12 w-12 md:h-14 md:w-14 flex-shrink-0 shadow-md hover:shadow-lg transition-all"
+              className="rounded-full bg-gradient-to-r from-blue-600 to-slate-600 hover:from-blue-700 hover:to-slate-700 h-12 w-12 md:h-14 md:w-14 flex-shrink-0 shadow-md hover:shadow-lg transition-all"
             >
               {isLoading ? (
                 <Loader2 className="h-6 w-6 animate-spin text-white" />
@@ -545,8 +545,8 @@ export default function HistoryChatPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-gradient-to-br from-purple-50/30 via-pink-50/20 to-purple-50/30 flex flex-col items-center justify-center">
-          <Loader2 className="h-10 w-10 animate-spin text-purple-600 mb-4" />
+        <div className="min-h-screen bg-gradient-to-br from-blue-50/30 via-slate-50/20 to-blue-50/30 flex flex-col items-center justify-center">
+          <Loader2 className="h-10 w-10 animate-spin text-blue-600 mb-4" />
           <p className="text-gray-500">Loading chat...</p>
         </div>
       }
