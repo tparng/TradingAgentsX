@@ -27,7 +27,13 @@ export function Header() {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0">
-            <div className="text-xl md:text-2xl font-black text-blue-700 dark:text-blue-400" style={{ fontFamily: 'Nunito, sans-serif' }}>
+            <div
+              className="text-xl md:text-2xl font-black bg-clip-text text-transparent"
+              style={{
+                fontFamily: 'Nunito, sans-serif',
+                backgroundImage: 'linear-gradient(135deg, #1d4ed8 0%, #0ea5e9 40%, #06b6d4 70%, #2dd4bf 100%)',
+              }}
+            >
               TradingAgentsX
             </div>
             <div className="hidden lg:block text-xs font-medium text-slate-400 dark:text-slate-500 opacity-80">

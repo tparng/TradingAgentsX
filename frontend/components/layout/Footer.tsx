@@ -15,7 +15,16 @@ export function Footer() {
       <div className="container mx-auto px-4 py-6">
         <div className="flex items-center justify-center">
           <div className="text-sm text-gray-600 dark:text-gray-400">
-            © 2025 TradingAgentsX. All rights reserved.
+            © 2025{" "}
+            <span
+              className="font-semibold bg-clip-text text-transparent"
+              style={{
+                backgroundImage: 'linear-gradient(135deg, #1d4ed8 0%, #0ea5e9 40%, #06b6d4 70%, #2dd4bf 100%)',
+              }}
+            >
+              TradingAgentsX
+            </span>
+            . All rights reserved.
           </div>
         </div>
       </div>
