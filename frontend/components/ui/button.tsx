@@ -10,17 +10,17 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          // Light: blue → pink gradient | Dark: blue → violet gradient
-          "bg-gradient-to-br from-blue-400 to-pink-500 dark:from-blue-400 dark:to-violet-500 text-white " +
-          "border border-pink-600/30 dark:border-violet-700/40 " +
-          "shadow-[0_2px_0_theme(colors.pink.700),0_4px_12px_rgba(219,39,119,0.3),inset_0_1px_0_rgba(255,255,255,0.3)] " +
-          "dark:shadow-[0_2px_0_theme(colors.violet.800),0_4px_12px_rgba(139,92,246,0.3),inset_0_1px_0_rgba(255,255,255,0.2)] " +
+          // Light: ocean blue → cyan → teal | Dark: sky → teal vivid
+          "bg-gradient-to-br from-blue-500 via-cyan-500 to-teal-400 dark:from-sky-400 dark:via-cyan-400 dark:to-teal-300 text-white " +
+          "border border-cyan-700/30 dark:border-teal-600/40 " +
+          "shadow-[0_2px_0_theme(colors.cyan.700),0_4px_12px_rgba(6,182,212,0.3),inset_0_1px_0_rgba(255,255,255,0.3)] " +
+          "dark:shadow-[0_2px_0_theme(colors.teal.700),0_4px_12px_rgba(45,212,191,0.25),inset_0_1px_0_rgba(255,255,255,0.2)] " +
           "hover:-translate-y-0.5 " +
-          "hover:shadow-[0_4px_0_theme(colors.pink.700),0_8px_24px_rgba(219,39,119,0.4),inset_0_1px_0_rgba(255,255,255,0.35)] " +
-          "dark:hover:shadow-[0_4px_0_theme(colors.violet.800),0_8px_24px_rgba(139,92,246,0.4),inset_0_1px_0_rgba(255,255,255,0.25)] " +
+          "hover:shadow-[0_4px_0_theme(colors.cyan.700),0_8px_24px_rgba(6,182,212,0.4),inset_0_1px_0_rgba(255,255,255,0.35)] " +
+          "dark:hover:shadow-[0_4px_0_theme(colors.teal.700),0_8px_24px_rgba(45,212,191,0.35),inset_0_1px_0_rgba(255,255,255,0.25)] " +
           "active:translate-y-0.5 active:scale-[0.97] " +
-          "active:shadow-[0_1px_0_theme(colors.pink.800),inset_0_2px_4px_rgba(219,39,119,0.3)] " +
-          "dark:active:shadow-[0_1px_0_theme(colors.violet.900),inset_0_2px_4px_rgba(139,92,246,0.3)]",
+          "active:shadow-[0_1px_0_theme(colors.cyan.800),inset_0_2px_4px_rgba(6,182,212,0.3)] " +
+          "dark:active:shadow-[0_1px_0_theme(colors.teal.800),inset_0_2px_4px_rgba(45,212,191,0.25)]",
         destructive:
           "bg-gradient-to-br from-red-400 to-red-600 text-white border border-red-700/40 " +
           "shadow-[0_2px_0_theme(colors.red.800),0_4px_12px_rgba(220,38,38,0.3)] " +
@@ -29,16 +29,16 @@ const buttonVariants = cva(
         outline:
           "bg-white/95 dark:bg-[#111827]/95 border border-slate-200 dark:border-slate-700/60 text-slate-700 dark:text-slate-200 " +
           "shadow-[0_1px_3px_rgba(15,23,42,0.08)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)] " +
-          "hover:-translate-y-0.5 hover:border-pink-300 dark:hover:border-violet-500/60 " +
-          "hover:shadow-[0_4px_12px_rgba(219,39,119,0.12)] dark:hover:shadow-[0_4px_12px_rgba(139,92,246,0.2)]",
+          "hover:-translate-y-0.5 hover:border-cyan-400 dark:hover:border-teal-500/60 " +
+          "hover:shadow-[0_4px_12px_rgba(6,182,212,0.15)] dark:hover:shadow-[0_4px_12px_rgba(45,212,191,0.2)]",
         secondary:
-          "bg-gradient-to-br from-blue-50 to-pink-50 dark:from-[#1E293B] dark:to-[#1E1A3A] " +
-          "text-blue-700 dark:text-violet-300 border border-pink-100 dark:border-violet-900/40 " +
+          "bg-gradient-to-br from-sky-50 to-cyan-50 dark:from-[#0C1929] dark:to-[#0A1F2A] " +
+          "text-cyan-700 dark:text-cyan-300 border border-cyan-100 dark:border-cyan-900/40 " +
           "shadow-[0_1px_3px_rgba(15,23,42,0.06)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.2)] " +
-          "hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(219,39,119,0.10)] dark:hover:shadow-[0_4px_12px_rgba(139,92,246,0.15)]",
+          "hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(6,182,212,0.12)] dark:hover:shadow-[0_4px_12px_rgba(45,212,191,0.15)]",
         ghost:
-          "hover:bg-pink-50 dark:hover:bg-violet-900/20 text-slate-600 dark:text-slate-300 hover:text-pink-700 dark:hover:text-violet-300 rounded-[0.875rem]",
-        link: "text-pink-600 dark:text-violet-400 underline-offset-4 hover:underline rounded-none",
+          "hover:bg-cyan-50 dark:hover:bg-cyan-900/20 text-slate-600 dark:text-slate-300 hover:text-cyan-700 dark:hover:text-cyan-300 rounded-[0.875rem]",
+        link: "text-cyan-600 dark:text-cyan-400 underline-offset-4 hover:underline rounded-none",
       },
       size: {
         default: "h-10 px-5 py-2 has-[>svg]:px-4",
