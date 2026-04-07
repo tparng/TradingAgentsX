@@ -526,16 +526,16 @@
   }
 }
 
-/* Gradient Text — blue-pink (light) / blue-purple (dark) */
+/* Gradient Text — ocean (light) / ocean vivid (dark) */
 .gradient-text-primary {
-  background: linear-gradient(135deg, #2563EB 0%, #EC4899 100%);
+  background: linear-gradient(135deg, #1d4ed8 0%, #0ea5e9 40%, #06b6d4 70%, #2dd4bf 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .dark .gradient-text-primary {
-  background: linear-gradient(135deg, #60A5FA 0%, #A78BFA 100%);
+  background: linear-gradient(135deg, #38bdf8 0%, #22d3ee 40%, #2dd4bf 70%, #34d399 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
