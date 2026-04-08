@@ -1,4 +1,5 @@
 typing-extensions
+rank-bm25
 langchain-openai
 langchain-experimental
 polars

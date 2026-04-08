@@ -1,6 +1,11 @@
 import os
+import re
+import logging
+from typing import List, Dict, Any
 import chromadb
 from chromadb.config import Settings
+
+logger = logging.getLogger(__name__)
 
 
 class FinancialSituationMemory:
@@ -165,6 +170,164 @@ class FinancialSituationMemory:
             )
 
         return matched_results
+
+
+class HybridFinancialMemory(FinancialSituationMemory):
+    """
+    混合搜索金融記憶體 (Hybrid Financial Memory)
+
+    在 FinancialSituationMemory 的向量搜索基礎上，
+    加入 BM25 關鍵字搜索，並透過 RRF 融合兩種搜索結果。
+
+    優點：
+    - 向量搜索：理解語意，找到概念相似的過去情境
+    - BM25 關鍵字搜索：精確匹配股票代號與財務術語
+    - 股票代號自動加分：查詢包含代號時優先匹配相關記錄
+
+    設定項 (config)：
+        hybrid_search_k  : RRF 常數 k，預設 60
+        vector_weight    : 向量搜索權重（0~1），預設 0.6
+        keyword_weight   : BM25 權重（0~1），預設 0.4
+        ticker_boost     : 股票代號精確匹配加分倍數，預設 2.0
+    """
+
+    def __init__(self, name: str, config: dict):
+        super().__init__(name, config)
+        self._situations: List[str] = []
+        self._recommendations: List[str] = []
+        self._tokenized_corpus: List[List[str]] = []
+        self._bm25 = None
+
+        self.rrf_k = config.get("hybrid_search_k", 60)
+        self.vector_weight = config.get("vector_weight", 0.6)
+        self.keyword_weight = config.get("keyword_weight", 0.4)
+        self.ticker_boost = config.get("ticker_boost", 2.0)
+
+    # ------------------------------------------------------------------
+    # 工具方法
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _tokenize(text: str) -> List[str]:
+        """分詞並保留股票代號與財務術語大小寫。"""
+        from .hybrid_search import tokenize_financial_text
+        return tokenize_financial_text(text)
+
+    @staticmethod
+    def _extract_tickers(text: str) -> List[str]:
+        """提取股票代號。"""
+        from .hybrid_search import extract_tickers
+        return extract_tickers(text)
+
+    def _rebuild_bm25(self):
+        """重建 BM25Okapi 索引。"""
+        if not self._tokenized_corpus:
+            self._bm25 = None
+            return
+        try:
+            from rank_bm25 import BM25Okapi
+        except ImportError:
+            raise ImportError(
+                "rank-bm25 為關鍵字搜索所必需。請執行：pip install rank-bm25"
+            )
+        self._bm25 = BM25Okapi(self._tokenized_corpus)
+
+    # ------------------------------------------------------------------
+    # 覆寫父類別方法
+    # ------------------------------------------------------------------
+
+    def add_situations(self, situations_and_advice):
+        """
+        新增金融情境與建議，同時建立 BM25 索引和向量索引。
+        Parameter: list of (situation, recommendation) tuples
+        """
+        super().add_situations(situations_and_advice)
+        for situation, recommendation in situations_and_advice:
+            self._situations.append(situation)
+            self._recommendations.append(recommendation)
+            self._tokenized_corpus.append(self._tokenize(situation))
+        self._rebuild_bm25()
+
+    def get_memories(self, current_situation: str, n_matches: int = 1) -> List[Dict[str, Any]]:
+        """
+        混合搜索：BM25 + 向量搜索，透過 RRF 融合後回傳最相關的過去情境。
+
+        Args:
+            current_situation : 當前市場情境描述
+            n_matches         : 回傳結果數量
+
+        Returns:
+            列表，每項包含：
+                matched_situation - 匹配的歷史情境
+                recommendation    - 對應建議
+                similarity_score  - RRF 混合分數
+                search_type       - "hybrid"
+        """
+        if not self._situations:
+            return []
+
+        n_matches = min(n_matches, len(self._situations))
+        n_candidates = min(max(n_matches * 3, 10), len(self._situations))
+
+        # --- 向量搜索 ---
+        query_embedding = self.get_embedding(current_situation)
+        vector_raw = self.situation_collection.query(
+            query_embeddings=[query_embedding],
+            n_results=n_candidates,
+            include=["distances"],
+        )
+        # id (字串) → (index, similarity)
+        vector_ranking: List[tuple] = []
+        for doc_id, dist in zip(
+            vector_raw.get("ids", [[]])[0],
+            vector_raw.get("distances", [[]])[0],
+        ):
+            try:
+                vector_ranking.append((int(doc_id), 1.0 - dist))
+            except (ValueError, TypeError):
+                pass
+
+        # --- BM25 關鍵字搜索 ---
+        bm25_ranking: List[tuple] = []
+        if self._bm25 is not None:
+            query_tokens = self._tokenize(current_situation)
+            scores = self._bm25.get_scores(query_tokens)
+
+            # 股票代號精確匹配加分
+            query_tickers = self._extract_tickers(current_situation)
+            if query_tickers and self.ticker_boost > 1.0:
+                for i, situation in enumerate(self._situations):
+                    for ticker in query_tickers:
+                        if re.search(r'\b' + re.escape(ticker) + r'\b', situation):
+                            scores[i] *= self.ticker_boost
+
+            indexed = [(i, float(scores[i])) for i in range(len(scores))]
+            indexed.sort(key=lambda x: x[1], reverse=True)
+            bm25_ranking = indexed[:n_candidates]
+
+        # --- RRF 融合 ---
+        rrf_scores: Dict[int, float] = {}
+        for rank, (idx, _) in enumerate(bm25_ranking):
+            rrf_scores[idx] = rrf_scores.get(idx, 0.0) + (
+                self.keyword_weight / (self.rrf_k + rank + 1)
+            )
+        for rank, (idx, _) in enumerate(vector_ranking):
+            rrf_scores[idx] = rrf_scores.get(idx, 0.0) + (
+                self.vector_weight / (self.rrf_k + rank + 1)
+            )
+
+        top = sorted(rrf_scores.items(), key=lambda x: x[1], reverse=True)[:n_matches]
+
+        return [
+            {
+                "matched_situation": self._situations[idx],
+                "recommendation": self._recommendations[idx],
+                "similarity_score": score,
+                "search_type": "hybrid",
+            }
+            for idx, score in top
+            if idx < len(self._situations)
+        ]
 
 
 if __name__ == "__main__":
