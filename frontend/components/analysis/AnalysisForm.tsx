@@ -545,11 +545,18 @@ export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
                               <span>GPT-5.4 Nano</span>
                             </div>
                           </SelectItem>
+
                           {/* Anthropic (Official model IDs) */}
                           <SelectItem value="claude-opus-4-7">
                             <div className="flex items-center gap-2">
                               <Image src="/logos/claude-color.svg" alt="Claude" width={16} height={16} className="shrink-0" />
                               <span>Claude Opus 4.7</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="claude-sonnet-4-6">
+                            <div className="flex items-center gap-2">
+                              <Image src="/logos/claude-color.svg" alt="Claude" width={16} height={16} className="shrink-0" />
+                              <span>Claude Sonnet 4.6</span>
                             </div>
                           </SelectItem>
                           <SelectItem value="claude-haiku-4-5-20251001">
