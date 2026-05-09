@@ -237,7 +237,8 @@ def select_shallow_thinking_agent(provider=None) -> str:
             ("GPT-5.4-nano","gpt-5.4-nano"),
         ],
         "Anthropic": [
-            ("Claude Sonnet 4.5", "claude-sonnet-4-5-20250929"),
+            ("Claude Opus 4.7", "claude-opus-4-7"),
+            ("Claude Sonnet 4.6", "claude-sonnet-4-6"),
             ("Claude Haiku 4.5", "claude-haiku-4-5-20251001"),
             ("Claude Sonnet 4", "claude-sonnet-4-20250514"),
             ("Claude 3 Haiku", "claude-3-haiku-20240307"),
@@ -253,8 +254,8 @@ def select_shallow_thinking_agent(provider=None) -> str:
             ("Grok 4.2 Non Reasoning", "grok-4.20-0309-non-reasoning"),
         ],
         "DeepSeek": [
-            ("DeepSeek Reasoner","deepseek-reasoner"),
-            ("DeepSeek Chat","deepseek-chat"),
+            ("Deepseek V4 Pro","deepseek-v4-pro"),
+            ("Deepseek V4 Flash","deepseek-v4-flash"),
         ],
         "Qwen":[
             ("Qwen 3 Max", "qwen3-max"),
@@ -351,7 +352,8 @@ def select_deep_thinking_agent(provider=None) -> str:
             ("GPT-5.4-nano","gpt-5.4-nano"),
         ],
         "Anthropic": [
-            ("Claude Sonnet 4.5", "claude-sonnet-4-5-20250929"),
+            ("Claude Opus 4.7", "claude-opus-4-7"),
+            ("Claude Sonnet 4.6", "claude-sonnet-4-6"),
             ("Claude Haiku 4.5", "claude-haiku-4-5-20251001"),
             ("Claude Sonnet 4", "claude-sonnet-4-20250514"),
             ("Claude 3 Haiku", "claude-3-haiku-20240307"),
@@ -367,8 +369,8 @@ def select_deep_thinking_agent(provider=None) -> str:
             ("Grok 4.2 Non Reasoning", "grok-4.20-0309-non-reasoning"),
         ],
         "DeepSeek":[
-            ("DeepSeek Reasoner","deepseek-reasoner"),
-            ("DeepSeek Chat","deepseek-chat"),
+            ("Deepseek V4 Pro","deepseek-v4-pro"),
+            ("Deepseek V4 Flash","deepseek-v4-flash"),
         ],
         "Qwen":[
             ("Qwen 3 Max", "qwen3-max"),

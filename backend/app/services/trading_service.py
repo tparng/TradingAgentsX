@@ -26,7 +26,7 @@ class TradingService:
     def create_config(
         self,
         research_depth: int = 1,
-        deep_think_llm: str = "claude-sonnet-4-5-20250929",
+        deep_think_llm: str = "claude-sonnet-4-6",
         quick_think_llm: str = "claude-haiku-4-5-20251001",
     ) -> Dict[str, Any]:
         """Create configuration for TradingAgentsX
@@ -63,7 +63,7 @@ class TradingService:
         market_type: str = "us",  # 市場類型：us (美股) 或 tw (台股)
         analysts: Optional[List[str]] = None,
         research_depth: int = 1,
-        deep_think_llm: str = "claude-sonnet-4-5-20250929",
+        deep_think_llm: str = "claude-sonnet-4-6",
         quick_think_llm: str = "claude-haiku-4-5-20251001",
         language: str = "zh-TW",  # Language for agent reports: 'en' or 'zh-TW'
     ) -> Dict[str, Any]:
@@ -374,7 +374,8 @@ class TradingService:
             "gpt-5.4-mini",
             "gpt-5.4-nano",
             # Anthropic (Official model IDs)
-            "claude-sonnet-4-5-20250929",
+            "claude-opus-4-7",
+            "claude-sonnet-4-6",
             "claude-haiku-4-5-20251001",
             "claude-sonnet-4-20250514",
             "claude-3-haiku-20240307",
@@ -387,8 +388,8 @@ class TradingService:
             "grok-4.20-0309-reasoning",
             "grok-4.20-0309-non-reasoning",
             # DeepSeek
-            "deepseek-reasoner",
-            "deepseek-chat",
+            "deepseek-v4-pro",
+            "deepseek-v4-flash",
             # Qwen
             "qwen3-max",
             "qwen3.5-plus",
@@ -399,7 +400,7 @@ class TradingService:
         """Get default configuration"""
         return {
             "research_depth": 1,
-            "deep_think_llm": "claude-sonnet-4-5-20250929",
+            "deep_think_llm": "claude-sonnet-4-6",
             "quick_think_llm": "claude-haiku-4-5-20251001",
             "max_debate_rounds": 1,
             "max_risk_discuss_rounds": 1,

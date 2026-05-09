@@ -113,7 +113,7 @@ export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
       research_depth: 3, // 預設中等層級
       market_type: "us", // 預設美股
       quick_think_llm: "claude-haiku-4-5-20251001",
-      deep_think_llm: "claude-sonnet-4-5-20250929",
+      deep_think_llm: "claude-sonnet-4-6",
       embedding_model: "all-MiniLM-L6-v2", // 預設使用本地開源模型
       custom_quick_think_model: "",
       custom_deep_think_model: "",
@@ -546,10 +546,10 @@ export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
                             </div>
                           </SelectItem>
                           {/* Anthropic (Official model IDs) */}
-                          <SelectItem value="claude-sonnet-4-5-20250929">
+                          <SelectItem value="claude-opus-4-7">
                             <div className="flex items-center gap-2">
                               <Image src="/logos/claude-color.svg" alt="Claude" width={16} height={16} className="shrink-0" />
-                              <span>Claude Sonnet 4.5</span>
+                              <span>Claude Opus 4.7</span>
                             </div>
                           </SelectItem>
                           <SelectItem value="claude-haiku-4-5-20251001">
@@ -612,16 +612,16 @@ export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
                           </SelectItem>
 
                           {/* DeepSeek */}
-                          <SelectItem value="deepseek-reasoner">
+                          <SelectItem value="deepseek-v4-pro">
                             <div className="flex items-center gap-2">
                               <Image src="/logos/deepseek-color.svg" alt="DeepSeek" width={16} height={16} className="shrink-0" />
-                              <span>DeepSeek Reasoner</span>
+                              <span>Deepseek V4 Pro</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="deepseek-chat">
+                          <SelectItem value="deepseek-v4-flash">
                             <div className="flex items-center gap-2">
                               <Image src="/logos/deepseek-color.svg" alt="DeepSeek" width={16} height={16} className="shrink-0" />
-                              <span>DeepSeek Chat</span>
+                              <span>Deepseek V4 Flash</span>
                             </div>
                           </SelectItem>
 
@@ -666,7 +666,7 @@ export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
                       <FormItem className="md:col-span-3 animate-scale-up">
                         <FormLabel>自訂快速思維模型名稱</FormLabel>
                         <FormControl>
-                          <Input placeholder="例如：deepseek-chat" {...field} />
+                          <Input placeholder="例如：deepseek-v4-flash" {...field} />
                         </FormControl>
                         <FormDescription>
                           請輸入完整的模型名稱（此模型將使用自訂端點）
@@ -713,10 +713,16 @@ export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
                             </div>
                           </SelectItem>
                           {/* Anthropic (Official model IDs) */}
-                          <SelectItem value="claude-sonnet-4-5-20250929">
+                          <SelectItem value="claude-opus-4-7">
                             <div className="flex items-center gap-2">
                               <Image src="/logos/claude-color.svg" alt="Claude" width={16} height={16} className="shrink-0" />
-                              <span>Claude Sonnet 4.5</span>
+                              <span>Claude Opus 4.7</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="claude-sonnet-4-6">
+                            <div className="flex items-center gap-2">
+                              <Image src="/logos/claude-color.svg" alt="Claude" width={16} height={16} className="shrink-0" />
+                              <span>Claude Sonnet 4.6</span>
                             </div>
                           </SelectItem>
                           <SelectItem value="claude-haiku-4-5-20251001">
@@ -779,16 +785,16 @@ export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
                           </SelectItem>
 
                           {/* DeepSeek */}
-                          <SelectItem value="deepseek-reasoner">
+                          <SelectItem value="deepseek-v4-pro">
                             <div className="flex items-center gap-2">
                               <Image src="/logos/deepseek-color.svg" alt="DeepSeek" width={16} height={16} className="shrink-0" />
-                              <span>DeepSeek Reasoner</span>
+                              <span>Deepseek V4 Pro</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="deepseek-chat">
+                          <SelectItem value="deepseek-v4-flash">
                             <div className="flex items-center gap-2">
                               <Image src="/logos/deepseek-color.svg" alt="DeepSeek" width={16} height={16} className="shrink-0" />
-                              <span>DeepSeek Chat</span>
+                              <span>Deepseek V4 Flash</span>
                             </div>
                           </SelectItem>
 
@@ -833,7 +839,7 @@ export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
                       <FormItem className="md:col-span-3 animate-scale-up">
                         <FormLabel>{t.form.customDeepThinkModelName}</FormLabel>
                         <FormControl>
-                          <Input placeholder="例如：deepseek-chat" {...field} />
+                          <Input placeholder="例如：deepseek-v4-flash" {...field} />
                         </FormControl>
                         <FormDescription>
                           請輸入完整的模型名稱（此模型將使用自訂端點）

@@ -80,7 +80,7 @@ export function ReportChat({ reports, ticker, analysisDate }: ReportChatProps) {
         { key: settings.openai_api_key, model: "gpt-5.4-mini", prefix: "gpt-" },
         { key: settings.google_api_key, model: "gemini-3-flash-preview", prefix: "gemini-" },
         { key: settings.grok_api_key, model: "grok-4.20-0309-reasoning", prefix: "grok-" },
-        { key: settings.deepseek_api_key, model: "deepseek-chat", prefix: "deepseek-" },
+        { key: settings.deepseek_api_key, model: "deepseek-v4-flash", prefix: "deepseek-" },
         { key: settings.qwen_api_key, model: "qwen3.5-flash", prefix: "qwen" },
       ];
 

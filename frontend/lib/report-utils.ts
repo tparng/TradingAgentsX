@@ -72,8 +72,9 @@ export function getReportSignature(report: {
 // Model ID → human-readable display name mapping (mirrors pdf_generator.py)
 const MODEL_DISPLAY_NAMES: Record<string, string> = {
   // Anthropic Claude
+  "claude-opus-4-7": "Claude Opus 4.7",
   "claude-haiku-4-5-20251001": "Claude Haiku 4.5",
-  "claude-sonnet-4-5-20250929": "Claude Sonnet 4.5",
+  "claude-sonnet-4-6": "Claude Sonnet 4.6",
   "claude-sonnet-4-20250514": "Claude Sonnet 4",
   "claude-3-haiku-20240307": "Claude 3 Haiku",
   // Google Gemini
@@ -89,8 +90,8 @@ const MODEL_DISPLAY_NAMES: Record<string, string> = {
   "grok-4.20-0309-reasoning": "Grok 4.2 Reasoning",
   "grok-4.20-0309-non-reasoning": "Grok 4.2",
   // DeepSeek
-  "deepseek-reasoner": "DeepSeek Reasoner",
-  "deepseek-chat": "DeepSeek Chat",
+  "deepseek-v4-pro": "Deepseek V4 Pro",
+  "deepseek-v4-flash": "Deepseek V4 Flash",
   // Qwen
   "qwen3-max": "Qwen 3 Max",
   "qwen3.5-plus": "Qwen 3.5 Plus",

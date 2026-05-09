@@ -47,7 +47,8 @@ const AVAILABLE_MODELS = [
   { id: "gpt-5.4-nano", name: "GPT-5.4 Nano", provider: "openai", logo: "/logos/openai.svg" },
   
   // Anthropic
-  { id: "claude-sonnet-4-5-20250929", name: "Claude Sonnet 4.5", provider: "anthropic", logo: "/logos/claude-color.svg" },
+  { id: "claude-opus-4-7", name: "Claude Opus 4.7", provider: "anthropic", logo: "/logos/claude-color.svg" },
+  { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6", provider: "anthropic", logo: "/logos/claude-color.svg" },
   { id: "claude-haiku-4-5-20251001", name: "Claude Haiku 4.5", provider: "anthropic", logo: "/logos/claude-color.svg" },
   { id: "claude-sonnet-4-20250514", name: "Claude Sonnet 4", provider: "anthropic", logo: "/logos/claude-color.svg" },
   { id: "claude-3-haiku-20240307", name: "Claude 3 Haiku", provider: "anthropic", logo: "/logos/claude-color.svg" },
@@ -62,8 +63,8 @@ const AVAILABLE_MODELS = [
   { id: "grok-4.20-0309-reasoning", name: "Grok 4.2 Reasoning", provider: "grok", logo: "/logos/grok.svg" },
   { id: "grok-4.20-0309-non-reasoning", name: "Grok 4.2 Non Reasoning", provider: "grok", logo: "/logos/grok.svg" },
   // DeepSeek
-  { id: "deepseek-reasoner", name: "DeepSeek Reasoner", provider: "deepseek", logo: "/logos/deepseek-color.svg" },
-  { id: "deepseek-chat", name: "DeepSeek Chat", provider: "deepseek", logo: "/logos/deepseek-color.svg" },
+  { id: "deepseek-v4-pro", name: "Deepseek V4 Pro", provider: "deepseek", logo: "/logos/deepseek-color.svg" },
+  { id: "deepseek-v4-flash", name: "Deepseek V4 Flash", provider: "deepseek", logo: "/logos/deepseek-color.svg" },
 
   // Qwen
   { id: "qwen3-max", name: "Qwen 3 Max", provider: "qwen", logo: "/logos/qwen-color.svg" },
@@ -188,7 +189,7 @@ function HistoryChatContent() {
         openai: { key: settings.openai_api_key, defaultModel: "gpt-5.4-mini" },
         google: { key: settings.google_api_key, defaultModel: "gemini-3-flash-preview" },
         grok: { key: settings.grok_api_key, defaultModel: "grok-3-mini" },
-        deepseek: { key: settings.deepseek_api_key, defaultModel: "deepseek-chat" },
+        deepseek: { key: settings.deepseek_api_key, defaultModel: "deepseek-v4-flash" },
         qwen: { key: settings.qwen_api_key, defaultModel: "qwen-max" },
       };
 

@@ -171,10 +171,10 @@ export default function HomePage() {
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <LLMProviderCard name="OpenAI" models={["GPT-5.4", "GPT-5.4 Mini", "GPT-5.4 Nano"]} />
-            <LLMProviderCard name="Anthropic" models={["Claude Haiku 4.5", "Claude Sonnet 4.5/4.0", "Claude 3.5 Haiku"]} />
-            <LLMProviderCard name="Google Gemini" models={["Gemini 2.5 Pro/Flash/Lite", "Gemini 2.0 Flash/Lite"]} />
+            <LLMProviderCard name="Anthropic" models={["Claude Opus 4.7","Claude Sonnet 4.6/4.0","Claude 4.5/3.5 Haiku"]} />
+            <LLMProviderCard name="Google Gemini" models={["Gemini 3.1 Pro/Flash/Lite"]} />
             <LLMProviderCard name="Grok (xAI)" models={["Grok-4.1 Fast", "Grok-4 Fast"]} />
-            <LLMProviderCard name="DeepSeek" models={["DeepSeek Reasoner", "DeepSeek Chat"]} />
+            <LLMProviderCard name="DeepSeek" models={["Deepseek V4 Pro", "Deepseek V4 Flash"]} />
             <LLMProviderCard name="Qwen (Alibaba)" models={["Qwen3-Max", "Qwen-Plus", "Qwen Flash"]} />
           </div>
           <div className="mt-6 text-center">
