@@ -22,7 +22,7 @@ export function Header() {
   if (pathname === "/history/chat") return null;
 
   return (
-    <header className="border-b border-border dark:border-slate-700/40 bg-white/80 dark:bg-[#0A0F1E]/85 backdrop-blur-xl pwa-safe-header shadow-[0_1px_8px_rgba(15,23,42,0.06)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
+    <header className="sticky top-0 z-50 border-b border-border dark:border-slate-700/40 bg-white/80 dark:bg-[#0A0F1E]/85 backdrop-blur-xl pwa-safe-header shadow-[0_1px_8px_rgba(15,23,42,0.06)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
       <div className="container mx-auto px-4 py-4 md:py-5">
         <div className="flex items-center justify-between">
           {/* Logo */}
