@@ -30,54 +30,25 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { AgentFlowDiagram } from "@/components/AgentFlowDiagram";
+import { ImmersivePortalHero } from "@/components/home/ImmersivePortalHero";
+import { ScrollReveal } from "@/components/home/ScrollReveal";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function HomePage() {
   const { t } = useLanguage();
 
   return (
-    <div className="min-h-screen gradient-page-bg">
-      <div className="container mx-auto px-4 py-12">
-        {/* Hero Section */}
-        <div className="text-center mb-16 animate-fade-in relative py-10">
-          <div className="absolute inset-0 gradient-bg-radial -z-10" />
-          <div className="mb-8">
-            <div className="inline-block relative">
-              <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-br from-blue-300 to-blue-500 blur-xl opacity-40 scale-110" />
-              <Image
-                src="/logo.png"
-                alt="TradingAgentsX Logo"
-                width={120}
-                height={120}
-                className="relative mx-auto rounded-[2.5rem] shadow-[0_8px_0_rgba(30,64,175,0.4),0_16px_40px_rgba(37,99,235,0.35)] hover:scale-105 hover:-translate-y-2 transition-all duration-300"
-                priority
-              />
-            </div>
-          </div>
-          <h1
-            className="text-4xl sm:text-5xl md:text-6xl font-black mb-6 gradient-text-primary leading-tight"
-            style={{ fontFamily: 'Nunito, sans-serif' }}
-          >
-            {t.home.title}
-          </h1>
-          <p className="text-lg text-blue-600/80 dark:text-blue-300/80 mb-10 max-w-2xl mx-auto font-medium">
-            {t.nav.tagline}
-          </p>
-          <div className="flex gap-4 justify-center">
-            <Link href="/analysis">
-              <Button
-                size="lg"
-                className="animate-clay-bounce text-base px-8 py-3"
-              >
-                {t.home.startAnalysis} →
-              </Button>
-            </Link>
-          </div>
-        </div>
+    <div className="gradient-page-bg">
+      {/* Immersive scroll-driven portal hero */}
+      <ImmersivePortalHero />
+
+      {/* Content flows straight on from the dive — same background, no seam */}
+      <div className="relative z-10 overflow-x-clip">
+        <div className="container mx-auto px-4 pt-12 pb-12">
 
         {/* Core Features Section */}
-        <div className="mb-16 animate-slide-up animate-delay-200">
-          <SectionHeading title={t.home.coreFeatures} />
+        <ScrollReveal from="left" className="mb-32 md:mb-40">
+          <SectionHeading eyebrow={t.home.subtitle} title={t.home.coreFeatures} />
           <p className="text-center text-blue-500/80 dark:text-blue-400/80 mb-8 max-w-3xl mx-auto font-medium">
             {t.home.coreFeaturesDesc}
           </p>
@@ -92,11 +63,11 @@ export default function HomePage() {
             <FeatureCard title={t.home.features.oneClickDeploy} description={t.home.features.oneClickDeployDesc} icon={<Container className="w-6 h-6 text-pink-500" />} />
             <FeatureCard title={t.home.features.reportDownload} description={t.home.features.reportDownloadDesc} icon={<Download className="w-6 h-6 text-blue-500" />} />
           </div>
-        </div>
+        </ScrollReveal>
 
         {/* 12 Professional Agents Section */}
-        <div className="mb-16">
-          <SectionHeading title={t.home.professionalAgents} />
+        <ScrollReveal from="right" className="mb-32 md:mb-40">
+          <SectionHeading eyebrow={t.home.subtitle} title={t.home.professionalAgents} />
           <p className="text-center text-blue-500/80 dark:text-blue-400/80 mb-8 max-w-3xl mx-auto font-medium">
             {t.home.professionalAgentsDesc}
           </p>
@@ -152,19 +123,19 @@ export default function HomePage() {
               <AgentCard name={t.agents.risk_manager} role={t.agents.risk_manager_role} description={t.agents.risk_manager_desc} />
             </div>
           </div>
-        </div>
+        </ScrollReveal>
 
         {/* Agent Flow Diagram Section */}
-        <div className="mb-16">
+        <ScrollReveal from="left" className="mb-32 md:mb-40">
           <SectionHeading title={t.home.workflowTitle} />
           <p className="text-center text-blue-500/80 dark:text-blue-400/80 mb-8 max-w-3xl mx-auto font-medium">
             {t.home.workflowDescription}
           </p>
           <AgentFlowDiagram />
-        </div>
+        </ScrollReveal>
 
         {/* LLM Support Section */}
-        <div className="mb-16">
+        <ScrollReveal from="right" className="mb-32 md:mb-40">
           <SectionHeading title={t.home.llmSupport} />
           <p className="text-center text-blue-500/80 dark:text-blue-400/80 mb-8 max-w-3xl mx-auto font-medium">
             {t.home.llmSupportDesc}
@@ -182,10 +153,10 @@ export default function HomePage() {
               {t.home.llmFeatures}
             </p>
           </div>
-        </div>
+        </ScrollReveal>
 
         {/* Workflow Section */}
-        <div className="mb-16">
+        <ScrollReveal from="left" className="mb-32 md:mb-40">
           <SectionHeading title={t.home.workflowTitle} />
           <Card className="shadow-none">
             <CardContent className="pt-6">
@@ -199,10 +170,10 @@ export default function HomePage() {
               </div>
             </CardContent>
           </Card>
-        </div>
+        </ScrollReveal>
 
         {/* Technical Highlights */}
-        <div className="mb-16">
+        <ScrollReveal from="right" className="mb-32 md:mb-40">
           <SectionHeading title={t.home.techHighlights} />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <TechnicalCard title={t.home.dynamicResearch} features={t.home.dynamicResearchFeatures} icon={<Zap className="w-5 h-5 text-blue-500" />} />
@@ -210,25 +181,28 @@ export default function HomePage() {
             <TechnicalCard title={t.home.realTimeData} features={t.home.realTimeDataFeatures} icon={<TrendingUp className="w-5 h-5 text-blue-500" />} />
             <TechnicalCard title={t.home.fullApiSupport} features={t.home.fullApiSupportFeatures} icon={<Lock className="w-5 h-5 text-pink-500" />} />
           </div>
-        </div>
+        </ScrollReveal>
 
         {/* Call to Action Section */}
-        <div className="text-center py-16 relative">
-          <div className="absolute inset-0 gradient-bg-radial opacity-60 -z-10" />
-          <h2
-            className="text-3xl font-black mb-4 gradient-text-primary"
-            style={{ fontFamily: 'Nunito, sans-serif' }}
-          >
-            {t.home.readyToStart}
-          </h2>
-          <p className="text-lg text-blue-500/80 dark:text-blue-400/80 mb-10 max-w-2xl mx-auto font-medium">
-            {t.home.ctaDescription}
-          </p>
-          <Link href="/analysis">
-            <Button size="lg" className="text-lg px-10 py-4 animate-clay-bounce">
-              {t.home.startAnalysis} →
-            </Button>
-          </Link>
+        <ScrollReveal className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-blue-600 via-cyan-500 to-teal-400 text-center py-20 px-6 mt-8 shadow-[0_20px_60px_-20px_rgba(6,182,212,0.5)]">
+          <div className="absolute inset-0 gradient-shimmer bg-[linear-gradient(110deg,transparent_30%,rgba(255,255,255,0.18)_50%,transparent_70%)]" />
+          <div className="relative">
+            <h2
+              className="text-3xl sm:text-4xl font-black mb-4 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.2)]"
+              style={{ fontFamily: 'Nunito, sans-serif' }}
+            >
+              {t.home.readyToStart}
+            </h2>
+            <p className="text-lg text-white/90 mb-10 max-w-2xl mx-auto font-medium drop-shadow-[0_1px_4px_rgba(0,0,0,0.15)]">
+              {t.home.ctaDescription}
+            </p>
+            <Link href="/analysis">
+              <Button size="lg" variant="outline" className="text-lg px-10 py-4 animate-clay-bounce">
+                {t.home.startAnalysis} →
+              </Button>
+            </Link>
+          </div>
+        </ScrollReveal>
         </div>
       </div>
     </div>
@@ -237,14 +211,22 @@ export default function HomePage() {
 
 /* ── Shared sub-components ── */
 
-function SectionHeading({ title }: { title: string }) {
+function SectionHeading({ title, eyebrow }: { title: string; eyebrow?: string }) {
   return (
-    <h2
-      className="text-2xl sm:text-3xl font-black text-center mb-4 gradient-text-primary"
-      style={{ fontFamily: 'Nunito, sans-serif' }}
-    >
-      {title}
-    </h2>
+    <div className="text-center mb-4">
+      {eyebrow && (
+        <span className="inline-block mb-3 text-xs font-bold tracking-[0.2em] uppercase text-cyan-600/80 dark:text-cyan-400/80">
+          {eyebrow}
+        </span>
+      )}
+      <h2
+        className="text-2xl sm:text-3xl md:text-4xl font-black gradient-text-primary"
+        style={{ fontFamily: 'Nunito, sans-serif' }}
+      >
+        {title}
+      </h2>
+      <div className="mx-auto mt-4 h-1 w-14 rounded-full bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-300" />
+    </div>
   );
 }
 

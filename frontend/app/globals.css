@@ -842,3 +842,152 @@
   font-weight: 900;
   letter-spacing: -0.02em;
 }
+
+/* ========================================
+   IMMERSIVE PORTAL HERO
+   Sticky viewport that zooms a portal toward
+   the viewer as the user scrolls.
+   Driven by a single CSS var --p (0 → 1) set in JS.
+   ======================================== */
+
+.portal-section {
+  position: relative;
+  /* Extra height = scroll distance the brand travels (zooms in) while pinned */
+  height: 200vh;
+}
+
+.portal-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Ambient backdrop — soft brand glow + faint star dust */
+.portal-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 48%, rgba(37, 99, 235, 0.16), transparent 62%),
+    radial-gradient(ellipse 45% 40% at 18% 22%, rgba(236, 72, 153, 0.10), transparent 60%),
+    radial-gradient(ellipse 50% 45% at 82% 80%, rgba(45, 212, 191, 0.12), transparent 60%);
+  transform: scale(calc(1 + var(--p, 0) * 0.6));
+  opacity: calc(1 - var(--p, 0) * 0.35);
+}
+
+.dark .portal-backdrop {
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 48%, rgba(59, 130, 246, 0.28), transparent 62%),
+    radial-gradient(ellipse 45% 40% at 18% 22%, rgba(139, 92, 246, 0.18), transparent 60%),
+    radial-gradient(ellipse 50% 45% at 82% 80%, rgba(45, 212, 191, 0.18), transparent 60%);
+}
+
+.portal-stars {
+  position: absolute;
+  inset: -20%;
+  z-index: 0;
+  background-image:
+    radial-gradient(1.5px 1.5px at 20% 30%, rgba(59, 130, 246, 0.55), transparent),
+    radial-gradient(1.5px 1.5px at 75% 25%, rgba(45, 212, 191, 0.5), transparent),
+    radial-gradient(1px 1px at 50% 60%, rgba(236, 72, 153, 0.5), transparent),
+    radial-gradient(1.5px 1.5px at 85% 70%, rgba(56, 189, 248, 0.5), transparent),
+    radial-gradient(1px 1px at 12% 78%, rgba(124, 58, 237, 0.45), transparent),
+    radial-gradient(1.5px 1.5px at 35% 15%, rgba(56, 189, 248, 0.45), transparent);
+  background-repeat: repeat;
+  background-size: 50% 50%;
+  opacity: calc(0.4 + var(--p, 0) * 0.6);
+  transform: scale(calc(1 + var(--p, 0) * 2.4));
+  animation: portalTwinkle 6s ease-in-out infinite alternate;
+}
+
+@keyframes portalTwinkle {
+  from { opacity: 0.35; }
+  to { opacity: 0.7; }
+}
+
+/* Logo lives in the intro — soft glow halo, no hard ring, separated from text */
+.portal-logo-halo {
+  position: relative;
+  display: inline-flex;
+  margin-bottom: 2.25rem;
+}
+
+.portal-logo-halo::before {
+  content: "";
+  position: absolute;
+  inset: -34%;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.4) 0%, rgba(37, 99, 235, 0.18) 45%, transparent 72%);
+  filter: blur(22px);
+  z-index: -1;
+  animation: portalPulse 4.5s ease-in-out infinite;
+}
+
+.portal-logo-img {
+  border-radius: 28%;
+  box-shadow:
+    0 8px 0 rgba(30, 64, 175, 0.28),
+    0 16px 40px rgba(37, 99, 235, 0.32);
+}
+
+@keyframes portalPulse {
+  0%, 100% { transform: scale(1); opacity: 0.92; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+
+/* Intro copy — clean vertical stack (logo separated above title), fades as you dive in */
+.portal-intro {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 1.5rem;
+  pointer-events: none;
+  /* Fades across the whole pinned range so the dive ends exactly as the
+     content below scrolls in — no empty gap, no hard seam. */
+  opacity: calc(1 - var(--p, 0) * 1.15);
+  transform: scale(calc(1 + var(--p, 0) * 2.1));
+}
+
+.portal-intro .pointer-events-auto { pointer-events: auto; }
+
+/* Scroll cue */
+.portal-cue {
+  position: absolute;
+  left: 50%;
+  bottom: 2.2rem;
+  z-index: 3;
+  transform: translateX(-50%);
+  opacity: calc(1 - var(--p, 0) * 4);
+  animation: portalCue 1.8s ease-in-out infinite;
+}
+
+@keyframes portalCue {
+  0%, 100% { transform: translate(-50%, 0); }
+  50% { transform: translate(-50%, 10px); }
+}
+
+/* Section depth motion — continuously scroll-linked in JS (see ScrollReveal).
+   Defaults keep content fully visible when JS/motion is unavailable. */
+.scroll-reveal {
+  opacity: 1;
+  transform-origin: center center;
+  will-change: opacity, transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .portal-section { height: auto; }
+  .portal-stage { position: relative; height: auto; min-height: 100vh; padding: 6rem 0; }
+  .portal-intro { position: relative; opacity: 1; transform: none; }
+}
