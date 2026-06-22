@@ -78,12 +78,12 @@ export function ImmersivePortalHero() {
             />
           </div>
           <h1
-            className="text-5xl sm:text-6xl md:text-7xl font-black gradient-text-primary leading-[1.05] mb-5"
+            className="text-4xl sm:text-5xl md:text-7xl font-black gradient-text-primary leading-[1.05] mb-5"
             style={{ fontFamily: "Nunito, sans-serif" }}
           >
             {t.home.title}
           </h1>
-          <p className="text-base sm:text-lg text-blue-600/80 dark:text-blue-300/80 max-w-xl mx-auto font-medium mb-9">
+          <p className="text-sm sm:text-base md:text-lg text-blue-600/80 dark:text-blue-300/80 max-w-xl mx-auto font-medium mb-8 sm:mb-9">
             {t.home.description}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center pointer-events-auto">

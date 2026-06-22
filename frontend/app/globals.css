@@ -915,7 +915,11 @@
 .portal-logo-halo {
   position: relative;
   display: inline-flex;
-  margin-bottom: 2.25rem;
+  margin-bottom: 1.75rem;
+}
+
+@media (min-width: 640px) {
+  .portal-logo-halo { margin-bottom: 2.25rem; }
 }
 
 .portal-logo-halo::before {
@@ -929,6 +933,8 @@
 }
 
 .portal-logo-img {
+  width: clamp(72px, 20vw, 112px);
+  height: auto;
   border-radius: 28%;
   box-shadow:
     0 8px 0 rgba(30, 64, 175, 0.28),
