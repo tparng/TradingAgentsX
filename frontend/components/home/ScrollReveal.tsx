@@ -23,16 +23,21 @@ const easeOut = (x: number) => 1 - Math.pow(1 - x, 3);
 function apply(el: HTMLElement) {
   const r = el.getBoundingClientRect();
   const vh = window.innerHeight || 1;
-  // Progress 0→1 as the element's top edge rises from ~92% to ~48% of the viewport.
-  const p = clamp((vh * 0.92 - r.top) / (vh * (0.92 - 0.48)), 0, 1);
+  // Progress 0→1 as the element's top edge rises from ~94% to ~52% of the viewport.
+  const p = clamp((vh * 0.94 - r.top) / (vh * (0.94 - 0.52)), 0, 1);
   const e = easeOut(p);
-  const scale = 0.88 + e * 0.12;
-  const ty = (1 - e) * 44;
-  // Alternating horizontal drift so adjacent sections enter from opposite sides.
+  // Stronger depth: rushes in smaller, lifts further, and turns in from the side.
+  const scale = 0.8 + e * 0.2;
+  const ty = (1 - e) * 80;
+  // Alternating horizontal drift + a slight Y-axis rotation so adjacent sections
+  // swing in from opposite sides like pages turning toward you.
   const dir = el.dataset.from === "left" ? -1 : el.dataset.from === "right" ? 1 : 0;
-  const tx = dir * (1 - e) * 70;
-  el.style.transform = `translate3d(${tx.toFixed(1)}px, ${ty.toFixed(1)}px, 0) scale(${scale.toFixed(4)})`;
-  el.style.opacity = (0.15 + e * 0.85).toFixed(4);
+  const tx = dir * (1 - e) * 110;
+  const ry = dir * (1 - e) * 9;
+  const blur = ((1 - e) * 6).toFixed(2);
+  el.style.transform = `perspective(1200px) translate3d(${tx.toFixed(1)}px, ${ty.toFixed(1)}px, 0) rotateY(${ry.toFixed(2)}deg) scale(${scale.toFixed(4)})`;
+  el.style.opacity = (0.05 + e * 0.95).toFixed(4);
+  el.style.filter = p < 0.999 ? `blur(${blur}px)` : "none";
 }
 
 function tick() {

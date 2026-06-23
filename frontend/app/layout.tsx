@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { AuthProvider } from "@/contexts/auth-context";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { SyncInitializer } from "@/components/providers/SyncInitializer";
+import { CustomCursor } from "@/components/CustomCursor";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -133,6 +134,7 @@ export default function RootLayout({
           <LanguageProvider>
             <AuthProvider>
               <SyncInitializer />
+              <CustomCursor />
               <AnalysisProvider>
                 <div className="flex flex-col min-h-screen gradient-page-bg">
                   <Header />

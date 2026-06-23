@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ChevronDown, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { HeroTradingCanvas } from "@/components/home/HeroTradingCanvas";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 /**
@@ -60,6 +61,7 @@ export function ImmersivePortalHero() {
       <div ref={stageRef} className="portal-stage" style={{ ["--p" as string]: 0 }}>
         <div className="portal-backdrop" aria-hidden />
         <div className="portal-stars" aria-hidden />
+        <HeroTradingCanvas />
 
         {/* Intro — logo, title and primary actions, all diving toward the viewer */}
         <div className="portal-intro">

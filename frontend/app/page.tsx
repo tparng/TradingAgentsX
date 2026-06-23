@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/card";
 import { AgentFlowDiagram } from "@/components/AgentFlowDiagram";
 import { ImmersivePortalHero } from "@/components/home/ImmersivePortalHero";
+import { InteractiveCard } from "@/components/home/InteractiveCard";
 import { ScrollReveal } from "@/components/home/ScrollReveal";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -232,7 +233,8 @@ function SectionHeading({ title, eyebrow }: { title: string; eyebrow?: string })
 
 function FeatureCard({ title, description, icon }: { title: string; description: string; icon: React.ReactNode }) {
   return (
-    <Card className="animate-slide-up">
+    <InteractiveCard>
+    <Card className="animate-slide-up h-full">
       <CardHeader>
         <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-100 to-blue-100 dark:from-blue-900/40 dark:to-blue-900/40 flex items-center justify-center mb-2 shadow-[0_2px_0_rgba(147,197,253,0.5),0_4px_12px_rgba(37,99,235,0.1)]">
           {icon}
@@ -243,6 +245,7 @@ function FeatureCard({ title, description, icon }: { title: string; description:
         <p className="text-sm text-blue-500/80 dark:text-blue-400/70">{description}</p>
       </CardContent>
     </Card>
+    </InteractiveCard>
   );
 }
 
@@ -255,7 +258,8 @@ function AgentCard({ name, role, description, accent }: { name: string; role: st
       : "";
 
   return (
-    <Card className={`animate-scale-up ${accentClass}`}>
+    <InteractiveCard>
+    <Card className={`animate-scale-up h-full ${accentClass}`}>
       <CardHeader>
         <div className="flex items-center gap-2">
           {accent === "bull" && <TrendingUp className="w-4 h-4 text-emerald-500" />}
@@ -269,6 +273,7 @@ function AgentCard({ name, role, description, accent }: { name: string; role: st
         <p className="text-xs text-blue-500/80 dark:text-blue-400/70">{description}</p>
       </CardContent>
     </Card>
+    </InteractiveCard>
   );
 }
 
@@ -284,7 +289,8 @@ function LLMProviderCard({ name, models }: { name: string; models: string[] }) {
   const logoSrc = logoMap[name];
 
   return (
-    <Card className="animate-slide-up animate-delay-100">
+    <InteractiveCard>
+    <Card className="animate-slide-up animate-delay-100 h-full">
       <CardHeader>
         <div className="flex items-center gap-3">
           {logoSrc ? (
@@ -310,12 +316,14 @@ function LLMProviderCard({ name, models }: { name: string; models: string[] }) {
         </ul>
       </CardContent>
     </Card>
+    </InteractiveCard>
   );
 }
 
 function TechnicalCard({ title, features, icon }: { title: string; features: string[]; icon: React.ReactNode }) {
   return (
-    <Card className="animate-slide-up animate-delay-300">
+    <InteractiveCard>
+    <Card className="animate-slide-up animate-delay-300 h-full">
       <CardHeader>
         <div className="flex items-center gap-2">
           {icon}
@@ -333,6 +341,7 @@ function TechnicalCard({ title, features, icon }: { title: string; features: str
         </ul>
       </CardContent>
     </Card>
+    </InteractiveCard>
   );
 }
 

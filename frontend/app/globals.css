@@ -980,6 +980,101 @@
   50% { transform: translate(-50%, 10px); }
 }
 
+/* Living trading canvas — agent constellation + flowing price waves.
+   Sits above the ambient backdrop/stars, below the intro copy. Fades a touch
+   as you dive in so the brand stays the focus. */
+.portal-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: calc(0.9 - var(--p, 0) * 0.5);
+}
+
+/* ========================================
+   INTERACTIVE CARDS
+   Cursor-tracking spotlight + subtle 3D tilt.
+   Driven by CSS vars set in InteractiveCard.tsx (no React re-render).
+   ======================================== */
+.interactive-card {
+  --mx: 50%;
+  --my: 50%;
+  --rx: 0deg;
+  --ry: 0deg;
+  position: relative;
+  height: 100%;
+  border-radius: var(--radius);
+  transform: perspective(900px) rotateX(var(--rx)) rotateY(var(--ry));
+  transform-style: preserve-3d;
+  transition: transform 0.25s ease;
+}
+
+/* Spotlight glow that follows the pointer — brand blue/cyan, light & dark. */
+.interactive-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  border-radius: inherit;
+  background: radial-gradient(
+    220px circle at var(--mx) var(--my),
+    rgba(56, 189, 248, 0.18),
+    rgba(37, 99, 235, 0.08) 40%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.dark .interactive-card::after {
+  background: radial-gradient(
+    220px circle at var(--mx) var(--my),
+    rgba(56, 189, 248, 0.22),
+    rgba(139, 92, 246, 0.12) 40%,
+    transparent 70%
+  );
+}
+
+.interactive-card:hover::after {
+  opacity: 1;
+}
+
+/* Scroll-triggered staggered entrance (inner wrapper so it never collides with
+   the outer tilt transform). Hidden before paint via .reveal-init; .is-in
+   animates it home. Static/visible by default when JS or motion is unavailable. */
+.ic-reveal {
+  height: 100%;
+  will-change: transform, opacity;
+}
+
+.ic-reveal.reveal-init {
+  opacity: 0;
+  transform: translateY(40px) scale(0.92);
+}
+
+.ic-reveal.reveal-init.is-in {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.6s ease-out,
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.interactive-card:hover {
+  z-index: 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .interactive-card {
+    transform: none !important;
+    transition: none;
+  }
+  .portal-canvas { display: none; }
+}
+
 /* Section depth motion — continuously scroll-linked in JS (see ScrollReveal).
    Defaults keep content fully visible when JS/motion is unavailable. */
 .scroll-reveal {
@@ -996,4 +1091,85 @@
   .portal-section { height: auto; }
   .portal-stage { position: relative; height: auto; min-height: 100vh; padding: 6rem 0; }
   .portal-intro { position: relative; opacity: 1; transform: none; }
+}
+
+/* ========================================
+   CUSTOM CURSOR — dot + trailing ring
+   Elements are injected by CustomCursor.tsx, which adds `.has-custom-cursor`
+   to <html> only on fine-pointer, hover-capable, motion-allowed devices.
+   ======================================== */
+
+/* Hide the native arrow only while our cursor is on screen (text caret stays). */
+.has-custom-cursor.cursor-active,
+.has-custom-cursor.cursor-active * {
+  cursor: none !important;
+}
+
+.cursor-dot,
+.cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2147483647;
+  pointer-events: none;
+  border-radius: 9999px;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  will-change: transform;
+}
+
+.cursor-active .cursor-dot,
+.cursor-active .cursor-ring {
+  opacity: 1;
+}
+
+/* Solid centre dot — brand blue with a soft glow, tracks exactly. */
+.cursor-dot {
+  width: 7px;
+  height: 7px;
+  background: #2563eb;
+  box-shadow: 0 0 10px rgba(37, 99, 235, 0.7);
+  transition: opacity 0.25s ease, width 0.2s ease, height 0.2s ease, background 0.2s ease;
+}
+
+.dark .cursor-dot {
+  background: #60a5fa;
+  box-shadow: 0 0 10px rgba(96, 165, 250, 0.8);
+}
+
+.cursor-dot.is-hover {
+  width: 5px;
+  height: 5px;
+  background: #06b6d4;
+}
+
+/* Trailing ring — eases behind the dot, expands & tints cyan over hot spots. */
+.cursor-ring {
+  width: 34px;
+  height: 34px;
+  border: 1.5px solid rgba(37, 99, 235, 0.5);
+  background: rgba(56, 189, 248, 0);
+  transition:
+    opacity 0.25s ease,
+    width 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.22s ease,
+    background 0.22s ease;
+}
+
+.dark .cursor-ring {
+  border-color: rgba(96, 165, 250, 0.55);
+}
+
+.cursor-ring.is-hover {
+  width: 56px;
+  height: 56px;
+  border-color: rgba(6, 182, 212, 0.7);
+  background: rgba(56, 189, 248, 0.12);
+}
+
+.cursor-ring.is-down {
+  width: 24px;
+  height: 24px;
+  border-color: rgba(236, 72, 153, 0.7);
 }
