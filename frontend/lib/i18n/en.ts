@@ -453,6 +453,7 @@ export const en = {
     tickerDescUS: "Enter US stock symbol (e.g., NVDA, AAPL)",
     tickerDescTWSE: "Enter TWSE stock code (e.g., 2330, 2317)",
     tickerDescTPEX: "Enter TPEx stock code (e.g., 6488, 5765)",
+    tickerNoMatches: "No matching companies found",
     selectDate: "Select analysis date",
     selectDepth: "Select research depth",
 

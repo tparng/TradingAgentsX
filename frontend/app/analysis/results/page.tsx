@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ChevronLeft } from "lucide-react";
+import { lookupStockName, type MarketType } from "@/lib/stock-search";
 
 // Analyst keys for mapping to translation keys
 const ANALYST_KEYS = [
@@ -43,6 +44,28 @@ export default function AnalysisResultsPage() {
   const { analysisResult, taskId, marketType } = useAnalysisContext();
   const { t, locale } = useLanguage();
   const [selectedAnalyst, setSelectedAnalyst] = useState("market");
+  const [companyName, setCompanyName] = useState<string | null>(null);
+
+  // Resolve the full company name for the analyzed ticker (localized).
+  useEffect(() => {
+    const ticker = analysisResult?.ticker;
+    if (!ticker) {
+      setCompanyName(null);
+      return;
+    }
+    const market = (analysisResult?.market_type ?? marketType) as MarketType;
+    let cancelled = false;
+    lookupStockName(ticker, market, locale)
+      .then((name) => {
+        if (!cancelled) setCompanyName(name);
+      })
+      .catch(() => {
+        if (!cancelled) setCompanyName(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [analysisResult?.ticker, analysisResult?.market_type, marketType, locale]);
 
   // Debug: log received analysis data structure
   useEffect(() => {
@@ -100,9 +123,13 @@ export default function AnalysisResultsPage() {
           <div className="absolute inset-0 gradient-bg-radial opacity-30 -z-10 rounded-lg" />
           <div>
             <h1 className="text-4xl font-bold mb-2 gradient-text-primary">
-              {analysisResult.ticker} {t.results.detailedResults}
+              {companyName ?? analysisResult.ticker} {t.results.detailedResults}
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
+              <span className="font-mono font-medium text-foreground/70">
+                {analysisResult.ticker}
+              </span>
+              {" · "}
               {t.results.analysisDate}：{analysisResult.analysis_date}
             </p>
           </div>

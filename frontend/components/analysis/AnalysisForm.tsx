@@ -28,6 +28,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { TickerCombobox } from "@/components/analysis/TickerCombobox";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
@@ -425,7 +426,10 @@ export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
                     <FormItem>
                       <FormLabel>{t.form.ticker}</FormLabel>
                       <FormControl>
-                        <Input
+                        <TickerCombobox
+                          value={field.value}
+                          onChange={field.onChange}
+                          market={marketType}
                           placeholder={
                             marketType === "us"
                               ? "NVDA"
@@ -433,7 +437,7 @@ export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
                               ? "2330"
                               : "6488"
                           }
-                          {...field}
+                          emptyText={t.form.tickerNoMatches}
                         />
                       </FormControl>
                       <FormDescription>

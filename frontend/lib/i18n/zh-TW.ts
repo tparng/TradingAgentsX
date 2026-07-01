@@ -338,6 +338,7 @@ export const zhTW = {
     tickerDescUS: "輸入美股代碼（例如：NVDA、AAPL）",
     tickerDescTWSE: "輸入上市股票代碼（例如：2330、2317）",
     tickerDescTPEX: "輸入上櫃/興櫃股票代碼（例如：6488、5765）",
+    tickerNoMatches: "找不到符合的公司",
     selectDate: "選擇分析日期",
     selectDepth: "選擇研究深度",
     
