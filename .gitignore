@@ -6,6 +6,9 @@
 *.log
 *.db
 
+# Stock autocomplete datasets — must be committed so the frontend can serve them
+!frontend/public/data/*.json
+
 # Evaluation results
 eval_results/
 *.egg-info/
