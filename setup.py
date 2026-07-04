@@ -34,16 +34,15 @@ setup(
         "praw>=7.7.0",
         "stockstats>=0.5.4",
         "yfinance>=0.2.31",
-        "typer>=0.9.0",
         "rich>=13.0.0",
-        "questionary>=2.0.1",
+        "textual>=1.0.0",
     ],
     # 要求的 Python 版本
     python_requires=">=3.10",
     # 設定命令列腳本的進入點
     entry_points={
         "console_scripts": [
-            "tradingagents=cli.main:app",
+            "tradingagents=tui.main:main",
         ],
     },
     # 套件的分類器，提供給 PyPI 用於分類

@@ -1,9 +1,5 @@
 # 匯入 Enum 模組，用於建立列舉類型
 from enum import Enum
-# 匯入 List, Optional, Dict 類型提示，用於更清晰地定義資料結構
-from typing import List, Optional, Dict
-# 匯入 BaseModel，用於建立資料模型
-from pydantic import BaseModel
 
 
 # 定義分析師類型的列舉

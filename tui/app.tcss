@@ -1,0 +1,227 @@
+/* ==========================================================================
+   TradingAgentsX TUI 樣式
+   交易終端風格（OLED 深色）：藍色資料主色 · 琥珀色重點/行動 · 紅綠漲跌
+   色彩皆取自 main.py 註冊的 "tradingagents" 主題設計 token。
+   ========================================================================== */
+
+Screen {
+    background: $background;
+    color: $foreground;
+}
+
+/* ------------------------------------------------------------------ 設定畫面 */
+
+#banner {
+    height: auto;
+    padding: 1 2 0 2;
+    border-bottom: heavy $border;
+    background: $surface;
+}
+
+#welcome-art {
+    color: $primary;
+    text-align: center;
+    text-style: bold;
+    height: auto;
+}
+
+#welcome-sub {
+    text-align: center;
+    color: $text-muted;
+    padding: 1 2 1 2;
+    height: auto;
+}
+
+#config-form {
+    padding: 1 2 0 2;
+    height: 1fr;
+    scrollbar-size-vertical: 1;
+}
+
+/* 區塊卡片 */
+.section {
+    height: auto;
+    border: round $border;
+    border-title-color: $accent;
+    border-title-style: bold;
+    padding: 1 2 0 2;
+    margin: 0 0 1 0;
+    background: $surface;
+}
+
+.section-hint {
+    color: $text-muted;
+    text-style: italic;
+    height: auto;
+    margin: 0 0 1 0;
+}
+
+/* 兩欄格線 */
+.grid2 {
+    layout: grid;
+    grid-size: 2;
+    grid-columns: 1fr 1fr;
+    grid-gutter: 0 2;
+    height: auto;
+}
+
+/* 單一欄位（標籤 + 元件） */
+.field {
+    height: auto;
+    margin: 0 0 1 0;
+}
+
+.field-label {
+    color: $text-muted;
+    text-style: bold;
+    padding: 0 0 0 1;
+    height: auto;
+}
+
+.field Select,
+.field Input {
+    width: 100%;
+}
+
+#analysts-row {
+    height: auto;
+    margin: 0 0 1 0;
+}
+
+#analysts-row Checkbox {
+    width: auto;
+    margin: 0 3 0 0;
+    border: none;
+    background: transparent;
+}
+
+/* 動作列（固定於底部，不隨表單捲動） */
+#error-msg {
+    height: auto;
+    padding: 0 2;
+    text-align: center;
+}
+
+#button-row {
+    height: auto;
+    padding: 1 2;
+    align-horizontal: center;
+    border-top: heavy $border;
+    background: $surface;
+}
+
+/* 兩顆按鈕共用完全相同的盒模型（等寬、等高、無外框實心底），
+   只以顏色區分主要 / 次要行動，視覺上尺寸一致。 */
+#button-row Button {
+    margin: 0 1;
+    width: 22;
+    height: 3;
+    border: none;
+    text-align: center;
+    content-align: center middle;
+}
+
+/* 主要行動：琥珀色 CTA */
+#start {
+    background: $accent;
+    color: $background;
+    text-style: bold;
+}
+#start:hover {
+    background: $accent-lighten-1;
+}
+#start:focus {
+    text-style: bold reverse;
+}
+
+/* 次要行動：實心灰底（與主要按鈕同尺寸，顏色較低調） */
+.ghost {
+    background: $panel;
+    color: $text-muted;
+}
+.ghost:hover {
+    background: $boost;
+    color: $foreground;
+}
+
+/* Select / Input 聚焦強調 */
+Select:focus > SelectCurrent,
+Input:focus {
+    border: tall $primary;
+}
+
+/* ------------------------------------------------------------------ 儀表板 */
+
+#summary {
+    height: 1;
+    padding: 0 2;
+    background: $surface;
+    border-bottom: heavy $border;
+}
+
+#top {
+    height: 34%;
+    padding: 1 1 0 1;
+}
+
+/* 共用面板外觀 */
+.pane {
+    border: round $border;
+    border-title-color: $primary;
+    border-title-style: bold;
+    padding: 0 1;
+    background: $surface;
+}
+
+#progress-pane {
+    width: 42%;
+    margin: 0 1 0 0;
+}
+
+#messages-pane {
+    width: 58%;
+}
+
+#report-pane {
+    height: 1fr;
+    margin: 1 1 0 1;
+    border-title-color: $success;
+}
+
+#report {
+    background: transparent;
+    padding: 0 1;
+}
+
+/* 資料表 */
+DataTable {
+    height: 1fr;
+    background: transparent;
+}
+DataTable > .datatable--header {
+    background: $panel;
+    color: $text-muted;
+    text-style: bold;
+}
+DataTable > .datatable--cursor {
+    background: $primary 25%;
+}
+DataTable > .datatable--hover {
+    background: $boost;
+}
+
+/* 底部統計 / 決策列 */
+#stats {
+    height: 1;
+    padding: 0 2;
+    background: $surface;
+    border-top: heavy $border;
+}
+
+/* Header / Footer 與主題一致 */
+Header {
+    background: $surface;
+}
+Footer {
+    background: $surface;
+}
