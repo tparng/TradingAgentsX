@@ -236,6 +236,22 @@ bun run --cwd frontend dev
 
 Frontend application: http://localhost:3000
 
+#### 4️⃣ Terminal UI (TUI, optional)
+
+In addition to the web interface, you can run an analysis directly in your terminal. The TUI is built with [Textual](https://github.com/Textualize/textual) and is installed by `pip install -e .`.
+
+```bash
+# Make sure the backend setup is done and the virtual environment is active
+conda activate tradingagents
+
+# Launch the TUI
+python -m tui.main
+```
+
+- On the config screen, choose the market, ticker, analyst team, LLM and embedding models; API keys can be left blank to fall back to the values in `.env`
+- After pressing "Start Analysis", it shows real-time agent progress, messages/tool calls, and the current report
+- The final decision (BUY / SELL / HOLD) is shown on completion; press `q` to quit
+
 ---
 
 ## 🐳 Docker Deployment

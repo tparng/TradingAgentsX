@@ -236,6 +236,22 @@ bun run --cwd frontend dev
 
 前端應用: http://localhost:3000
 
+#### 4️⃣ 終端機介面（TUI，選用）
+
+除了 Web 介面，也可以直接在終端機中執行分析。TUI 以 [Textual](https://github.com/Textualize/textual) 打造，`pip install -e .` 會一併安裝。
+
+```bash
+# 確保已完成後端設置並啟用虛擬環境
+conda activate tradingagents
+
+# 啟動 TUI
+python -m tui.main
+```
+
+- 於設定畫面選擇市場、股票代碼、分析師團隊、LLM 與嵌入模型；API 金鑰可留空改用 `.env` 中的設定
+- 按「開始分析」後，即時顯示各代理進度、訊息與工具呼叫、以及當前報告
+- 完成後顯示最終決策（買入 / 賣出 / 持有）；按 `q` 離開
+
 ---
 
 ## 🐳 Docker 部署
