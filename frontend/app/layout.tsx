@@ -9,6 +9,7 @@ import { AuthProvider } from "@/contexts/auth-context";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { SyncInitializer } from "@/components/providers/SyncInitializer";
 import { CustomCursor } from "@/components/CustomCursor";
+import { SplashCursorBackground } from "@/components/theme/SplashCursorBackground";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -28,7 +29,11 @@ export const metadata: Metadata = {
         sizes: "512x512",
         type: "image/png",
       },
-      { url: "/icon-v8.png?t=20241220-v8", sizes: "1024x1024", type: "image/png" },
+      {
+        url: "/icon-v8.png?t=20241220-v8",
+        sizes: "1024x1024",
+        type: "image/png",
+      },
     ],
     apple: [
       {
@@ -70,14 +75,17 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebSite",
-              "name": "TradingAgentsX",
-              "alternateName": "TradingAgentsX - 多代理 LLM 金融交易",
-              "url": "https://tradingagentsx.up.railway.app",
+              name: "TradingAgentsX",
+              alternateName: "TradingAgentsX - 多代理 LLM 金融交易",
+              url: "https://tradingagentsx.up.railway.app",
             }),
           }}
         />
         <link rel="manifest" href="/manifest.json?v=20241220-v8" />
-        <meta name="google-site-verification" content="rKjd_gPy-7vtsGRcwVzAbAIYyIwVM9ezyXZOoXkC1KA" />
+        <meta
+          name="google-site-verification"
+          content="rKjd_gPy-7vtsGRcwVzAbAIYyIwVM9ezyXZOoXkC1KA"
+        />
         <meta name="theme-color" content="#6B21A8" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta
@@ -135,6 +143,7 @@ export default function RootLayout({
             <AuthProvider>
               <SyncInitializer />
               <CustomCursor />
+              <SplashCursorBackground />
               <AnalysisProvider>
                 <div className="flex flex-col min-h-screen gradient-page-bg">
                   <Header />
