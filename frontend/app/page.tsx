@@ -39,7 +39,7 @@ export default function HomePage() {
   const { t } = useLanguage();
 
   return (
-    <div className="gradient-page-bg">
+    <div>
       {/* Immersive scroll-driven portal hero */}
       <ImmersivePortalHero />
 
