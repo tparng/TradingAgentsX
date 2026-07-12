@@ -43,6 +43,21 @@
 
 ---
 
+## 🔧 近期變更
+
+### v2 改進（當前版本）
+
+| 變更項目 | 說明 |
+| -------- | ---- |
+| **預設 LLM 切換為 Ollama** | 預設使用 `qwen2.5:14b`（本地推理），無需 OpenAI API 金鑰 |
+| **套件管理切換為 uv** | 取代 conda，使用 `uv sync` + `uv pip install -r backend/requirements.txt` 安裝依賴 |
+| **新聞資料來源調整** | `news_data` 改用 `google`（Google News RSS，無需 API 金鑰），`get_global_news` 改用 `local`（Reddit） |
+| **修復分析師工具呼叫** | 為每個分析師節點注入含預計算參數的明確啟動訊息，解決小型本地模型（如 qwen2.5:14b）不呼叫工具而改為詢問用戶的問題 |
+| **修復 polars 匯入問題** | 5 個 dataflow 檔案改用 `try/except ImportError` 保護，避免後端啟動時崩潰 |
+| **TUI 新增 Ollama 支援** | Terminal UI 新增 Ollama 提供商選項，模型格式含 `:` 時自動識別為 Ollama |
+
+---
+
 ## 🏗️ 系統架構
 
 ```
@@ -155,6 +170,8 @@ TradingAgentsX/
 | 社群媒體分析師 | 情緒評估 | Reddit/Twitter 情緒指標、投資者信心 |
 | 新聞分析師     | 新聞分析 | 最新新聞摘要、事件影響評估          |
 | 基本面分析師   | 財務分析 | 財報數據、P/E、P/B、盈利能力        |
+
+> **注意（本地模型適配）**：每位分析師啟動時會收到含預計算參數的明確指令（如 `start_date`、`end_date`），確保 qwen2.5:14b 等小型本地模型能正確呼叫工具取得真實資料，而非生成詢問文字。
 
 ### 研究團隊 (3 位)
 
