@@ -263,14 +263,19 @@ class TradingAgentsXGraph:
         args = self.propagator.get_graph_args()
 
         if self.debug:
-            # 帶有追蹤的除錯模式
+            # Debug mode: stream and print, but skip duplicate messages
+            # (risk debaters don't update messages, so the last message repeats)
             trace = []
+            last_printed_id = None
             for chunk in self.graph.stream(init_agent_state, **args):
-                if len(chunk["messages"]) == 0:
-                    pass
-                else:
-                    chunk["messages"][-1].pretty_print()
-                    trace.append(chunk)
+                msgs = chunk.get("messages", [])
+                if msgs:
+                    last_msg = msgs[-1]
+                    msg_id = getattr(last_msg, "id", None)
+                    if msg_id != last_printed_id:
+                        last_msg.pretty_print()
+                        last_printed_id = msg_id
+                trace.append(chunk)
 
             final_state = trace[-1]
         else:

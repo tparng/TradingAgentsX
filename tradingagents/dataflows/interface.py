@@ -187,12 +187,10 @@ def route_to_vendor(method: str, *args, **kwargs):
         if vendor not in fallback_vendors:
             fallback_vendors.append(vendor)
 
-    # 調試：打印備援順序
     primary_str = " → ".join(primary_vendors)
     fallback_str = " → ".join(fallback_vendors)
-    print(f"調試：{method} - 主要：[{primary_str}] | 完整備援順序：[{fallback_str}]")
+    print(f"[vendor] {method} - primary: [{primary_str}] | fallback order: [{fallback_str}]")
 
-    # 追蹤結果和執行狀態
     results = []
     vendor_attempt_count = 0
     any_primary_vendor_attempted = False
@@ -201,78 +199,61 @@ def route_to_vendor(method: str, *args, **kwargs):
     for vendor in fallback_vendors:
         if vendor not in VENDOR_METHODS[method]:
             if vendor in primary_vendors:
-                print(f"資訊：方法 '{method}' 不支援供應商 '{vendor}'，將備援至下一個供應商")
+                print(f"[vendor] '{method}' not supported by '{vendor}', trying next")
             continue
 
         vendor_impl = VENDOR_METHODS[method][vendor]
         is_primary_vendor = vendor in primary_vendors
         vendor_attempt_count += 1
 
-        # 追蹤是否嘗試了任何主要供應商
         if is_primary_vendor:
             any_primary_vendor_attempted = True
 
-        # 調試：打印當前嘗試
-        vendor_type = "主要" if is_primary_vendor else "備援"
-        print(f"調試：正在為 {method} 嘗試 {vendor_type} 供應商 '{vendor}' (第 {vendor_attempt_count} 次嘗試)")
+        vendor_type = "primary" if is_primary_vendor else "fallback"
+        print(f"[vendor] trying {vendor_type} '{vendor}' for {method} (attempt {vendor_attempt_count})")
 
-        # 處理供應商的方法列表
         if isinstance(vendor_impl, list):
             vendor_methods = [(impl, vendor) for impl in vendor_impl]
-            print(f"調試：供應商 '{vendor}' 有多個實現：{len(vendor_methods)} 個函式")
+            print(f"[vendor] '{vendor}' has {len(vendor_methods)} implementations")
         else:
             vendor_methods = [(vendor_impl, vendor)]
 
-        # 運行此供應商的方法
         vendor_results = []
         for impl_func, vendor_name in vendor_methods:
             try:
-                print(f"調試：正在從供應商 '{vendor_name}' 調用 {impl_func.__name__}...")
-                
-                # 執行函數（已由各供應商內部處理timeout）
+                print(f"[vendor] calling {impl_func.__name__} from '{vendor_name}'...")
                 result = impl_func(*args, **kwargs)
                 vendor_results.append(result)
-                print(f"成功：來自供應商 '{vendor_name}' 的 {impl_func.__name__} 成功完成")
-                    
+                print(f"[vendor] {impl_func.__name__} succeeded from '{vendor_name}'")
+
             except AlphaVantageRateLimitError as e:
                 if vendor == "alpha_vantage":
-                    print(f"速率限制：超過 Alpha Vantage 速率限制，將備援至下一個可用供應商")
-                    print(f"調試：速率限制詳細資訊：{e}")
-                # 繼續到下一個供應商進行備援
+                    print(f"[vendor] Alpha Vantage rate limit hit, falling back: {e}")
                 continue
             except FinMindRateLimitError as e:
                 if vendor == "finmind":
-                    print(f"速率限制：超過 FinMind 速率限制，將備援至下一個可用供應商")
-                    print(f"調試：速率限制詳細資訊：{e}")
-                # 繼續到下一個供應商進行備援
+                    print(f"[vendor] FinMind rate limit hit, falling back: {e}")
                 continue
             except Exception as e:
-                # 記錄詳細錯誤但繼續其他實現
                 error_type = type(e).__name__
-                print(f"失敗：來自供應商 '{vendor_name}' 的 {impl_func.__name__} 失敗 ({error_type}): {e}")
+                print(f"[vendor] {impl_func.__name__} from '{vendor_name}' failed ({error_type}): {e}")
                 continue
 
-        # 新增此供應商的結果
         if vendor_results:
             results.extend(vendor_results)
             successful_vendor = vendor
-            result_summary = f"獲得 {len(vendor_results)} 個結果"
-            print(f"成功：供應商 '{vendor}' 成功 - {result_summary}")
-            
-            # 停止邏輯：對於單一供應商設定，在第一個成功的供應商後停止
-            # 多供應商設定 (以逗號分隔) 可能希望從多個來源收集
+            print(f"[vendor] '{vendor}' succeeded with {len(vendor_results)} result(s)")
             if len(primary_vendors) == 1:
-                print(f"調試：在成功的供應商 '{vendor}' 後停止 (單一供應商設定)")
+                print(f"[vendor] stopping after successful '{vendor}' (single-vendor config)")
                 break
         else:
-            print(f"失敗：供應商 '{vendor}' 未產生任何結果")
+            print(f"[vendor] '{vendor}' produced no results")
 
-    # 最終結果摘要
     if not results:
-        print(f"失敗：方法 '{method}' 的所有 {vendor_attempt_count} 次供應商嘗試均失敗")
-        raise RuntimeError(f"方法 '{method}' 的所有供應商實現均失敗")
+        print(f"[vendor] all {vendor_attempt_count} attempt(s) failed for '{method}'")
+        raise RuntimeError(f"All vendor implementations failed for method '{method}'")
     else:
-        print(f"最終：方法 '{method}' 在 {vendor_attempt_count} 次供應商嘗試後，以 {len(results)} 個結果完成")
+        print(f"[vendor] '{method}' completed with {len(results)} result(s) after {vendor_attempt_count} attempt(s)")
 
     # 如果只有一個結果，則返回單個結果，否則連接為字串
     if len(results) == 1:

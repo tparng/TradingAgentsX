@@ -155,10 +155,11 @@ Please provide a professional, precise, and actionable technical analysis report
                 f"Use these exact dates. Do not ask for any parameters."
             ))
         elif isinstance(last, ToolMessage):
-            # After tool result: instruct the model to write the report now
+            lang_note = "Your ENTIRE response MUST be in English only." if language == "en" else "您的回覆必須完全使用繁體中文。"
             messages.append(HumanMessage(content=(
                 "You now have the stock price and indicator data. "
                 "Write your complete technical analysis report now. "
+                f"{lang_note} "
                 "Do not ask for clarification — base your analysis entirely on the data received."
             )))
 
