@@ -60,6 +60,9 @@ const formSchema = z.object({
   // Market type selection: us=美股, twse=上市, tpex=上櫃/興櫃
   market_type: z.enum(["us", "twse", "tpex"]),
 
+  // Report language: which language the AI agents write their reports in
+  report_language: z.enum(["zh-TW", "en"]),
+
   // Custom model names (when "custom" is selected)
   custom_quick_think_model: z.string().optional(),
   custom_deep_think_model: z.string().optional(),
@@ -113,6 +116,7 @@ export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
       analysts: ["market", "social", "news", "fundamentals"], // 預設全選
       research_depth: 3, // 預設中等層級
       market_type: "us", // 預設美股
+      report_language: (locale as "en" | "zh-TW") ?? "zh-TW",
       quick_think_llm: "claude-haiku-4-5-20251001",
       deep_think_llm: "claude-sonnet-4-6",
       embedding_model: "all-MiniLM-L6-v2", // 預設使用本地開源模型
@@ -286,7 +290,7 @@ export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
       ...values,
       quick_think_llm: finalQuickThinkLlm,
       deep_think_llm: finalDeepThinkLlm,
-      language: locale as "en" | "zh-TW",  // Pass current UI language to backend
+      language: values.report_language,  // Use the explicit report language selector
     };
     onSubmit(request);
   }
@@ -477,8 +481,8 @@ export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
                 />
               </div>
 
-              {/* 第二行：研究深度、快速思維模型、深層思維模型、嵌入式模型（4列） */}
-              <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-4 gap-6">
+              {/* 第二行：研究深度、報告語言、快速思維模型、深層思維模型、嵌入式模型（5列） */}
+              <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-5 gap-6">
                 <FormField
                   control={form.control}
                   name="research_depth"
@@ -509,6 +513,37 @@ export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
                         </SelectContent>
                       </Select>
                       <FormDescription>{t.form.selectDepth}</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* 報告語言選擇 */}
+                <FormField
+                  control={form.control}
+                  name="report_language"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t.form.reportLanguage}</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="zh-TW" className="py-3 cursor-pointer">
+                            {t.form.reportLanguageZhTW}
+                          </SelectItem>
+                          <SelectItem value="en" className="py-3 cursor-pointer">
+                            {t.form.reportLanguageEn}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>{t.form.reportLanguageDesc}</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

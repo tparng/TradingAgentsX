@@ -462,6 +462,12 @@ export const en = {
     depthMediumLabel: "Medium - Moderate discussion",
     depthDeepLabel: "Deep - In-depth research",
 
+    // Report language
+    reportLanguage: "Report Language",
+    reportLanguageDesc: "Language for AI agent analysis reports",
+    reportLanguageZhTW: "Traditional Chinese",
+    reportLanguageEn: "English",
+
     // Validation messages
     validation: {
       tickerRequired: "Stock ticker is required",

@@ -346,6 +346,12 @@ export const zhTW = {
     depthShallowLabel: "淺層 - 快速研究",
     depthMediumLabel: "中等 - 適度討論",
     depthDeepLabel: "深層 - 深入研究",
+
+    // Report language
+    reportLanguage: "報告語言",
+    reportLanguageDesc: "AI 代理分析報告的語言",
+    reportLanguageZhTW: "繁體中文",
+    reportLanguageEn: "English",
     
     // Validation messages
     validation: {
