@@ -1,6 +1,9 @@
 from typing import Annotated
-import polars as pl
 import os
+try:
+    import polars as pl
+except ImportError:
+    pl = None
 from .config import DATA_DIR
 from datetime import datetime
 from dateutil.relativedelta import relativedelta

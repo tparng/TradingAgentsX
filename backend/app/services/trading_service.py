@@ -26,8 +26,8 @@ class TradingService:
     def create_config(
         self,
         research_depth: int = 1,
-        deep_think_llm: str = "claude-sonnet-4-6",
-        quick_think_llm: str = "claude-haiku-4-5-20251001",
+        deep_think_llm: str = "qwen2.5:14b",
+        quick_think_llm: str = "qwen2.5:14b",
     ) -> Dict[str, Any]:
         """Create configuration for TradingAgentsX
 
@@ -50,9 +50,9 @@ class TradingService:
         ticker: str,
         analysis_date: str,
         openai_api_key: Optional[str] = None,
-        openai_base_url: str = "https://api.openai.com/v1",
-        quick_think_base_url: str = "https://api.anthropic.com/v1",
-        deep_think_base_url: str = "https://api.anthropic.com/v1",
+        openai_base_url: str = "http://localhost:11434/v1",
+        quick_think_base_url: str = "http://localhost:11434/v1",
+        deep_think_base_url: str = "http://localhost:11434/v1",
         quick_think_api_key: Optional[str] = None,
         deep_think_api_key: Optional[str] = None,
         embedding_base_url: str = "https://api.openai.com/v1",
@@ -63,8 +63,8 @@ class TradingService:
         market_type: str = "us",  # 市場類型：us (美股) 或 tw (台股)
         analysts: Optional[List[str]] = None,
         research_depth: int = 1,
-        deep_think_llm: str = "claude-sonnet-4-6",
-        quick_think_llm: str = "claude-haiku-4-5-20251001",
+        deep_think_llm: str = "qwen2.5:14b",
+        quick_think_llm: str = "qwen2.5:14b",
         language: str = "zh-TW",  # Language for agent reports: 'en' or 'zh-TW'
     ) -> Dict[str, Any]:
         """
@@ -126,13 +126,13 @@ class TradingService:
                     return url
                 
                 # Override with user-provided settings
-                config["llm_provider"] = "openai"
+                config["llm_provider"] = "ollama"
                 # Use specific base URLs if provided, otherwise fallback to openai_base_url
                 config["quick_think_base_url"] = normalize_base_url(
-                    quick_think_base_url if quick_think_base_url != "https://api.openai.com/v1" else openai_base_url
+                    quick_think_base_url if quick_think_base_url != "http://localhost:11434/v1" else openai_base_url
                 )
                 config["deep_think_base_url"] = normalize_base_url(
-                    deep_think_base_url if deep_think_base_url != "https://api.openai.com/v1" else openai_base_url
+                    deep_think_base_url if deep_think_base_url != "http://localhost:11434/v1" else openai_base_url
                 )
                 # Set backend_url as a fallback
                 config["backend_url"] = normalize_base_url(openai_base_url)
@@ -367,8 +367,13 @@ class TradingService:
         return ["market", "social", "news", "fundamentals"]
     
     def get_available_llms(self) -> List[str]:
-        """Get list of available OpenAI LLM models"""
+        """Get list of available LLM models"""
         return [
+            # Ollama (local)
+            "qwen2.5:14b",
+            "qwen2.5:7b",
+            "llama3.2:latest",
+            "mistral:latest",
             # OpenAI
             "gpt-5.4",
             "gpt-5.4-mini",
@@ -400,8 +405,8 @@ class TradingService:
         """Get default configuration"""
         return {
             "research_depth": 1,
-            "deep_think_llm": "claude-sonnet-4-6",
-            "quick_think_llm": "claude-haiku-4-5-20251001",
+            "deep_think_llm": "qwen2.5:14b",
+            "quick_think_llm": "qwen2.5:14b",
             "max_debate_rounds": 1,
             "max_risk_discuss_rounds": 1,
         }

@@ -52,7 +52,7 @@ def build_config(selections):
             "core_stock_apis": "yfinance",
             "technical_indicators": "yfinance",
             "fundamental_data": "alpha_vantage",
-            "news_data": "openai",
+            "news_data": "google",
         }
 
     return config, notes

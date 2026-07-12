@@ -92,7 +92,10 @@ class TradingAgentsXGraph:
         # Get API keys from config (auto-detect provider from model name)
         def _get_default_api_key(model: str) -> str:
             """Get the appropriate default API key based on model name."""
-            if model.startswith("claude-"):
+            # Ollama models use "name:tag" format and need any non-empty string
+            if provider.startswith("ollama") or ":" in model:
+                return "ollama"
+            elif model.startswith("claude-"):
                 return os.getenv("ANTHROPIC_API_KEY", "")
             elif model.startswith("gemini-"):
                 return os.getenv("GEMINI_API_KEY", "")

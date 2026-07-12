@@ -1,6 +1,9 @@
 import os
 import requests
-import polars as pl
+try:
+    import polars as pl
+except ImportError:
+    pl = None
 import json
 from datetime import datetime
 from io import StringIO

@@ -1,6 +1,9 @@
 import os
 import json
-import polars as pl
+try:
+    import polars as pl
+except ImportError:
+    pl = None
 from datetime import date, timedelta, datetime
 from typing import Annotated
 

@@ -63,7 +63,7 @@ class ConfigScreen(Screen):
             )
 
         default_models = [
-            (disp, val) for disp, val in constants.MODEL_OPTIONS["OpenAI"]
+            (disp, val) for disp, val in constants.MODEL_OPTIONS["Ollama (本地)"]
         ]
         default_emb_models = [
             (disp, val) for disp, val in constants.LOCAL_EMBEDDING_MODELS
@@ -121,7 +121,7 @@ class ConfigScreen(Screen):
                     "供應商",
                     Select(
                         [(disp, disp) for disp, _ in constants.LLM_PROVIDERS],
-                        value="OpenAI",
+                        value="Ollama (本地)",
                         allow_blank=False,
                         id="provider",
                     ),
@@ -309,15 +309,21 @@ class ConfigScreen(Screen):
         embedding_key_input = self.query_one("#embedding-key", Input).value.strip()
         alpha_key_input = self.query_one("#alpha-key", Input).value.strip()
 
-        quick_think_api_key = quick_key or constants.env_api_key_for_model(shallow_thinker)
-        deep_think_api_key = deep_key or constants.env_api_key_for_model(deep_thinker)
+        is_ollama = provider_name.lower().startswith("ollama")
+        if is_ollama:
+            # Ollama ignores the API key; any non-empty string works
+            quick_think_api_key = quick_key or "ollama"
+            deep_think_api_key = deep_key or "ollama"
+        else:
+            quick_think_api_key = quick_key or constants.env_api_key_for_model(shallow_thinker)
+            deep_think_api_key = deep_key or constants.env_api_key_for_model(deep_thinker)
 
-        if not quick_think_api_key:
-            self._error("缺少快速思維模型的 API Key（輸入框或 .env 皆為空）")
-            return None
-        if not deep_think_api_key:
-            self._error("缺少深度思維模型的 API Key（輸入框或 .env 皆為空）")
-            return None
+            if not quick_think_api_key:
+                self._error("缺少快速思維模型的 API Key（輸入框或 .env 皆為空）")
+                return None
+            if not deep_think_api_key:
+                self._error("缺少深度思維模型的 API Key（輸入框或 .env 皆為空）")
+                return None
 
         if is_local_embedding:
             embedding_api_key = None

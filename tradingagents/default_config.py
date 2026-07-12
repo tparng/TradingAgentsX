@@ -9,10 +9,12 @@ DEFAULT_CONFIG = {
         "dataflows/data_cache",
     )),
     # LLM 設定
-    "llm_provider": "anthropic",
-    "deep_think_llm": "claude-sonnet-4-6",
-    "quick_think_llm": "claude-haiku-4-5-20251001",
-    "backend_url": "https://api.anthropic.com/v1",
+    "llm_provider": "ollama",
+    "deep_think_llm": "qwen2.5:14b",
+    "quick_think_llm": "qwen2.5:14b",
+    "backend_url": "http://localhost:11434/v1",
+    "deep_think_api_key": "ollama",
+    "quick_think_api_key": "ollama",
     # 辯論與討論設定
     "max_debate_rounds": 1,
     "max_risk_discuss_rounds": 1,
@@ -30,14 +32,14 @@ DEFAULT_CONFIG = {
         "core_stock_apis": "yfinance",       # 選項: yfinance, alpha_vantage, finmind, local
         "technical_indicators": "yfinance",  # 選項: yfinance, alpha_vantage, finmind, local
         "fundamental_data": "alpha_vantage", # 選項: openai, alpha_vantage, yfinance, finmind
-        "news_data": "openai",               # 選項: openai, alpha_vantage, google, finmind, local
+        "news_data": "google",               # 選項: openai, alpha_vantage, google, finmind, local
     },
     # 工具層級設定 (優先於類別層級設定)
     "tool_vendors": {
         # 範例: "get_stock_data": "alpha_vantage",  # 覆寫類別預設值
         # 範例: "get_news": "openai",               # 覆寫類別預設值
         # 範例: "get_stock_data": "finmind",        # 使用 FinMind 獲取台股資料
-        "get_global_news": "openai",  # get_global_news 不支持 alpha_vantage，使用 openai 作為主要供應商
+        "get_global_news": "local",  # get_global_news: local (Reddit) 或 openai (需 API 金鑰)
     },
     # 混合搜索設定 (Hybrid Search)
     # 結合向量搜索（語意理解）與 BM25 關鍵字搜索（精確匹配股票代號/財務術語）

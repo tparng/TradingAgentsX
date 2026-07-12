@@ -29,7 +29,7 @@
 | 功能                     | 說明                                                            |
 | ------------------------ | --------------------------------------------------------------- |
 | 🤖 **多代理協作架構**    | 12 個專業化 AI 代理（分析師、研究員、交易員、風險管理）協同工作 |
-| 🌐 **多模型支援**        | OpenAI、Anthropic、Gemini、Grok、DeepSeek、Qwen 等 LLM 提供商   |
+| 🌐 **多模型支援**        | Ollama（本地）、OpenAI、Anthropic、Gemini、Grok、DeepSeek、Qwen 等 LLM 提供商   |
 | 🔒 **Google OAuth 登入** | 雲端同步 API 設定與歷史報告，支援多裝置同步                     |
 | 📊 **美股與台股支援**    | 完整支援美股（Yahoo Finance）與台股（FinMind）資料              |
 | 🔑 **BYOK 模式**         | 使用者自帶 API 金鑰，前端加密儲存，保障隱私                     |
@@ -180,16 +180,20 @@ TradingAgentsX/
 
 ### 前置要求
 
-- **Python** 3.10+
+- **Python** 3.13+
+- **uv** 套件管理器（[安裝說明](https://docs.astral.sh/uv/getting-started/installation/)）
 - **Node.js** 18.x+ 或 **Bun** 1.x+
+- **Ollama**（本地 LLM，[安裝說明](https://ollama.com/download)）
 
-### 必要的 API 金鑰
+### API 金鑰
 
-| API                   | 用途           | 申請網址                                     |
-| --------------------- | -------------- | -------------------------------------------- |
-| OpenAI                | GPT 模型       | https://platform.openai.com/api-keys         |
-| Alpha Vantage（選填） | 美股基本面資料 | https://www.alphavantage.co/support/#api-key |
-| FinMind（選填）       | 台股資料       | https://finmindtrade.com/                    |
+預設使用 Ollama 本地模型，**無需任何 LLM API 金鑰**。
+
+| API                   | 用途              | 申請網址                                     |
+| --------------------- | ----------------- | -------------------------------------------- |
+| Alpha Vantage（選填） | 美股基本面資料    | https://www.alphavantage.co/support/#api-key |
+| FinMind（選填）       | 台股資料          | https://finmindtrade.com/                    |
+| OpenAI / Anthropic 等（選填） | 雲端 LLM 替代方案 | 各平台申請                           |
 
 ### 安裝步驟
 
@@ -200,20 +204,30 @@ git clone https://github.com/MarkLo127/TradingAgentsX.git
 cd TradingAgentsX
 ```
 
-#### 2️⃣ 後端設置
+#### 2️⃣ 啟動 Ollama 並下載模型
 
 ```bash
-# 創建虛擬環境
-conda create -n tradingagents python=3.13
-conda activate tradingagents
+# 確認 Ollama 已安裝並執行
+ollama serve          # 若尚未在背景執行
 
-# 安裝依賴
-pip install -e .
-pip install -r backend/requirements.txt
+# 下載預設模型（約 9 GB，首次需要）
+ollama pull qwen2.5:14b
+```
+
+#### 3️⃣ 後端設置
+
+```bash
+# 建立虛擬環境並安裝所有相依套件（使用 uv）
+uv sync
+uv pip install -e .
+uv pip install -r backend/requirements.txt
+
+# 啟用虛擬環境
+source .venv/bin/activate
 
 # 配置環境變數
 cp .env.example .env
-# 編輯 .env 填入 API 金鑰
+# 編輯 .env（Ollama 模式不需要 LLM API 金鑰）
 
 # 啟動後端
 python -m backend
@@ -224,7 +238,7 @@ python -m backend
 - API: http://localhost:8000
 - Swagger 文檔: http://localhost:8000/docs
 
-#### 3️⃣ 前端設置
+#### 4️⃣ 前端設置
 
 ```bash
 # 安裝依賴（從專案根目錄執行）
@@ -236,13 +250,13 @@ bun run --cwd frontend dev
 
 前端應用: http://localhost:3000
 
-#### 4️⃣ 終端機介面（TUI，選用）
+#### 5️⃣ 終端機介面（TUI，選用）
 
-除了 Web 介面，也可以直接在終端機中執行分析。TUI 以 [Textual](https://github.com/Textualize/textual) 打造，`pip install -e .` 會一併安裝。
+除了 Web 介面，也可以直接在終端機中執行分析。TUI 以 [Textual](https://github.com/Textualize/textual) 打造，`uv pip install -e .` 會一併安裝。
 
 ```bash
 # 確保已完成後端設置並啟用虛擬環境
-conda activate tradingagents
+source .venv/bin/activate
 
 # 啟動 TUI
 python -m tui.main
@@ -367,14 +381,17 @@ Content-Type: application/json
   "analysis_date": "2024-01-15",
   "research_depth": 2,
   "analysts": ["market", "social", "news", "fundamentals"],
-  "quick_think_llm": "gpt-5-mini",
-  "deep_think_llm": "claude-sonnet-4-5",
-  "quick_think_api_key": "sk-...",
-  "deep_think_api_key": "sk-ant-...",
-  "embedding_api_key": "sk-...",
+  "quick_think_llm": "qwen2.5:14b",
+  "deep_think_llm": "qwen2.5:14b",
+  "quick_think_base_url": "http://localhost:11434/v1",
+  "deep_think_base_url": "http://localhost:11434/v1",
+  "quick_think_api_key": "ollama",
+  "deep_think_api_key": "ollama",
   "alpha_vantage_api_key": "..."
 }
 ```
+
+> 使用雲端 LLM（如 OpenAI、Anthropic）時，將 `quick_think_llm`/`deep_think_llm` 替換為對應模型名稱，並填入真實的 API 金鑰與 Base URL。
 
 ### 查詢任務狀態
 
@@ -390,15 +407,17 @@ GET /api/task/{task_id}
 
 ### 後端
 
-| 技術                 | 用途                   |
-| -------------------- | ---------------------- |
-| FastAPI              | 異步 Web 框架          |
-| LangGraph            | 多代理工作流編排       |
-| LangChain            | LLM 應用開發           |
-| ChromaDB             | 向量資料庫（記憶系統） |
-| PostgreSQL           | 使用者資料儲存         |
-| SQLAlchemy + asyncpg | 異步資料庫 ORM         |
-| Pydantic             | 資料驗證               |
+| 技術                 | 用途                              |
+| -------------------- | --------------------------------- |
+| FastAPI              | 異步 Web 框架                     |
+| LangGraph            | 多代理工作流編排                  |
+| LangChain            | LLM 應用開發                      |
+| Ollama               | 本地 LLM 推理（預設 qwen2.5:14b） |
+| ChromaDB             | 向量資料庫（記憶系統）            |
+| PostgreSQL           | 使用者資料儲存                    |
+| SQLAlchemy + asyncpg | 異步資料庫 ORM                    |
+| Pydantic             | 資料驗證                          |
+| uv                   | Python 套件管理                   |
 
 ### 前端
 

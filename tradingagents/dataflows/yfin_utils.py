@@ -2,7 +2,10 @@
 
 import yfinance as yf
 from typing import Annotated, Callable, Any, Optional
-import polars as pl
+try:
+    import polars as pl
+except ImportError:
+    pl = None
 from functools import wraps
 
 from .utils import save_output, SavePathType, decorate_all_methods

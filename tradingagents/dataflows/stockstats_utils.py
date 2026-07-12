@@ -1,4 +1,7 @@
-import polars as pl
+try:
+    import polars as pl
+except ImportError:
+    pl = None
 import yfinance as yf
 from stockstats import wrap
 from typing import Annotated

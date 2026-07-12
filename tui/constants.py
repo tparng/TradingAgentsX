@@ -49,6 +49,7 @@ DEPTH_OPTIONS = [
 # ---------------------------------------------------------------------------
 # (顯示名稱, Base URL)
 LLM_PROVIDERS = [
+    ("Ollama (本地)", "http://localhost:11434/v1"),
     ("OpenAI", "https://api.openai.com/v1"),
     ("Anthropic", "https://api.anthropic.com/v1"),
     ("Google", "https://generativelanguage.googleapis.com/v1beta/openai"),
@@ -63,6 +64,12 @@ LLM_PROVIDERS = [
 # ---------------------------------------------------------------------------
 # {供應商: [(顯示名稱, 模型 ID), ...]}
 MODEL_OPTIONS = {
+    "Ollama (本地)": [
+        ("Qwen 2.5 14B (推薦)", "qwen2.5:14b"),
+        ("Qwen 2.5 7B", "qwen2.5:7b"),
+        ("Llama 3.2", "llama3.2:latest"),
+        ("Mistral", "mistral:latest"),
+    ],
     "OpenAI": [
         ("GPT-5.4", "gpt-5.4"),
         ("GPT-5.4-mini", "gpt-5.4-mini"),
@@ -129,6 +136,8 @@ def embedding_models_for(embedding_url: str):
 # ---------------------------------------------------------------------------
 # 供應商 → 環境變數名稱
 PROVIDER_API_KEY_MAP = {
+    "ollama (本地)": None,
+    "ollama": None,
     "openai": "OPENAI_API_KEY",
     "anthropic": "ANTHROPIC_API_KEY",
     "google": "GEMINI_API_KEY",
@@ -141,7 +150,10 @@ PROVIDER_API_KEY_MAP = {
 def infer_provider_from_model(model_name: str) -> str:
     """根據模型名稱推斷供應商。"""
     model_lower = model_name.lower()
-    if "gpt" in model_lower or model_lower.startswith("o4"):
+    # Ollama models use "name:tag" format (e.g. qwen2.5:14b, llama3.2:latest)
+    if ":" in model_lower:
+        return "ollama"
+    elif "gpt" in model_lower or model_lower.startswith("o4"):
         return "openai"
     elif "claude" in model_lower:
         return "anthropic"
@@ -159,6 +171,8 @@ def infer_provider_from_model(model_name: str) -> str:
 def env_api_key_for_provider(provider_name: str) -> str | None:
     """根據供應商名稱從環境變數讀取對應的 API Key（找不到回傳 None）。"""
     env_var_name = PROVIDER_API_KEY_MAP.get(provider_name.lower(), "OPENAI_API_KEY")
+    if env_var_name is None:
+        return None
     return os.getenv(env_var_name)
 
 

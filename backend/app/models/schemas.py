@@ -25,27 +25,27 @@ class AnalysisRequest(BaseModel):
         default="us",
         description="Market type: 'us' for US stocks, 'twse' for Taiwan TWSE (上市), 'tpex' for Taiwan TPEx/ROTC (上櫃/興櫃)"
     )
-    deep_think_llm: Optional[str] = Field(default="claude-sonnet-4-6", description="Deep thinking LLM model")
-    quick_think_llm: Optional[str] = Field(default="claude-haiku-4-5-20251001", description="Quick thinking LLM model")
-    
+    deep_think_llm: Optional[str] = Field(default="qwen2.5:14b", description="Deep thinking LLM model")
+    quick_think_llm: Optional[str] = Field(default="qwen2.5:14b", description="Quick thinking LLM model")
+
     # API Configuration
     openai_api_key: Optional[str] = Field(None, description="OpenAI API Key (optional if set on server)", min_length=0)
     openai_base_url: Optional[str] = Field(
-        default="https://api.openai.com/v1",
-        description="OpenAI API Base URL (optional, deprecated)"
+        default="http://localhost:11434/v1",
+        description="LLM API Base URL"
     )
     quick_think_base_url: Optional[str] = Field(
-        default="https://api.openai.com/v1",
+        default="http://localhost:11434/v1",
         description="Base URL for Quick Thinking Model"
     )
     deep_think_base_url: Optional[str] = Field(
-        default="https://api.openai.com/v1",
+        default="http://localhost:11434/v1",
         description="Base URL for Deep Thinking Model"
     )
     quick_think_api_key: Optional[str] = Field(None, description="API Key for Quick Thinking Model", min_length=0)
     deep_think_api_key: Optional[str] = Field(None, description="API Key for Deep Thinking Model", min_length=0)
     embedding_base_url: Optional[str] = Field(
-        default="https://api.openai.com/v1",
+        default="http://localhost:11434/v1",
         description="Base URL for Embedding Model (only used for OpenAI embeddings)"
     )
     embedding_api_key: Optional[str] = Field(None, description="API Key for Embedding Model (only used for OpenAI embeddings)", min_length=0)
@@ -206,7 +206,7 @@ class ChatRequest(BaseModel):
     model: str = Field(..., description="LLM model name")
     api_key: str = Field(..., description="User's LLM API key", min_length=1)
     base_url: str = Field(
-        default="https://api.openai.com/v1",
+        default="http://localhost:11434/v1",
         description="LLM API base URL"
     )
     language: Optional[Literal["en", "zh-TW"]] = Field(
