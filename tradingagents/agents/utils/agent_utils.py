@@ -49,15 +49,16 @@ def create_msg_delete():
         一個在 langgraph 中用於清除訊息的函式。
     """
     def delete_messages(state):
-        """清除訊息並為 Anthropic 相容性新增佔位符"""
+        """清除訊息並新增包含 ticker/date 的佔位符，供下一個分析師使用"""
         messages = state["messages"]
-        
+        ticker = state.get("company_of_interest", "")
+        trade_date = state.get("trade_date", "")
+
         # 移除所有訊息
         removal_operations = [RemoveMessage(id=m.id) for m in messages]
-        
-        # 新增一個最小的佔位符訊息
-        placeholder = HumanMessage(content="Continue")
-        
+
+        placeholder = HumanMessage(content=f"Continue. Ticker: {ticker}, Date: {trade_date}.")
+
         return {"messages": removal_operations + [placeholder]}
-    
+
     return delete_messages

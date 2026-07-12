@@ -1,6 +1,8 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.messages import HumanMessage
 import time
 import json
+from datetime import datetime, timedelta
 from tradingagents.agents.utils.agent_utils import get_stock_data, get_indicators
 from tradingagents.agents.utils.prompts import get_language_instruction, get_language_closing_instruction, get_agent_role_instruction, get_context_message
 from tradingagents.dataflows.config import get_config
@@ -140,7 +142,17 @@ Please provide a professional, precise, and actionable technical analysis report
 
         chain = prompt | llm.bind_tools(tools)
 
-        result = chain.invoke(state["messages"])
+        # Pre-compute explicit parameters so the model doesn't need to infer them
+        start_date = (datetime.strptime(current_date, "%Y-%m-%d") - timedelta(days=365)).strftime("%Y-%m-%d")
+        messages = list(state["messages"])
+        if messages and isinstance(messages[-1], HumanMessage):
+            messages[-1] = HumanMessage(content=(
+                f"Analyze {company_name} ({ticker}) as of {current_date}. "
+                f"Call get_stock_data(symbol='{ticker}', start_date='{start_date}', end_date='{current_date}') now. "
+                f"Do not ask for any parameters — use exactly these values."
+            ))
+
+        result = chain.invoke(messages)
 
         # Report logic: only save report when LLM gives final response
         report = state.get("market_report", "")

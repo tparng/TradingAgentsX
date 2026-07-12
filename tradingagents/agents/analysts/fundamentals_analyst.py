@@ -1,4 +1,5 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.messages import HumanMessage
 import time
 import json
 from tradingagents.agents.utils.agent_utils import get_fundamentals, get_balance_sheet, get_cashflow, get_income_statement, get_insider_sentiment, get_insider_transactions
@@ -60,7 +61,17 @@ def create_fundamentals_analyst(llm, language: str = "zh-TW"):
 
         chain = prompt | llm.bind_tools(tools)
 
-        result = chain.invoke(state["messages"])
+        # Pre-compute explicit parameters so the model doesn't need to infer them
+        messages = list(state["messages"])
+        if messages and isinstance(messages[-1], HumanMessage):
+            messages[-1] = HumanMessage(content=(
+                f"Analyze {company_name} ({ticker}) fundamentals as of {current_date}. "
+                f"Call get_fundamentals(ticker='{ticker}', curr_date='{current_date}') now. "
+                f"Then call get_income_statement, get_balance_sheet, and get_cashflow as needed. "
+                f"Do not ask for any parameters — use exactly these values."
+            ))
+
+        result = chain.invoke(messages)
 
         # Report logic: only save report when LLM gives final response
         report = state.get("fundamentals_report", "")
