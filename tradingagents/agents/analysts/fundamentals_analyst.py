@@ -1,5 +1,5 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, ToolMessage
 import time
 import json
 from tradingagents.agents.utils.agent_utils import get_fundamentals, get_balance_sheet, get_cashflow, get_income_statement, get_insider_sentiment, get_insider_transactions
@@ -63,13 +63,22 @@ def create_fundamentals_analyst(llm, language: str = "zh-TW"):
 
         # Pre-compute explicit parameters so the model doesn't need to infer them
         messages = list(state["messages"])
-        if messages and isinstance(messages[-1], HumanMessage):
+        last = messages[-1] if messages else None
+        if isinstance(last, HumanMessage):
+            # First invocation: use natural language to avoid model echoing JSON text
             messages[-1] = HumanMessage(content=(
-                f"Analyze {company_name} ({ticker}) fundamentals as of {current_date}. "
-                f"Call get_fundamentals(ticker='{ticker}', curr_date='{current_date}') now. "
-                f"Then call get_income_statement, get_balance_sheet, and get_cashflow as needed. "
-                f"Do not ask for any parameters — use exactly these values."
+                f"Retrieve financial data for {company_name} ({ticker}) as of {current_date}. "
+                f"Use get_fundamentals with ticker={ticker}, curr_date={current_date}. "
+                f"Then use get_income_statement, get_balance_sheet, and get_cashflow with the same ticker and curr_date. "
+                f"Use these exact parameter values."
             ))
+        elif isinstance(last, ToolMessage):
+            # After tool result: instruct the model to write the report now
+            messages.append(HumanMessage(content=(
+                "You now have the financial data. "
+                "Write your complete fundamental analysis report now. "
+                "Do not ask for clarification — base your analysis entirely on the data received."
+            )))
 
         result = chain.invoke(messages)
 

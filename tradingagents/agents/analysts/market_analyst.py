@@ -1,5 +1,5 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, ToolMessage
 import time
 import json
 from datetime import datetime, timedelta
@@ -145,12 +145,22 @@ Please provide a professional, precise, and actionable technical analysis report
         # Pre-compute explicit parameters so the model doesn't need to infer them
         start_date = (datetime.strptime(current_date, "%Y-%m-%d") - timedelta(days=365)).strftime("%Y-%m-%d")
         messages = list(state["messages"])
-        if messages and isinstance(messages[-1], HumanMessage):
+        last = messages[-1] if messages else None
+        if isinstance(last, HumanMessage):
+            # First invocation: inject explicit kickoff with pre-computed dates
             messages[-1] = HumanMessage(content=(
                 f"Analyze {company_name} ({ticker}) as of {current_date}. "
-                f"Call get_stock_data(symbol='{ticker}', start_date='{start_date}', end_date='{current_date}') now. "
-                f"Do not ask for any parameters — use exactly these values."
+                f"Use the get_stock_data tool to fetch price history: "
+                f"ticker={ticker}, start_date={start_date}, end_date={current_date}. "
+                f"Use these exact dates. Do not ask for any parameters."
             ))
+        elif isinstance(last, ToolMessage):
+            # After tool result: instruct the model to write the report now
+            messages.append(HumanMessage(content=(
+                "You now have the stock price and indicator data. "
+                "Write your complete technical analysis report now. "
+                "Do not ask for clarification — base your analysis entirely on the data received."
+            )))
 
         result = chain.invoke(messages)
 
