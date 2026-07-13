@@ -100,16 +100,15 @@ export default function TradingPage() {
   const [serverStopping, setServerStopping] = useState(false);
   const [serverError,    setServerError]    = useState("");
 
-  // Connection state
-  const [apiKey,     setApiKey]     = useState("");
-  const [secretKey,  setSecretKey]  = useState("");
-  const [simulation, setSimulation] = useState(true);
-  const [sessionId,  setSessionId]  = useState<string | null>(() =>
-    typeof window !== "undefined" ? localStorage.getItem("shioaji_session_id") : null
-  );
-  const [accounts,   setAccounts]   = useState<object[]>([]);
-  const [connecting, setConnecting] = useState(false);
-  const [connError,  setConnError]  = useState("");
+  // Connection state — sessionId starts null to avoid SSR/client hydration mismatch
+  const [apiKey,        setApiKey]        = useState("");
+  const [secretKey,     setSecretKey]     = useState("");
+  const [simulation,    setSimulation]    = useState(true);
+  const [sessionId,     setSessionId]     = useState<string | null>(null);
+  const [hasSavedCreds, setHasSavedCreds] = useState(false);
+  const [accounts,      setAccounts]      = useState<object[]>([]);
+  const [connecting,    setConnecting]    = useState(false);
+  const [connError,     setConnError]     = useState("");
 
   // Quote state
   const [quoteTicker, setQuoteTicker] = useState(prefilledTicker);
@@ -143,15 +142,17 @@ export default function TradingPage() {
     else localStorage.removeItem("shioaji_session_id");
   }, [sessionId]);
 
-  // Load saved credentials on mount
+  // Load saved credentials and session on mount (client-only to avoid hydration mismatch)
   useEffect(() => {
     (async () => {
       try {
         const encKey = localStorage.getItem("shioaji_api_key");
         const encSec = localStorage.getItem("shioaji_secret_key");
-        if (encKey) setApiKey(await decrypt(encKey));
+        if (encKey) { setApiKey(await decrypt(encKey)); setHasSavedCreds(true); }
         if (encSec) setSecretKey(await decrypt(encSec));
       } catch { /* ignore decryption errors */ }
+      const stored = localStorage.getItem("shioaji_session_id");
+      if (stored) setSessionId(stored);
     })();
   }, []);
 
@@ -175,6 +176,7 @@ export default function TradingPage() {
       setServerRunning(true);
       localStorage.setItem("shioaji_api_key", await encrypt(apiKey));
       localStorage.setItem("shioaji_secret_key", await encrypt(secretKey));
+      setHasSavedCreds(true);
     } catch (e: unknown) {
       setServerError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -213,9 +215,9 @@ export default function TradingPage() {
       });
       setSessionId(data.session_id);
       setAccounts(data.accounts ?? []);
-      // Save encrypted credentials for next session
       localStorage.setItem("shioaji_api_key", await encrypt(apiKey));
       localStorage.setItem("shioaji_secret_key", await encrypt(secretKey));
+      setHasSavedCreds(true);
     } catch (e: unknown) {
       setConnError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -319,7 +321,7 @@ export default function TradingPage() {
             <h1 className="text-xl font-bold">{t.trading.title}</h1>
             <p className="text-sm text-muted-foreground">{t.trading.subtitle}</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" suppressHydrationWarning>
             {isConnected
               ? <><Wifi className="h-4 w-4 text-green-500" /><Badge variant="outline" className="text-green-600">{t.trading.connected}</Badge></>
               : <><WifiOff className="h-4 w-4 text-gray-400" /><Badge variant="outline" className="text-gray-400">{t.trading.disconnected}</Badge></>
@@ -336,13 +338,73 @@ export default function TradingPage() {
           <AlertDescription>{t.trading.twStockOnly}</AlertDescription>
         </Alert>
 
+        {/* Always-visible credentials card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>{t.trading.connect}</CardTitle>
+            <CardDescription>Sinopac Securities (永豐金) — used by both Pro Terminal and Simple Trading below</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Simulation toggle */}
+            <div className="flex items-center gap-3 p-3 rounded-lg border">
+              <Switch checked={simulation} onCheckedChange={setSimulation} id="simulation-toggle" />
+              <div>
+                <Label htmlFor="simulation-toggle" className="font-medium">{t.trading.simulation}</Label>
+                <p className="text-xs text-muted-foreground">{t.trading.simulationDesc}</p>
+              </div>
+            </div>
+
+            {!simulation && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="font-bold">{t.trading.liveWarning}</AlertDescription>
+              </Alert>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label>{t.trading.apiKey}</Label>
+                <Input
+                  type="password"
+                  placeholder={t.trading.apiKeyPlaceholder}
+                  value={apiKey}
+                  onChange={e => setApiKey(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>{t.trading.secretKey}</Label>
+                <Input
+                  type="password"
+                  placeholder={t.trading.secretKeyPlaceholder}
+                  value={secretKey}
+                  onChange={e => setSecretKey(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {hasSavedCreds && (
+              <button
+                type="button"
+                className="text-xs text-muted-foreground underline hover:text-destructive"
+                onClick={() => {
+                  localStorage.removeItem("shioaji_api_key");
+                  localStorage.removeItem("shioaji_secret_key");
+                  setApiKey(""); setSecretKey(""); setHasSavedCreds(false);
+                }}
+              >
+                Clear saved credentials
+              </button>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Shioaji Pro Terminal card */}
         <Card className={serverRunning ? "border-blue-400 bg-blue-50/40 dark:bg-blue-950/20" : ""}>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle>Shioaji Pro Terminal</CardTitle>
-                <CardDescription>Full trading terminal — uses credentials entered below</CardDescription>
+                <CardDescription>Full trading terminal powered by shioaji-pro-app</CardDescription>
               </div>
               {serverRunning
                 ? <Badge className="bg-green-100 text-green-800 border-green-300">Server running · port 21322</Badge>
@@ -387,76 +449,27 @@ export default function TradingPage() {
           <div className="flex-1 border-t" />
         </div>
 
-        {/* Connect card */}
+        {/* Simple trading — connect button or connected tabs */}
         {!isConnected ? (
           <Card>
             <CardHeader>
-              <CardTitle>{t.trading.connect}</CardTitle>
-              <CardDescription>Sinopac Securities (永豐金) Shioaji API</CardDescription>
+              <CardTitle>Simple Trading</CardTitle>
+              <CardDescription>Basic quote / order / positions via Python shioaji library</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3">
               {connError && (
                 <Alert variant="destructive">
                   <AlertDescription>{connError}</AlertDescription>
                 </Alert>
               )}
-
-              {/* Simulation toggle */}
-              <div className="flex items-center gap-3 p-3 rounded-lg border">
-                <Switch checked={simulation} onCheckedChange={setSimulation} id="simulation-toggle" />
-                <div>
-                  <Label htmlFor="simulation-toggle" className="font-medium">{t.trading.simulation}</Label>
-                  <p className="text-xs text-muted-foreground">{t.trading.simulationDesc}</p>
-                </div>
-              </div>
-
-              {!simulation && (
-                <Alert variant="destructive">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription className="font-bold">{t.trading.liveWarning}</AlertDescription>
-                </Alert>
-              )}
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <Label>{t.trading.apiKey}</Label>
-                  <Input
-                    type="password"
-                    placeholder={t.trading.apiKeyPlaceholder}
-                    value={apiKey}
-                    onChange={e => setApiKey(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label>{t.trading.secretKey}</Label>
-                  <Input
-                    type="password"
-                    placeholder={t.trading.secretKeyPlaceholder}
-                    value={secretKey}
-                    onChange={e => setSecretKey(e.target.value)}
-                    onKeyDown={e => e.key === "Enter" && handleConnect()}
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <Button onClick={handleConnect} disabled={connecting} className="flex-1">
-                  {connecting ? t.trading.connecting : t.trading.connect}
-                </Button>
-                {(typeof window !== "undefined" && localStorage.getItem("shioaji_api_key")) && (
-                  <button
-                    type="button"
-                    className="ml-3 text-xs text-muted-foreground underline hover:text-destructive"
-                    onClick={() => {
-                      localStorage.removeItem("shioaji_api_key");
-                      localStorage.removeItem("shioaji_secret_key");
-                      setApiKey(""); setSecretKey("");
-                    }}
-                  >
-                    Clear saved credentials
-                  </button>
-                )}
-              </div>
+              <Button
+                onClick={handleConnect}
+                disabled={connecting}
+                className="w-full"
+                onKeyDown={e => e.key === "Enter" && handleConnect()}
+              >
+                {connecting ? t.trading.connecting : t.trading.connect}
+              </Button>
             </CardContent>
           </Card>
         ) : (
