@@ -5,6 +5,7 @@ API that shioaji-pro-app's frontend talks to directly.
 """
 import logging
 import os
+import re
 import subprocess
 import threading
 import time
@@ -60,7 +61,8 @@ class ShioajiServerManager:
                 return {"status": "started", "port": SIDECAR_PORT, "simulation": simulation}
             if self._process.poll() is not None:
                 out = self._process.stdout.read().decode(errors="replace") if self._process.stdout else ""
-                raise RuntimeError(f"Sidecar exited early: {out[:500]}")
+                out = re.sub(r'\x1b\[[0-9;]*m', '', out)  # strip ANSI colour codes
+                raise RuntimeError(f"Sidecar exited early: {out[:2000]}")
 
         raise RuntimeError("Sidecar did not become healthy within 60 s")
 
