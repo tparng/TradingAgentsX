@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { encrypt, decrypt } from "@/lib/crypto";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,8 +36,6 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, ArrowLeft, RefreshCw, Wifi, WifiOff } from "lucide-react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
 interface Quote {
   code: string; name: string; open: number; high: number; low: number;
   close: number; change: number; change_rate: number; volume: number;
@@ -59,7 +58,7 @@ interface Trade {
 interface Balance { date: string; acc_balance: number; simulation: boolean; }
 
 async function apiFetch(path: string, opts: RequestInit = {}) {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(path, {
     headers: { "Content-Type": "application/json" },
     ...opts,
   });
@@ -138,6 +137,18 @@ export default function TradingPage() {
     else localStorage.removeItem("shioaji_session_id");
   }, [sessionId]);
 
+  // Load saved credentials on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const encKey = localStorage.getItem("shioaji_api_key");
+        const encSec = localStorage.getItem("shioaji_secret_key");
+        if (encKey) setApiKey(await decrypt(encKey));
+        if (encSec) setSecretKey(await decrypt(encSec));
+      } catch { /* ignore decryption errors */ }
+    })();
+  }, []);
+
   // Auto-fill order ticker/price from URL params
   useEffect(() => {
     if (prefilledTicker) { setOrderTicker(prefilledTicker); setQuoteTicker(prefilledTicker); }
@@ -157,7 +168,9 @@ export default function TradingPage() {
       });
       setSessionId(data.session_id);
       setAccounts(data.accounts ?? []);
-      setApiKey(""); setSecretKey("");   // clear from memory after connecting
+      // Save encrypted credentials for next session
+      localStorage.setItem("shioaji_api_key", await encrypt(apiKey));
+      localStorage.setItem("shioaji_secret_key", await encrypt(secretKey));
     } catch (e: unknown) {
       setConnError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -330,9 +343,24 @@ export default function TradingPage() {
                 </div>
               </div>
 
-              <Button onClick={handleConnect} disabled={connecting} className="w-full">
-                {connecting ? t.trading.connecting : t.trading.connect}
-              </Button>
+              <div className="flex items-center justify-between">
+                <Button onClick={handleConnect} disabled={connecting} className="flex-1">
+                  {connecting ? t.trading.connecting : t.trading.connect}
+                </Button>
+                {(typeof window !== "undefined" && localStorage.getItem("shioaji_api_key")) && (
+                  <button
+                    type="button"
+                    className="ml-3 text-xs text-muted-foreground underline hover:text-destructive"
+                    onClick={() => {
+                      localStorage.removeItem("shioaji_api_key");
+                      localStorage.removeItem("shioaji_secret_key");
+                      setApiKey(""); setSecretKey("");
+                    }}
+                  >
+                    Clear saved credentials
+                  </button>
+                )}
+              </div>
             </CardContent>
           </Card>
         ) : (
