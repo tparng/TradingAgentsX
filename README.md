@@ -45,7 +45,15 @@
 
 ## 🔧 近期變更
 
-### v3 改進（當前版本）
+### v4 改進（當前版本）
+
+| 變更項目 | 說明 |
+| -------- | ---- |
+| **新增量化分析師** | 整合 `stock-strategies-only` 量化引擎，新增第 5 位分析師節點（量化分析師），產出綜合評分（0-100）、分項評分、進場/停損/目標價、倉位建議與回測勝率 |
+| **4 個量化工具** | 新增 `get_quant_evaluation`（美股/台股通用）、`get_institutional_flows`、`get_revenue_trend`、`get_valuation_metrics`（台股專用）等 LangChain 工具 |
+| **sys.path 整合** | 透過 `sys.path` 動態掛載 `../stock-strategies-only`，無需 pip install，保持兩個儲存庫各自獨立 |
+
+### v3 改進
 
 | 變更項目 | 說明 |
 | -------- | ---- |
@@ -75,12 +83,17 @@
 
 | 檔案 | 變更類型 | 原因 |
 | ---- | -------- | ---- |
+| `tradingagents/agents/analysts/quant_analyst.py` | **新增** | 量化分析師節點；呼叫 `get_quant_evaluation` 取得結構化評分資料，再由 LLM 撰寫量化分析報告 |
+| `tradingagents/agents/utils/quant_tools.py` | **新增** | 4 個 LangChain StructuredTool：`get_quant_evaluation`（美股/台股）、`get_institutional_flows`、`get_revenue_trend`、`get_valuation_metrics`（台股專用）；透過 `sys.path` 掛載 stock-strategies-only |
+| `tradingagents/agents/utils/agent_states.py` | 修改 | `AgentState` 新增 `quant_report` 欄位 |
 | `tradingagents/agents/analysts/market_analyst.py` | 修改 | 注入含預計算日期的明確啟動訊息；在工具回傳後注入「立即撰寫報告」指令及語言提醒，解決 qwen2.5:14b 不呼叫工具與語言切換問題 |
 | `tradingagents/agents/analysts/news_analyst.py` | 修改 | 同上，針對新聞分析師節點 |
 | `tradingagents/agents/analysts/social_media_analyst.py` | 修改 | 同上，針對社群媒體分析師節點 |
 | `tradingagents/agents/analysts/fundamentals_analyst.py` | 修改 | 同上，針對基本面分析師節點 |
-| `tradingagents/agents/utils/agent_utils.py` | 修改 | `create_msg_delete()` 的佔位訊息改為包含 ticker 與日期，避免代理誤判為空指令 |
-| `tradingagents/graph/trading_graph.py` | 修改 | 切換預設 LLM 為 Ollama；以 `last_printed_id` 去重，修復風險辯論節點重複輸出同一訊息 5 次的問題 |
+| `tradingagents/agents/utils/agent_utils.py` | 修改 | `create_msg_delete()` 的佔位訊息改為包含 ticker 與日期；重新匯出量化工具 |
+| `tradingagents/graph/conditional_logic.py` | 修改 | 新增 `should_continue_quant()` 路由方法 |
+| `tradingagents/graph/setup.py` | 修改 | 新增量化分析師節點配置區塊 |
+| `tradingagents/graph/trading_graph.py` | 修改 | 匯入量化工具；新增 `quant` ToolNode；`_log_state()` 記錄 `quant_report`；以 `last_printed_id` 去重修復重複輸出 |
 
 ### 資料流層
 
@@ -99,15 +112,15 @@
 | 檔案 | 變更類型 | 原因 |
 | ---- | -------- | ---- |
 | `backend/app/models/schemas.py` | 修改 | `AnalysisRequest` 新增 `language` 欄位，接收前端傳入的報告語言設定 |
-| `backend/app/services/trading_service.py` | 修改 | 將 `language` 傳入 `TradingAgentsXGraph` 設定；切換 Ollama 預設值 |
+| `backend/app/services/trading_service.py` | 修改 | 將 `language` 傳入 `TradingAgentsXGraph` 設定；結果字典新增 `quant_report` |
 
 ### 前端
 
 | 檔案 | 變更類型 | 原因 |
 | ---- | -------- | ---- |
-| `frontend/components/analysis/AnalysisForm.tsx` | 修改 | 新增「報告語言」下拉選單（繁體中文 / English），可獨立於 UI 介面語言切換 AI 報告語言 |
-| `frontend/lib/i18n/en.ts` | 修改 | 新增報告語言選單的英文 i18n 字串 |
-| `frontend/lib/i18n/zh-TW.ts` | 修改 | 新增報告語言選單的繁體中文 i18n 字串 |
+| `frontend/components/analysis/AnalysisForm.tsx` | 修改 | 新增「報告語言」下拉選單（繁體中文 / English）；新增「量化分析師」選項至分析師勾選清單 |
+| `frontend/lib/i18n/en.ts` | 修改 | 新增報告語言選單及量化分析師的英文 i18n 字串 |
+| `frontend/lib/i18n/zh-TW.ts` | 修改 | 新增報告語言選單及量化分析師的繁體中文 i18n 字串 |
 
 ### TUI（終端機介面）
 
