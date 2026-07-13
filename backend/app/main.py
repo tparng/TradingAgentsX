@@ -17,6 +17,7 @@ from backend.app.api.routes import router
 from backend.app.api.auth import router as auth_router
 from backend.app.api.user import router as user_router
 from backend.app.api.trading_routes import router as trading_router
+from backend.app.api.shioaji_server_routes import router as shioaji_server_router
 
 # Configure logging
 logging.basicConfig(
@@ -145,6 +146,7 @@ app.include_router(router)
 app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(trading_router)
+app.include_router(shioaji_server_router)
 
 
 # Database initialization on startup

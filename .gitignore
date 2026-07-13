@@ -3,6 +3,8 @@ node_modules/
 # Project specific
 SinoPac/
 __pycache__/
+# shioaji-pro-app — separate project, cloned locally; not committed
+shioaji-pro-app/
 /results
 *.csv
 *.json

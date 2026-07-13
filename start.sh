@@ -5,6 +5,7 @@ set -e
 REPO="$(cd "$(dirname "$0")" && pwd)"
 BACKEND_PORT=8000
 FRONTEND_PORT=3000
+SHIOAJI_APP_PORT=5173
 BROWSER="google-chrome"
 
 # ── helpers ──────────────────────────────────────────────────────────────────
@@ -56,12 +57,36 @@ else
   wait_for_port $FRONTEND_PORT "Frontend"
 fi
 
+# ── shioaji-pro-app ───────────────────────────────────────────────────────────
+
+if curl -sf "http://localhost:$SHIOAJI_APP_PORT" -o /dev/null 2>/dev/null; then
+  log "Shioaji Pro App already running on port $SHIOAJI_APP_PORT."
+else
+  if [ -d "$REPO/shioaji-pro-app" ]; then
+    log "Starting Shioaji Pro App..."
+    cd "$REPO/shioaji-pro-app"
+    if [ ! -d node_modules ]; then
+      log "Installing shioaji-pro-app dependencies (first run)..."
+      npm install --legacy-peer-deps
+    fi
+    npm run dev > /tmp/tradingagentsx-shioaji-app.log 2>&1 &
+    SHIOAJI_APP_PID=$!
+    log "Shioaji Pro App PID: $SHIOAJI_APP_PID"
+    wait_for_port $SHIOAJI_APP_PORT "Shioaji Pro App"
+  else
+    log "shioaji-pro-app directory not found — skipping."
+  fi
+fi
+
 # ── open browser ──────────────────────────────────────────────────────────────
 
 log "Opening browser..."
 $BROWSER "http://localhost:$FRONTEND_PORT" &
 
 log "TradingAgentsX is running."
-log "  Frontend: http://localhost:$FRONTEND_PORT"
-log "  Backend:  http://localhost:$BACKEND_PORT/docs"
-log "  Logs:     /tmp/tradingagentsx-backend.log  /tmp/tradingagentsx-frontend.log"
+log "  Frontend:        http://localhost:$FRONTEND_PORT"
+log "  Backend:         http://localhost:$BACKEND_PORT/docs"
+log "  Shioaji Pro App: http://localhost:$SHIOAJI_APP_PORT"
+log "  Logs:  /tmp/tradingagentsx-backend.log"
+log "         /tmp/tradingagentsx-frontend.log"
+log "         /tmp/tradingagentsx-shioaji-app.log"

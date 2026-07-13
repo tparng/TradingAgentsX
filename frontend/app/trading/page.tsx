@@ -34,7 +34,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle, ArrowLeft, RefreshCw, Wifi, WifiOff } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ExternalLink, RefreshCw, Wifi, WifiOff } from "lucide-react";
 
 interface Quote {
   code: string; name: string; open: number; high: number; low: number;
@@ -94,6 +94,12 @@ export default function TradingPage() {
   const prefilledAction  = searchParams.get("action")  ?? "BUY";
   const prefilledPrice   = searchParams.get("price")   ?? "";
 
+  // Sidecar server state (shioaji-pro-app)
+  const [serverRunning,  setServerRunning]  = useState(false);
+  const [serverStarting, setServerStarting] = useState(false);
+  const [serverStopping, setServerStopping] = useState(false);
+  const [serverError,    setServerError]    = useState("");
+
   // Connection state
   const [apiKey,     setApiKey]     = useState("");
   const [secretKey,  setSecretKey]  = useState("");
@@ -148,6 +154,45 @@ export default function TradingPage() {
       } catch { /* ignore decryption errors */ }
     })();
   }, []);
+
+  // Check sidecar server status on mount
+  useEffect(() => {
+    apiFetch("/api/shioaji-server/status")
+      .then(d => setServerRunning(d.running && d.healthy))
+      .catch(() => {});
+  }, []);
+
+  // ── Sidecar server management ─────────────────────────────────────────────
+
+  const handleStartServer = async () => {
+    if (!apiKey || !secretKey) { setServerError("Please enter API key and secret key below."); return; }
+    setServerStarting(true); setServerError("");
+    try {
+      await apiFetch("/api/shioaji-server/start", {
+        method: "POST",
+        body: JSON.stringify({ api_key: apiKey, secret_key: secretKey, simulation }),
+      });
+      setServerRunning(true);
+      localStorage.setItem("shioaji_api_key", await encrypt(apiKey));
+      localStorage.setItem("shioaji_secret_key", await encrypt(secretKey));
+    } catch (e: unknown) {
+      setServerError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setServerStarting(false);
+    }
+  };
+
+  const handleStopServer = async () => {
+    setServerStopping(true); setServerError("");
+    try {
+      await apiFetch("/api/shioaji-server/stop", { method: "POST" });
+      setServerRunning(false);
+    } catch (e: unknown) {
+      setServerError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setServerStopping(false);
+    }
+  };
 
   // Auto-fill order ticker/price from URL params
   useEffect(() => {
@@ -290,6 +335,57 @@ export default function TradingPage() {
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>{t.trading.twStockOnly}</AlertDescription>
         </Alert>
+
+        {/* Shioaji Pro Terminal card */}
+        <Card className={serverRunning ? "border-blue-400 bg-blue-50/40 dark:bg-blue-950/20" : ""}>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Shioaji Pro Terminal</CardTitle>
+                <CardDescription>Full trading terminal — uses credentials entered below</CardDescription>
+              </div>
+              {serverRunning
+                ? <Badge className="bg-green-100 text-green-800 border-green-300">Server running · port 21322</Badge>
+                : <Badge variant="outline" className="text-gray-500">Server stopped</Badge>
+              }
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {serverError && (
+              <Alert variant="destructive">
+                <AlertDescription>{serverError}</AlertDescription>
+              </Alert>
+            )}
+            {serverRunning ? (
+              <div className="flex gap-3">
+                <Button
+                  className="flex-1 bg-blue-600 hover:bg-blue-700"
+                  onClick={() => window.open("http://localhost:5173", "_blank")}
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Open Pro Terminal
+                </Button>
+                <Button variant="outline" onClick={handleStopServer} disabled={serverStopping}>
+                  {serverStopping ? "Stopping…" : "Stop Server"}
+                </Button>
+              </div>
+            ) : (
+              <Button
+                className="w-full"
+                onClick={handleStartServer}
+                disabled={serverStarting}
+              >
+                {serverStarting ? "Starting server (up to 10 s)…" : "Start Pro Terminal Server"}
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+
+        <div className="relative flex items-center gap-3">
+          <div className="flex-1 border-t" />
+          <span className="text-xs text-muted-foreground">or use simple trading below</span>
+          <div className="flex-1 border-t" />
+        </div>
 
         {/* Connect card */}
         {!isConnected ? (
