@@ -53,8 +53,8 @@ class ShioajiServerManager:
             )
             logger.info(f"[shioaji-server] started PID {self._process.pid} simulation={simulation}")
 
-        # Wait up to 10 s for the server to become healthy
-        for _ in range(20):
+        # Wait up to 60 s — real-credential login loads ~50k contracts and takes 20–40 s
+        for _ in range(120):
             time.sleep(0.5)
             if self._is_healthy():
                 return {"status": "started", "port": SIDECAR_PORT, "simulation": simulation}
@@ -62,7 +62,7 @@ class ShioajiServerManager:
                 out = self._process.stdout.read().decode(errors="replace") if self._process.stdout else ""
                 raise RuntimeError(f"Sidecar exited early: {out[:500]}")
 
-        raise RuntimeError("Sidecar did not become healthy within 10 s")
+        raise RuntimeError("Sidecar did not become healthy within 60 s")
 
     def stop(self) -> dict:
         with self._lock:

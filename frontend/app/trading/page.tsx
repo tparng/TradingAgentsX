@@ -57,6 +57,8 @@ interface Trade {
 
 interface Balance { date: string; acc_balance: number; simulation: boolean; }
 
+const SIDECAR_PORT = 21322;
+
 async function apiFetch(path: string, opts: RequestInit = {}) {
   const res = await fetch(path, {
     headers: { "Content-Type": "application/json" },
@@ -404,7 +406,7 @@ export default function TradingPage() {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle>Shioaji Pro Terminal</CardTitle>
-                <CardDescription>Full trading terminal powered by shioaji-pro-app</CardDescription>
+                <CardDescription>Full trading terminal — opens the sidecar&apos;s built-in dashboard (port {SIDECAR_PORT})</CardDescription>
               </div>
               {serverRunning
                 ? <Badge className="bg-green-100 text-green-800 border-green-300">Server running · port 21322</Badge>
@@ -422,7 +424,7 @@ export default function TradingPage() {
               <div className="flex gap-3">
                 <Button
                   className="flex-1 bg-blue-600 hover:bg-blue-700"
-                  onClick={() => window.open("http://localhost:5173", "_blank")}
+                  onClick={() => window.open(`http://localhost:${SIDECAR_PORT}`, "_blank")}
                 >
                   <ExternalLink className="h-4 w-4 mr-2" />
                   Open Pro Terminal
@@ -437,7 +439,7 @@ export default function TradingPage() {
                 onClick={handleStartServer}
                 disabled={serverStarting}
               >
-                {serverStarting ? "Starting server (up to 10 s)…" : "Start Pro Terminal Server"}
+                {serverStarting ? "Starting server — loading contracts, please wait (up to 60 s)…" : "Start Pro Terminal Server"}
               </Button>
             )}
           </CardContent>
