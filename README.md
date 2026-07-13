@@ -40,12 +40,23 @@
 | 💬 **AI報告問答**        | 支援AI問答功能                                                  |
 | 📊 **PDF預覽**           | 支援PDF預覽功能                                                 |
 | 🌐 **多語言支援**        | 支援繁體中文、英文                                              |
+| 📈 **即時交易**          | 整合 Sinopac Shioaji API，支援台股即時報價、下單、持倉管理（模擬模式預設開啟） |
 
 ---
 
 ## 🔧 近期變更
 
-### v4 改進（當前版本）
+### v5 改進（當前版本）
+
+| 變更項目 | 說明 |
+| -------- | ---- |
+| **新增即時交易功能** | 整合 Sinopac Shioaji API，支援台股即時報價、下單、查詢持倉、取消委託等功能 |
+| **模擬交易預設開啟** | 預設啟用紙上交易（simulation=True），避免誤用真實帳戶 |
+| **Session 管理** | 以 UUID 作為 session key，8 小時 TTL，threading.Lock 保護並發存取；前端僅存 session_id（不存 API 金鑰） |
+| **REST API 端點** | `/api/trading/*` 下新增 8 個端點（connect、disconnect、quote、balance、positions、order CRUD、list orders），全部以 `asyncio.to_thread()` 包裝阻塞式 Shioaji 呼叫 |
+| **即時交易 UI** | 新增 `/trading` 頁面，含連線卡片（API 金鑰輸入、模擬/真實切換）及四個分頁：即時報價、下單、持倉、今日委託 |
+
+### v4 改進
 
 | 變更項目 | 說明 |
 | -------- | ---- |
@@ -113,14 +124,18 @@
 | ---- | -------- | ---- |
 | `backend/app/models/schemas.py` | 修改 | `AnalysisRequest` 新增 `language` 欄位，接收前端傳入的報告語言設定 |
 | `backend/app/services/trading_service.py` | 修改 | 將 `language` 傳入 `TradingAgentsXGraph` 設定；結果字典新增 `quant_report` |
+| `backend/app/services/shioaji_service.py` | **新增** | `ShioajiSessionManager` 單例：以 UUID 管理 Shioaji 連線（8 小時 TTL、threading.Lock），封裝報價、餘額、持倉、下單、取消委託等操作 |
+| `backend/app/api/trading_routes.py` | **新增** | 8 個 `/api/trading/*` REST 端點，以 `asyncio.to_thread()` 包裝阻塞式 Shioaji 呼叫以相容 FastAPI 非同步環境 |
+| `backend/app/main.py` | 修改 | 匯入並註冊 `trading_router` |
 
 ### 前端
 
 | 檔案 | 變更類型 | 原因 |
 | ---- | -------- | ---- |
 | `frontend/components/analysis/AnalysisForm.tsx` | 修改 | 新增「報告語言」下拉選單（繁體中文 / English）；新增「量化分析師」選項至分析師勾選清單 |
-| `frontend/lib/i18n/en.ts` | 修改 | 新增報告語言選單及量化分析師的英文 i18n 字串 |
-| `frontend/lib/i18n/zh-TW.ts` | 修改 | 新增報告語言選單及量化分析師的繁體中文 i18n 字串 |
+| `frontend/lib/i18n/en.ts` | 修改 | 新增報告語言選單、量化分析師及即時交易（~50 鍵）的英文 i18n 字串 |
+| `frontend/lib/i18n/zh-TW.ts` | 修改 | 新增報告語言選單、量化分析師及即時交易（~50 鍵）的繁體中文 i18n 字串 |
+| `frontend/app/trading/page.tsx` | **新增** | 即時交易頁面：連線卡片（API 金鑰、模擬/真實切換）+ 四分頁（即時報價、下單、持倉、今日委託）；session_id 存入 localStorage，支援 URL 預填參數 |
 
 ### TUI（終端機介面）
 
