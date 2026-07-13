@@ -4,6 +4,7 @@ The sidecar is the binary bundled with shioaji-pro-app; it exposes a REST+SSE
 API that shioaji-pro-app's frontend talks to directly.
 """
 import logging
+import os
 import subprocess
 import threading
 import time
@@ -33,20 +34,22 @@ class ShioajiServerManager:
             if not SIDECAR_BIN.exists():
                 raise RuntimeError(f"Sidecar binary not found: {SIDECAR_BIN}")
 
-            cmd = [
-                str(SIDECAR_BIN),
-                "server",
-                "--api-key", api_key,
-                "--secret-key", secret_key,
-                "--port", str(SIDECAR_PORT),
-            ]
-            if simulation:
-                cmd.append("--simulation")
+            env = os.environ.copy()
+            env["SJ_API_KEY"]   = api_key
+            env["SJ_SEC_KEY"]   = secret_key
+            env["SJ_HTTP_ADDR"] = f"127.0.0.1:{SIDECAR_PORT}"
+            if not simulation:
+                env["SJ_PRODUCTION"] = "true"
+            else:
+                env.pop("SJ_PRODUCTION", None)
+
+            cmd = [str(SIDECAR_BIN), "server", "start", "--no-open"]
 
             self._process = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
+                env=env,
             )
             logger.info(f"[shioaji-server] started PID {self._process.pid} simulation={simulation}")
 
