@@ -1,6 +1,8 @@
 .venv
 node_modules/
 # Project specific
+SinoPac/
+__pycache__/
 /results
 *.csv
 *.json
