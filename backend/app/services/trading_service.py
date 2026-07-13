@@ -120,7 +120,8 @@ class TradingService:
                 def normalize_base_url(url: str) -> str:
                     """Normalize base URL to ensure proper formatting"""
                     if url:
-                        # Replace common case variations
+                        url = url.strip()
+                        url = url.rstrip("/")
                         url = url.replace("/V1", "/v1")
                         url = url.replace("/V2", "/v2")
                     return url

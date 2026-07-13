@@ -15,6 +15,14 @@ class AnalysisRequest(BaseModel):
     @classmethod
     def uppercase_ticker(cls, v: str) -> str:
         return v.strip().upper()
+
+    @field_validator('openai_base_url', 'quick_think_base_url', 'deep_think_base_url', 'embedding_base_url', mode='before')
+    @classmethod
+    def strip_base_urls(cls, v):
+        if isinstance(v, str):
+            return v.strip().rstrip('/')
+        return v
+
     analysis_date: str = Field(..., description="Analysis date in YYYY-MM-DD format")
     analysts: Optional[List[str]] = Field(
         default=["market", "social", "news", "fundamentals"],

@@ -276,15 +276,23 @@ export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
       return;
     }
 
-    // Validate API keys are set (they come from localStorage/settings)
+    // For Ollama/local endpoints, an empty API key is valid — use "ollama" as the placeholder
+    const isLocalUrl = (url?: string) => url && (url.includes("localhost") || url.includes("127.0.0.1"));
     if (!values.quick_think_api_key) {
-      alert("請先在右上角「設定」中設定您的 API Key。\n\n快速思維模型需要對應的 API Key 才能運作。");
-      return;
+      if (isLocalUrl(values.quick_think_base_url)) {
+        values.quick_think_api_key = "ollama";
+      } else {
+        alert("請先在右上角「設定」中設定您的 API Key。\n\n快速思維模型需要對應的 API Key 才能運作。");
+        return;
+      }
     }
-    
     if (!values.deep_think_api_key) {
-      alert("請先在右上角「設定」中設定您的 API Key。\n\n深層思維模型需要對應的 API Key 才能運作。");
-      return;
+      if (isLocalUrl(values.deep_think_base_url)) {
+        values.deep_think_api_key = "ollama";
+      } else {
+        alert("請先在右上角「設定」中設定您的 API Key。\n\n深層思維模型需要對應的 API Key 才能運作。");
+        return;
+      }
     }
 
     const request: AnalysisRequest = {
