@@ -330,6 +330,9 @@ uv sync
 uv pip install -e .
 uv pip install -r backend/requirements.txt
 
+# 安裝 Shioaji（即時交易功能，選用）
+uv run python -m pip install shioaji   # uv run 確保使用正確虛擬環境
+
 # 啟用虛擬環境
 source .venv/bin/activate
 
@@ -345,6 +348,42 @@ python -m backend
 
 - API: http://localhost:8000
 - Swagger 文檔: http://localhost:8000/docs
+
+#### 即時交易 API 測試（需要永豐證券帳號）
+
+```bash
+# 連線（simulation=true 為紙上交易，預設開啟）
+curl -s -X POST http://localhost:8000/api/trading/connect \
+  -H "Content-Type: application/json" \
+  -d '{"api_key":"YOUR_KEY","secret_key":"YOUR_SECRET","simulation":true}' \
+  | python -m json.tool
+
+# 儲存回傳的 session_id
+SESSION="paste-session-id-here"
+
+# 即時報價（台股代碼，如台積電 2330）
+curl -s "http://localhost:8000/api/trading/quote/2330?session_id=$SESSION" | python -m json.tool
+
+# 帳戶餘額
+curl -s "http://localhost:8000/api/trading/balance?session_id=$SESSION" | python -m json.tool
+
+# 持倉查詢
+curl -s "http://localhost:8000/api/trading/positions?session_id=$SESSION" | python -m json.tool
+
+# 模擬下單（BUY 1 張 2330 @ 900 TWD）
+curl -s -X POST http://localhost:8000/api/trading/order \
+  -H "Content-Type: application/json" \
+  -d "{\"session_id\":\"$SESSION\",\"ticker\":\"2330\",\"action\":\"BUY\",\"price\":900.0,\"quantity\":1}" \
+  | python -m json.tool
+
+# 今日委託清單
+curl -s "http://localhost:8000/api/trading/orders?session_id=$SESSION" | python -m json.tool
+
+# 斷線
+curl -s -X DELETE "http://localhost:8000/api/trading/connect/$SESSION"
+```
+
+也可透過 Web UI 操作：啟動前端後前往 `http://localhost:3000/trading`，點選導覽列「Trading / 即時交易」。
 
 #### 4️⃣ 前端設置
 
