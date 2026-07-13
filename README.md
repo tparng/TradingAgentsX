@@ -67,6 +67,58 @@
 
 ---
 
+## 📝 與原始儲存庫的差異檔案清單
+
+以下列出相對於原始 [`MarkLo127/TradingAgentsX`](https://github.com/MarkLo127/TradingAgentsX) 儲存庫，本分支新增或修改的檔案及其原因。
+
+### 核心代理邏輯
+
+| 檔案 | 變更類型 | 原因 |
+| ---- | -------- | ---- |
+| `tradingagents/agents/analysts/market_analyst.py` | 修改 | 注入含預計算日期的明確啟動訊息；在工具回傳後注入「立即撰寫報告」指令及語言提醒，解決 qwen2.5:14b 不呼叫工具與語言切換問題 |
+| `tradingagents/agents/analysts/news_analyst.py` | 修改 | 同上，針對新聞分析師節點 |
+| `tradingagents/agents/analysts/social_media_analyst.py` | 修改 | 同上，針對社群媒體分析師節點 |
+| `tradingagents/agents/analysts/fundamentals_analyst.py` | 修改 | 同上，針對基本面分析師節點 |
+| `tradingagents/agents/utils/agent_utils.py` | 修改 | `create_msg_delete()` 的佔位訊息改為包含 ticker 與日期，避免代理誤判為空指令 |
+| `tradingagents/graph/trading_graph.py` | 修改 | 切換預設 LLM 為 Ollama；以 `last_printed_id` 去重，修復風險辯論節點重複輸出同一訊息 5 次的問題 |
+
+### 資料流層
+
+| 檔案 | 變更類型 | 原因 |
+| ---- | -------- | ---- |
+| `tradingagents/default_config.py` | 修改 | 預設 LLM 改為 Ollama/qwen2.5:14b；新聞來源改為 Google News RSS（無需 API 金鑰）；全域新聞改為 local/Reddit |
+| `tradingagents/dataflows/interface.py` | 修改 | 所有中文除錯輸出改為英文 `[vendor]` 格式；錯誤訊息英文化 |
+| `tradingagents/dataflows/local.py` | 修改 | 頂層 `import polars` 改為 `try/except ImportError`，避免未安裝 polars 時後端啟動崩潰 |
+| `tradingagents/dataflows/alpha_vantage_common.py` | 修改 | 同上，防護性 polars 匯入 |
+| `tradingagents/dataflows/stockstats_utils.py` | 修改 | 同上，防護性 polars 匯入 |
+| `tradingagents/dataflows/utils.py` | 修改 | 同上，防護性 polars 匯入 |
+| `tradingagents/dataflows/yfin_utils.py` | 修改 | 同上，防護性 polars 匯入 |
+
+### 後端
+
+| 檔案 | 變更類型 | 原因 |
+| ---- | -------- | ---- |
+| `backend/app/models/schemas.py` | 修改 | `AnalysisRequest` 新增 `language` 欄位，接收前端傳入的報告語言設定 |
+| `backend/app/services/trading_service.py` | 修改 | 將 `language` 傳入 `TradingAgentsXGraph` 設定；切換 Ollama 預設值 |
+
+### 前端
+
+| 檔案 | 變更類型 | 原因 |
+| ---- | -------- | ---- |
+| `frontend/components/analysis/AnalysisForm.tsx` | 修改 | 新增「報告語言」下拉選單（繁體中文 / English），可獨立於 UI 介面語言切換 AI 報告語言 |
+| `frontend/lib/i18n/en.ts` | 修改 | 新增報告語言選單的英文 i18n 字串 |
+| `frontend/lib/i18n/zh-TW.ts` | 修改 | 新增報告語言選單的繁體中文 i18n 字串 |
+
+### TUI（終端機介面）
+
+| 檔案 | 變更類型 | 原因 |
+| ---- | -------- | ---- |
+| `tui/analysis.py` | 修改 | 新增 Ollama 提供商支援；模型名稱含 `:` 時自動識別為 Ollama |
+| `tui/constants.py` | 修改 | 新增 Ollama 至提供商常數清單 |
+| `tui/screens/config.py` | 修改 | TUI 設定畫面新增 Ollama 選項 |
+
+---
+
 ## 🏗️ 系統架構
 
 ```
