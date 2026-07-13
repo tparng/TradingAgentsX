@@ -32,6 +32,12 @@ class ShioajiServerManager:
             if self._process and self._process.poll() is None:
                 return {"status": "already_running", "port": SIDECAR_PORT}
 
+            # Another process may already own the port (e.g. from a prior manual run).
+            # If it's healthy, adopt it; if not, kill it so we can bind the port.
+            if self._is_healthy():
+                return {"status": "already_running", "port": SIDECAR_PORT}
+            self._kill_port()
+
             if not SIDECAR_BIN.exists():
                 raise RuntimeError(f"Sidecar binary not found: {SIDECAR_BIN}")
 
@@ -81,16 +87,36 @@ class ShioajiServerManager:
 
     def status(self) -> dict:
         with self._lock:
-            running = self._process is not None and self._process.poll() is None
-        healthy = self._is_healthy() if running else False
+            managed = self._process is not None and self._process.poll() is None
+            pid = self._process.pid if managed else None
+        healthy = self._is_healthy()
         return {
-            "running": running,
+            "running": managed or healthy,
             "healthy": healthy,
             "port": SIDECAR_PORT,
-            "pid": self._process.pid if running else None,
+            "pid": pid,
         }
 
     # ── internal ─────────────────────────────────────────────────────────────
+
+    def _kill_port(self) -> None:
+        """Kill any process currently bound to SIDECAR_PORT so we can rebind."""
+        try:
+            result = subprocess.run(
+                ["fuser", f"{SIDECAR_PORT}/tcp"],
+                capture_output=True, text=True,
+            )
+            for pid_str in result.stdout.split():
+                try:
+                    import signal
+                    os.kill(int(pid_str), signal.SIGTERM)
+                    logger.info(f"[shioaji-server] killed stale PID {pid_str} on port {SIDECAR_PORT}")
+                except (ValueError, ProcessLookupError):
+                    pass
+            if result.stdout.strip():
+                time.sleep(1)  # give the OS a moment to release the port
+        except FileNotFoundError:
+            pass  # fuser not available on this system
 
     def _is_healthy(self) -> bool:
         try:
