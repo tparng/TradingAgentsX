@@ -39,6 +39,7 @@ export const zhTW = {
     home: "首頁",
     analysis: "分析",
     history: "歷史報告",
+    trading: "即時交易",
     settings: "設定",
     tagline: "多代理 LLM 金融交易框架",
   },

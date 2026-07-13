@@ -85,6 +85,7 @@ export const en = {
     home: "Home",
     analysis: "Analysis",
     history: "History",
+    trading: "Trading",
     settings: "Settings",
     tagline: "Multi-Agent LLM Trading Framework",
   },
