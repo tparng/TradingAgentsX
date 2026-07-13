@@ -74,6 +74,13 @@ class ConditionalLogic:
             return "tools_news"
         return "Msg Clear News"
 
+    def should_continue_quant(self, state: AgentState):
+        messages = state["messages"]
+        last_message = messages[-1]
+        if last_message.tool_calls:
+            return "tools_quant"
+        return "Msg Clear Quant"
+
     def should_continue_fundamentals(self, state: AgentState):
         """
         判斷基本面分析是否應該繼續。

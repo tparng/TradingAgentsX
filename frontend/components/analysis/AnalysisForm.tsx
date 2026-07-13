@@ -106,6 +106,7 @@ export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
     { value: "social", label: t.agents.social_analyst },
     { value: "news", label: t.agents.news_analyst },
     { value: "fundamentals", label: t.agents.fundamentals_analyst },
+    { value: "quant", label: t.agents.quant_analyst },
   ], [t]);
 
   const form = useForm<z.infer<typeof formSchema>>({

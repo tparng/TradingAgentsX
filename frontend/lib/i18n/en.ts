@@ -244,6 +244,11 @@ export const en = {
     fundamentals_analyst_desc:
       "Financial data analysis, valuation metrics, company fundamentals evaluation",
 
+    quant_analyst: "Quant Analyst",
+    quant_analyst_role: "Quantitative Analysis",
+    quant_analyst_desc:
+      "Algorithmic scoring (0-100), backtest win-rate, entry/stop/target prices, position sizing, volume patterns",
+
     // Researchers
     bull_researcher: "Bull Researcher",
     bull_researcher_role: "Bullish Analysis",

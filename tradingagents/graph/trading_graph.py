@@ -37,7 +37,11 @@ from tradingagents.agents.utils.agent_utils import (
     get_news,
     get_insider_sentiment,
     get_insider_transactions,
-    get_global_news
+    get_global_news,
+    get_quant_evaluation,
+    get_institutional_flows,
+    get_revenue_trend,
+    get_valuation_metrics,
 )
 
 # 匯入圖的其他組件
@@ -238,6 +242,15 @@ class TradingAgentsXGraph:
                     get_income_statement,
                 ]
             ),
+            "quant": ToolNode(
+                [
+                    # 量化評估工具 (stock-strategies-only)
+                    get_quant_evaluation,
+                    get_institutional_flows,
+                    get_revenue_trend,
+                    get_valuation_metrics,
+                ]
+            ),
         }
 
     def propagate(self, company_name, trade_date):
@@ -300,6 +313,7 @@ class TradingAgentsXGraph:
             "sentiment_report": final_state["sentiment_report"],
             "news_report": final_state["news_report"],
             "fundamentals_report": final_state["fundamentals_report"],
+            "quant_report": final_state.get("quant_report", ""),
             "investment_debate_state": {
                 "bull_history": final_state["investment_debate_state"]["bull_history"],
                 "bear_history": final_state["investment_debate_state"]["bear_history"],

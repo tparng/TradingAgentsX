@@ -138,7 +138,11 @@ export const zhTW = {
     fundamentals_analyst: "基本面分析師",
     fundamentals_analyst_role: "基本面分析",
     fundamentals_analyst_desc: "財務數據分析、估值指標、公司基本面評估",
-    
+
+    quant_analyst: "量化分析師",
+    quant_analyst_role: "量化分析",
+    quant_analyst_desc: "演算法評分（0-100）、回測勝率、進場/停損/目標價、倉位建議、量價型態",
+
     // Researchers
     bull_researcher: "看漲研究員",
     bull_researcher_role: "多頭分析",

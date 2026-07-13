@@ -109,6 +109,13 @@ class GraphSetup:
             delete_nodes["fundamentals"] = create_msg_delete()
             tool_nodes["fundamentals"] = self.tool_nodes["fundamentals"]
 
+        if "quant" in selected_analysts:
+            analyst_nodes["quant"] = create_quant_analyst(
+                self.quick_thinking_llm, self.language
+            )
+            delete_nodes["quant"] = create_msg_delete()
+            tool_nodes["quant"] = self.tool_nodes["quant"]
+
         # 建立研究員和管理者節點
         bull_researcher_node = create_bull_researcher(
             self.quick_thinking_llm, self.bull_memory, self.language

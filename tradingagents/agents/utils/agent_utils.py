@@ -40,6 +40,12 @@ from tradingagents.agents.utils.news_data_tools import (
     get_insider_transactions,
     get_global_news
 )
+from tradingagents.agents.utils.quant_tools import (
+    get_quant_evaluation,
+    get_institutional_flows,
+    get_revenue_trend,
+    get_valuation_metrics,
+)
 
 def create_msg_delete():
     """
