@@ -59,7 +59,8 @@
 | **修復「Failed to fetch」** | 交易頁改用相對路徑 `/api/trading/*`，請求透過 Next.js catch-all proxy 轉發至後端，與其他頁面一致，解決瀏覽器直連 `localhost:8000` 失敗的問題 |
 | **加密儲存 API 金鑰** | 連線成功後以 AES-256-GCM（`lib/crypto.ts`）加密 Sinopac API Key / Secret Key 並存入 localStorage；下次開啟頁面自動預填，並提供「Clear saved credentials」清除連結 |
 | **新增缺少的 UI 元件** | 補充 `components/ui/alert.tsx`（shadcn Alert/AlertDescription）及 `components/ui/switch.tsx`（純 CSS 切換開關，不依賴 @radix-ui/react-switch）|
-| **一鍵啟動腳本** | 新增 `start.sh`：自動啟動後端與前端、等待服務就緒後開啟 Chrome；支援已啟動時跳過重複啟動；搭配 Ubuntu 桌面捷徑（`.desktop` 檔）可雙擊圖示啟動，無需輸入指令 |
+| **一鍵啟動腳本** | 新增 `start.sh`：自動啟動後端、前端及 shioaji-pro-app、等待服務就緒後開啟 Chrome；支援已啟動時跳過重複啟動；搭配 Ubuntu 桌面捷徑（`.desktop` 檔）可雙擊圖示啟動，無需輸入指令 |
+| **整合 Shioaji Pro Terminal** | 整合 [shioaji-pro-app](https://github.com/Sinotrade/shioaji-pro-app) 全功能交易終端（AGPL-3.0）；後端以 `ShioajiServerManager` 管理 sidecar binary（port 21322），新增 `/api/shioaji-server/{start,stop,status}` 3 個端點；`/trading` 頁面新增「Shioaji Pro Terminal」卡片，一鍵啟動伺服器並在新分頁開啟完整交易介面（port 5173） |
 
 ### v4 改進
 
@@ -131,7 +132,9 @@
 | `backend/app/services/trading_service.py` | 修改 | 將 `language` 傳入 `TradingAgentsXGraph` 設定；結果字典新增 `quant_report` |
 | `backend/app/services/shioaji_service.py` | **新增** | `ShioajiSessionManager` 單例：以 UUID 管理 Shioaji 連線（8 小時 TTL、threading.Lock），封裝報價、餘額、持倉、下單、取消委託等操作 |
 | `backend/app/api/trading_routes.py` | **新增** | 8 個 `/api/trading/*` REST 端點，以 `asyncio.to_thread()` 包裝阻塞式 Shioaji 呼叫以相容 FastAPI 非同步環境 |
-| `backend/app/main.py` | 修改 | 匯入並註冊 `trading_router` |
+| `backend/app/services/shioaji_server_service.py` | **新增** | `ShioajiServerManager` 單例：管理 shioaji-pro-app sidecar binary 的生命週期（啟動、停止、輪詢 `/api/v1/health` 健康狀態），port 21322 |
+| `backend/app/api/shioaji_server_routes.py` | **新增** | 3 個 `/api/shioaji-server/*` REST 端點：`POST /start`（啟動 sidecar）、`POST /stop`（停止）、`GET /status`（回傳 running/healthy/pid） |
+| `backend/app/main.py` | 修改 | 匯入並註冊 `trading_router` 及 `shioaji_server_router` |
 
 ### 前端
 
@@ -140,11 +143,12 @@
 | `frontend/components/analysis/AnalysisForm.tsx` | 修改 | 新增「報告語言」下拉選單（繁體中文 / English）；新增「量化分析師」選項至分析師勾選清單 |
 | `frontend/lib/i18n/en.ts` | 修改 | 新增報告語言選單、量化分析師、即時交易（~50 鍵）及導覽列 `trading` 鍵的英文 i18n 字串 |
 | `frontend/lib/i18n/zh-TW.ts` | 修改 | 新增報告語言選單、量化分析師、即時交易（~50 鍵）及導覽列 `trading` 鍵的繁體中文 i18n 字串 |
-| `frontend/app/trading/page.tsx` | **新增** | 即時交易頁面：連線卡片（API 金鑰、模擬/真實切換）+ 四分頁（即時報價、下單、持倉、今日委託）；session_id 存入 localStorage，支援 URL 預填參數；API 金鑰以 AES-GCM 加密後儲存，頁面載入時自動預填；改用相對路徑透過 Next.js proxy 轉發請求 |
+| `frontend/app/trading/page.tsx` | 修改 | 新增「Shioaji Pro Terminal」卡片：呼叫 `/api/shioaji-server/start` 啟動 sidecar；sidecar 就緒後顯示「Open Pro Terminal」按鈕（在新分頁開啟 `localhost:5173`）；保留原有簡易交易 UI（四分頁）作為替代方案；憑證與下方連線卡片共用 |
 | `frontend/components/layout/Header.tsx` | 修改 | 桌面版與手機版導覽列新增「Trading / 即時交易」連結 |
 | `frontend/components/ui/alert.tsx` | **新增** | shadcn 標準 Alert / AlertTitle / AlertDescription 元件（交易頁警示用） |
 | `frontend/components/ui/switch.tsx` | **新增** | 純 CSS 切換開關元件，不依賴 `@radix-ui/react-switch`（未安裝）；以 `<input type="checkbox">` 搭配 Tailwind peer 類實作 |
-| `start.sh` | **新增** | 一鍵啟動腳本：偵測服務是否已啟動（跳過重複）、啟動後端與前端、等待埠就緒、開啟 Chrome；日誌輸出至 `/tmp/tradingagentsx-*.log` |
+| `start.sh` | 修改 | 新增啟動 shioaji-pro-app 開發伺服器（port 5173）；偵測三個服務是否已啟動（跳過重複）；日誌輸出至 `/tmp/tradingagentsx-shioaji-app.log` |
+| `.gitignore` | 修改 | 新增 `shioaji-pro-app/`（含 sidecar binary 的獨立 git 儲存庫，不納入版本控制） |
 
 ### TUI（終端機介面）
 
@@ -200,18 +204,26 @@ TradingAgentsX/
 │       │   ├── routes.py       # 分析 API
 │       │   ├── auth.py         # Google OAuth
 │       │   ├── user.py         # 使用者資料同步
+│       │   ├── trading_routes.py       # 即時交易 API（Python shioaji 套件）
+│       │   ├── shioaji_server_routes.py # Sidecar 管理 API（start/stop/status）
 │       │   └── dependencies.py # 依賴注入
 │       ├── core/               # 核心配置
 │       ├── db/                 # PostgreSQL 資料庫
 │       ├── models/             # Pydantic 模型
 │       └── services/           # 業務邏輯
-│           ├── trading_service.py  # 交易分析服務
+│           ├── trading_service.py      # 交易分析服務
+│           ├── shioaji_service.py      # Shioaji Python lib session 管理
+│           ├── shioaji_server_service.py # Sidecar binary 生命週期管理
 │           ├── task_manager.py     # 任務管理器
 │           ├── pdf_generator.py    # PDF 報告生成
 │           ├── price_service.py    # 股價數據服務
 │           ├── download_service.py # 下載服務
 │           ├── redis_client.py     # Redis 客戶端
 │           └── auth_utils.py       # 認證工具
+│
+├── shioaji-pro-app/            # 全功能交易終端（git clone 自 Sinotrade/shioaji-pro-app，不納入版控）
+│   ├── src/                    # React/Vite 前端（port 5173）
+│   └── src-tauri/binaries/     # Sidecar binary（需手動下載，port 21322）
 │
 └── tradingagents/              # 核心 AI 代理套件
     ├── agents/                 # AI 代理定義
@@ -392,6 +404,29 @@ curl -s -X DELETE "http://localhost:8000/api/trading/connect/$SESSION"
 
 也可透過 Web UI 操作：啟動前端後前往 `http://localhost:3000/trading`，點選導覽列「Trading / 即時交易」。
 
+#### Shioaji Pro Terminal 設置（選用）
+
+整合 [shioaji-pro-app](https://github.com/Sinotrade/shioaji-pro-app) 全功能交易終端，需額外設置 sidecar binary：
+
+```bash
+# 1. 克隆 shioaji-pro-app（在專案根目錄下）
+git clone https://github.com/Sinotrade/shioaji-pro-app.git
+
+# 2. 安裝前端依賴
+cd shioaji-pro-app
+npm install --legacy-peer-deps
+
+# 3. 下載 sidecar binary（Linux x86_64，以 v1.5.5 為例）
+mkdir -p src-tauri/binaries
+wget https://github.com/Sinotrade/shioaji-pro-app/releases/download/v1.5.5/shioaji-x86_64-unknown-linux-gnu \
+  -O src-tauri/binaries/shioaji-x86_64-unknown-linux-gnu
+chmod +x src-tauri/binaries/shioaji-x86_64-unknown-linux-gnu
+```
+
+設置完成後，`start.sh` 會自動啟動 shioaji-pro-app（port 5173）。在 `/trading` 頁面輸入永豐證券憑證，點選「Start Pro Terminal Server」→「Open Pro Terminal」即可開啟完整交易介面。
+
+> **注意**：sidecar binary 和 `shioaji-pro-app/` 目錄已加入 `.gitignore`，不會被提交至版本控制。每位使用者需自行下載 binary。
+
 #### 4️⃣ 前端設置
 
 ```bash
@@ -445,7 +480,7 @@ chmod +x ~/Desktop/TradingAgentsX.desktop
 gio set ~/Desktop/TradingAgentsX.desktop metadata::trusted true
 ```
 
-雙擊桌面圖示即可啟動。若顯示「未受信任」，右鍵 → **Allow Launching**。啟動日誌：`/tmp/tradingagentsx-backend.log`、`/tmp/tradingagentsx-frontend.log`。
+雙擊桌面圖示即可啟動。若顯示「未受信任」，右鍵 → **Allow Launching**。啟動日誌：`/tmp/tradingagentsx-backend.log`、`/tmp/tradingagentsx-frontend.log`、`/tmp/tradingagentsx-shioaji-app.log`。
 
 ---
 
