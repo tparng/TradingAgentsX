@@ -158,11 +158,15 @@ export default function TradingPage() {
     })();
   }, []);
 
-  // Check sidecar server status on mount
+  // Poll sidecar server status every 10 s so the button stays accurate
   useEffect(() => {
-    apiFetch("/api/shioaji-server/status")
-      .then(d => setServerRunning(d.running && d.healthy))
-      .catch(() => {});
+    const check = () =>
+      apiFetch("/api/shioaji-server/status")
+        .then(d => setServerRunning(d.running && d.healthy))
+        .catch(() => setServerRunning(false));
+    check();
+    const id = setInterval(check, 10_000);
+    return () => clearInterval(id);
   }, []);
 
   // ── Sidecar server management ─────────────────────────────────────────────
@@ -424,7 +428,20 @@ export default function TradingPage() {
               <div className="flex gap-3">
                 <Button
                   className="flex-1 bg-blue-600 hover:bg-blue-700"
-                  onClick={() => window.open(`http://localhost:${SIDECAR_PORT}`, "_blank")}
+                  onClick={async () => {
+                    try {
+                      const d = await apiFetch("/api/shioaji-server/status");
+                      if (d.healthy) {
+                        window.open(`http://localhost:${SIDECAR_PORT}`, "_blank");
+                      } else {
+                        setServerRunning(false);
+                        setServerError("Server stopped unexpectedly. Please start it again.");
+                      }
+                    } catch {
+                      setServerRunning(false);
+                      setServerError("Server stopped unexpectedly. Please start it again.");
+                    }
+                  }}
                 >
                   <ExternalLink className="h-4 w-4 mr-2" />
                   Open Pro Terminal
