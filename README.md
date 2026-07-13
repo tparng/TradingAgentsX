@@ -61,6 +61,7 @@
 | **新增缺少的 UI 元件** | 補充 `components/ui/alert.tsx`（shadcn Alert/AlertDescription）及 `components/ui/switch.tsx`（純 CSS 切換開關，不依賴 @radix-ui/react-switch）|
 | **一鍵啟動腳本** | 新增 `start.sh`：自動啟動後端、前端及 shioaji-pro-app、等待服務就緒後開啟 Chrome；支援已啟動時跳過重複啟動；搭配 Ubuntu 桌面捷徑（`.desktop` 檔）可雙擊圖示啟動，無需輸入指令 |
 | **整合 Shioaji Pro Terminal** | 整合 [shioaji-pro-app](https://github.com/Sinotrade/shioaji-pro-app) 全功能交易終端（AGPL-3.0）；後端以 `ShioajiServerManager` 管理 sidecar binary（port 21322），新增 `/api/shioaji-server/{start,stop,status}` 3 個端點；`/trading` 頁面新增「Shioaji Pro Terminal」卡片，一鍵啟動伺服器並在新分頁開啟完整交易介面（port 5173） |
+| **修復 Sidecar 啟動方式** | Sidecar binary 不接受 `--api-key` / `--secret-key` / `--port` CLI 參數；改以環境變數傳入（`SJ_API_KEY`、`SJ_SEC_KEY`、`SJ_HTTP_ADDR`、`SJ_PRODUCTION`），指令改為 `server start --no-open` |
 
 ### v4 改進
 
@@ -132,7 +133,7 @@
 | `backend/app/services/trading_service.py` | 修改 | 將 `language` 傳入 `TradingAgentsXGraph` 設定；結果字典新增 `quant_report` |
 | `backend/app/services/shioaji_service.py` | **新增** | `ShioajiSessionManager` 單例：以 UUID 管理 Shioaji 連線（8 小時 TTL、threading.Lock），封裝報價、餘額、持倉、下單、取消委託等操作 |
 | `backend/app/api/trading_routes.py` | **新增** | 8 個 `/api/trading/*` REST 端點，以 `asyncio.to_thread()` 包裝阻塞式 Shioaji 呼叫以相容 FastAPI 非同步環境 |
-| `backend/app/services/shioaji_server_service.py` | **新增** | `ShioajiServerManager` 單例：管理 shioaji-pro-app sidecar binary 的生命週期（啟動、停止、輪詢 `/api/v1/health` 健康狀態），port 21322 |
+| `backend/app/services/shioaji_server_service.py` | **新增** | `ShioajiServerManager` 單例：管理 shioaji-pro-app sidecar binary 的生命週期（啟動、停止、輪詢 `/api/v1/health` 健康狀態），port 21322；憑證以環境變數傳入（`SJ_API_KEY`、`SJ_SEC_KEY`、`SJ_HTTP_ADDR`），指令為 `server start --no-open` |
 | `backend/app/api/shioaji_server_routes.py` | **新增** | 3 個 `/api/shioaji-server/*` REST 端點：`POST /start`（啟動 sidecar）、`POST /stop`（停止）、`GET /status`（回傳 running/healthy/pid） |
 | `backend/app/main.py` | 修改 | 匯入並註冊 `trading_router` 及 `shioaji_server_router` |
 
