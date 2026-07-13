@@ -60,8 +60,12 @@
 | **加密儲存 API 金鑰** | 連線成功後以 AES-256-GCM（`lib/crypto.ts`）加密 Sinopac API Key / Secret Key 並存入 localStorage；下次開啟頁面自動預填，並提供「Clear saved credentials」清除連結 |
 | **新增缺少的 UI 元件** | 補充 `components/ui/alert.tsx`（shadcn Alert/AlertDescription）及 `components/ui/switch.tsx`（純 CSS 切換開關，不依賴 @radix-ui/react-switch）|
 | **一鍵啟動腳本** | 新增 `start.sh`：自動啟動後端、前端及 shioaji-pro-app、等待服務就緒後開啟 Chrome；支援已啟動時跳過重複啟動；搭配 Ubuntu 桌面捷徑（`.desktop` 檔）可雙擊圖示啟動，無需輸入指令 |
-| **整合 Shioaji Pro Terminal** | 整合 [shioaji-pro-app](https://github.com/Sinotrade/shioaji-pro-app) 全功能交易終端（AGPL-3.0）；後端以 `ShioajiServerManager` 管理 sidecar binary（port 21322），新增 `/api/shioaji-server/{start,stop,status}` 3 個端點；`/trading` 頁面新增「Shioaji Pro Terminal」卡片，一鍵啟動伺服器並在新分頁開啟完整交易介面（port 5173） |
+| **整合 Shioaji Pro Terminal** | 整合 [shioaji-pro-app](https://github.com/Sinotrade/shioaji-pro-app) 全功能交易終端（AGPL-3.0）；後端以 `ShioajiServerManager` 管理 sidecar binary（port 21322），新增 `/api/shioaji-server/{start,stop,status}` 3 個端點；`/trading` 頁面新增「Shioaji Pro Terminal」卡片，一鍵啟動伺服器並在新分頁開啟完整交易介面 |
 | **修復 Sidecar 啟動方式** | Sidecar binary 不接受 `--api-key` / `--secret-key` / `--port` CLI 參數；改以環境變數傳入（`SJ_API_KEY`、`SJ_SEC_KEY`、`SJ_HTTP_ADDR`、`SJ_PRODUCTION`），指令改為 `server start --no-open` |
+| **修復交易頁 Hydration 錯誤** | `sessionId` 改為從 `null` 初始化，並在 `useEffect` 中從 localStorage 還原，解決 SSR/Client HTML 不符問題；`hasSavedCreds` 替代 `typeof window !== "undefined"` 判斷；連線憑證表單移至獨立常駐卡片，不再被 `!isConnected` 隱藏 |
+| **Sidecar 內建 UI** | 發現 sidecar binary 已內建完整 Web 介面（`http://localhost:21322/`），「Open Pro Terminal」改為直接開啟 port 21322，無需另啟 shioaji-pro-app 開發伺服器 |
+| **Sidecar 啟動逾時 & 錯誤優化** | 健康輪詢從 10 s 延長至 60 s（載入 ~5 萬張合約需 20–40 s）；錯誤訊息截取上限從 500 字元增至 2000 字元並移除 ANSI 色碼 |
+| **修復 Port 衝突** | 啟動前先偵測 port 21322 是否已有健康 sidecar（採用既有 process），或以 `fuser` 清除殭屍 process 再啟動，避免 `EADDRINUSE` 錯誤 |
 
 ### v4 改進
 
@@ -133,7 +137,7 @@
 | `backend/app/services/trading_service.py` | 修改 | 將 `language` 傳入 `TradingAgentsXGraph` 設定；結果字典新增 `quant_report` |
 | `backend/app/services/shioaji_service.py` | **新增** | `ShioajiSessionManager` 單例：以 UUID 管理 Shioaji 連線（8 小時 TTL、threading.Lock），封裝報價、餘額、持倉、下單、取消委託等操作 |
 | `backend/app/api/trading_routes.py` | **新增** | 8 個 `/api/trading/*` REST 端點，以 `asyncio.to_thread()` 包裝阻塞式 Shioaji 呼叫以相容 FastAPI 非同步環境 |
-| `backend/app/services/shioaji_server_service.py` | **新增** | `ShioajiServerManager` 單例：管理 shioaji-pro-app sidecar binary 的生命週期（啟動、停止、輪詢 `/api/v1/health` 健康狀態），port 21322；憑證以環境變數傳入（`SJ_API_KEY`、`SJ_SEC_KEY`、`SJ_HTTP_ADDR`），指令為 `server start --no-open` |
+| `backend/app/services/shioaji_server_service.py` | **新增** | `ShioajiServerManager` 單例：管理 sidecar binary 生命週期；憑證以環境變數傳入；健康輪詢 60 s；啟動前偵測既有健康 process 或以 `fuser` 清除殭屍 process；錯誤訊息去除 ANSI 色碼 |
 | `backend/app/api/shioaji_server_routes.py` | **新增** | 3 個 `/api/shioaji-server/*` REST 端點：`POST /start`（啟動 sidecar）、`POST /stop`（停止）、`GET /status`（回傳 running/healthy/pid） |
 | `backend/app/main.py` | 修改 | 匯入並註冊 `trading_router` 及 `shioaji_server_router` |
 
@@ -144,7 +148,7 @@
 | `frontend/components/analysis/AnalysisForm.tsx` | 修改 | 新增「報告語言」下拉選單（繁體中文 / English）；新增「量化分析師」選項至分析師勾選清單 |
 | `frontend/lib/i18n/en.ts` | 修改 | 新增報告語言選單、量化分析師、即時交易（~50 鍵）及導覽列 `trading` 鍵的英文 i18n 字串 |
 | `frontend/lib/i18n/zh-TW.ts` | 修改 | 新增報告語言選單、量化分析師、即時交易（~50 鍵）及導覽列 `trading` 鍵的繁體中文 i18n 字串 |
-| `frontend/app/trading/page.tsx` | 修改 | 新增「Shioaji Pro Terminal」卡片：呼叫 `/api/shioaji-server/start` 啟動 sidecar；sidecar 就緒後顯示「Open Pro Terminal」按鈕（在新分頁開啟 `localhost:5173`）；保留原有簡易交易 UI（四分頁）作為替代方案；憑證與下方連線卡片共用 |
+| `frontend/app/trading/page.tsx` | 修改 | 新增「Shioaji Pro Terminal」卡片：呼叫 `/api/shioaji-server/start` 啟動 sidecar；就緒後「Open Pro Terminal」在新分頁開啟 `localhost:21322`（sidecar 內建 UI）；憑證表單移至獨立常駐卡片（修復 hydration 錯誤及憑證被 `!isConnected` 隱藏的問題）；保留簡易交易四分頁 |
 | `frontend/components/layout/Header.tsx` | 修改 | 桌面版與手機版導覽列新增「Trading / 即時交易」連結 |
 | `frontend/components/ui/alert.tsx` | **新增** | shadcn 標準 Alert / AlertTitle / AlertDescription 元件（交易頁警示用） |
 | `frontend/components/ui/switch.tsx` | **新增** | 純 CSS 切換開關元件，不依賴 `@radix-ui/react-switch`（未安裝）；以 `<input type="checkbox">` 搭配 Tailwind peer 類實作 |
