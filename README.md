@@ -56,6 +56,9 @@
 | **REST API 端點** | `/api/trading/*` 下新增 8 個端點（connect、disconnect、quote、balance、positions、order CRUD、list orders），全部以 `asyncio.to_thread()` 包裝阻塞式 Shioaji 呼叫 |
 | **即時交易 UI** | 新增 `/trading` 頁面，含連線卡片（API 金鑰輸入、模擬/真實切換）及四個分頁：即時報價、下單、持倉、今日委託 |
 | **導覽列新增交易連結** | Header 桌面版與手機版導覽列新增「Trading / 即時交易」連結，可直接跳轉至 `/trading` 頁面 |
+| **修復「Failed to fetch」** | 交易頁改用相對路徑 `/api/trading/*`，請求透過 Next.js catch-all proxy 轉發至後端，與其他頁面一致，解決瀏覽器直連 `localhost:8000` 失敗的問題 |
+| **加密儲存 API 金鑰** | 連線成功後以 AES-256-GCM（`lib/crypto.ts`）加密 Sinopac API Key / Secret Key 並存入 localStorage；下次開啟頁面自動預填，並提供「Clear saved credentials」清除連結 |
+| **新增缺少的 UI 元件** | 補充 `components/ui/alert.tsx`（shadcn Alert/AlertDescription）及 `components/ui/switch.tsx`（純 CSS 切換開關，不依賴 @radix-ui/react-switch）|
 
 ### v4 改進
 
@@ -136,8 +139,10 @@
 | `frontend/components/analysis/AnalysisForm.tsx` | 修改 | 新增「報告語言」下拉選單（繁體中文 / English）；新增「量化分析師」選項至分析師勾選清單 |
 | `frontend/lib/i18n/en.ts` | 修改 | 新增報告語言選單、量化分析師、即時交易（~50 鍵）及導覽列 `trading` 鍵的英文 i18n 字串 |
 | `frontend/lib/i18n/zh-TW.ts` | 修改 | 新增報告語言選單、量化分析師、即時交易（~50 鍵）及導覽列 `trading` 鍵的繁體中文 i18n 字串 |
-| `frontend/app/trading/page.tsx` | **新增** | 即時交易頁面：連線卡片（API 金鑰、模擬/真實切換）+ 四分頁（即時報價、下單、持倉、今日委託）；session_id 存入 localStorage，支援 URL 預填參數 |
+| `frontend/app/trading/page.tsx` | **新增** | 即時交易頁面：連線卡片（API 金鑰、模擬/真實切換）+ 四分頁（即時報價、下單、持倉、今日委託）；session_id 存入 localStorage，支援 URL 預填參數；API 金鑰以 AES-GCM 加密後儲存，頁面載入時自動預填；改用相對路徑透過 Next.js proxy 轉發請求 |
 | `frontend/components/layout/Header.tsx` | 修改 | 桌面版與手機版導覽列新增「Trading / 即時交易」連結 |
+| `frontend/components/ui/alert.tsx` | **新增** | shadcn 標準 Alert / AlertTitle / AlertDescription 元件（交易頁警示用） |
+| `frontend/components/ui/switch.tsx` | **新增** | 純 CSS 切換開關元件，不依賴 `@radix-ui/react-switch`（未安裝）；以 `<input type="checkbox">` 搭配 Tailwind peer 類實作 |
 
 ### TUI（終端機介面）
 
