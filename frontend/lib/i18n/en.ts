@@ -640,6 +640,90 @@ export const en = {
     members: "members",
   },
 
+  // Trading (Shioaji)
+  trading: {
+    title: "Real-Time Trading",
+    subtitle: "Taiwan Stock Trading via Sinopac Shioaji API",
+    connect: "Connect",
+    disconnect: "Disconnect",
+    connected: "Connected",
+    disconnected: "Disconnected",
+    simulation: "Simulation Mode",
+    simulationDesc: "Paper trading — no real money involved (recommended for testing)",
+    liveWarning: "LIVE MODE: Real orders will be placed with real money!",
+    apiKey: "Shioaji API Key",
+    secretKey: "Secret Key",
+    apiKeyPlaceholder: "Your Sinopac API Key",
+    secretKeyPlaceholder: "Your Sinopac Secret Key",
+    connecting: "Connecting...",
+    connectSuccess: "Connected to Shioaji",
+    connectError: "Connection failed",
+    sessionExpired: "Session expired. Please reconnect.",
+    twStockOnly: "Shioaji supports Taiwan stocks (TSE/OTC) only. Use numeric codes like '2330'.",
+
+    // Quote
+    quote: "Real-Time Quote",
+    tickerInput: "Enter ticker (e.g. 2330)",
+    fetchQuote: "Get Quote",
+    lastPrice: "Last Price",
+    change: "Change",
+    bidAsk: "Bid / Ask",
+    volume: "Volume",
+    limitUp: "Limit Up",
+    limitDown: "Limit Down",
+
+    // Order
+    placeOrder: "Place Order",
+    action: "Action",
+    buy: "BUY",
+    sell: "SELL",
+    price: "Price (TWD)",
+    quantity: "Quantity (lots)",
+    quantityHint: "1 lot = 1,000 shares",
+    priceType: "Price Type",
+    orderType: "Order Type",
+    lmt: "Limit (LMT)",
+    mkt: "Market (MKT)",
+    rod: "ROD (Good Till Day)",
+    ioc: "IOC (Immediate or Cancel)",
+    fok: "FOK (Fill or Kill)",
+    submitOrder: "Submit Order",
+    orderPlaced: "Order placed",
+    cancelOrder: "Cancel",
+    orderCancelled: "Order cancelled",
+
+    // Positions
+    positions: "Open Positions",
+    noPositions: "No open positions",
+    direction: "Direction",
+    avgCost: "Avg Cost",
+    lastPrice2: "Last Price",
+    unrealizedPnl: "Unrealized P&L",
+    posQuantity: "Quantity",
+
+    // Orders
+    todayOrders: "Today's Orders",
+    noOrders: "No orders today",
+    orderId: "Order ID",
+    orderStatus: "Status",
+    dealQty: "Filled",
+    orderTime: "Time",
+
+    // Balance
+    balance: "Cash Balance",
+    accBalance: "Account Balance",
+    refreshBalance: "Refresh",
+    asOf: "As of",
+
+    // Status values
+    statusPendingSubmit: "Pending",
+    statusSubmitted: "Submitted",
+    statusFilled: "Filled",
+    statusPartFilled: "Partially Filled",
+    statusCancelled: "Cancelled",
+    statusFailed: "Failed",
+  },
+
   // Chat
   chat: {
     title: "Ask About Report",

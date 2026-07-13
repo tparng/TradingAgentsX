@@ -567,6 +567,90 @@ export const zhTW = {
     members: "位",
   },
 
+  // Trading (Shioaji)
+  trading: {
+    title: "即時交易",
+    subtitle: "透過永豐金 Shioaji API 進行台股交易",
+    connect: "連線",
+    disconnect: "中斷連線",
+    connected: "已連線",
+    disconnected: "未連線",
+    simulation: "模擬模式",
+    simulationDesc: "紙上交易，不涉及真實金錢（建議測試時使用）",
+    liveWarning: "正式模式：將以真實資金下單，請謹慎操作！",
+    apiKey: "Shioaji API 金鑰",
+    secretKey: "密鑰",
+    apiKeyPlaceholder: "永豐金 API Key",
+    secretKeyPlaceholder: "永豐金 Secret Key",
+    connecting: "連線中...",
+    connectSuccess: "已連線至 Shioaji",
+    connectError: "連線失敗",
+    sessionExpired: "連線已逾時，請重新連線。",
+    twStockOnly: "Shioaji 僅支援台灣股票（上市/上櫃），請使用數字代號，如 '2330'。",
+
+    // Quote
+    quote: "即時報價",
+    tickerInput: "輸入股票代號（如 2330）",
+    fetchQuote: "查詢報價",
+    lastPrice: "成交價",
+    change: "漲跌",
+    bidAsk: "買進 / 賣出",
+    volume: "成交量",
+    limitUp: "漲停",
+    limitDown: "跌停",
+
+    // Order
+    placeOrder: "下單",
+    action: "方向",
+    buy: "買進",
+    sell: "賣出",
+    price: "價格（新台幣）",
+    quantity: "數量（張）",
+    quantityHint: "1 張 = 1,000 股",
+    priceType: "價格類型",
+    orderType: "委託類型",
+    lmt: "限價（LMT）",
+    mkt: "市價（MKT）",
+    rod: "ROD（當日有效）",
+    ioc: "IOC（立即成交否則取消）",
+    fok: "FOK（全部成交否則取消）",
+    submitOrder: "確認下單",
+    orderPlaced: "委託成功",
+    cancelOrder: "取消",
+    orderCancelled: "已取消委託",
+
+    // Positions
+    positions: "持倉",
+    noPositions: "目前無持倉",
+    direction: "方向",
+    avgCost: "均價",
+    lastPrice2: "現價",
+    unrealizedPnl: "未實現損益",
+    posQuantity: "數量",
+
+    // Orders
+    todayOrders: "今日委託",
+    noOrders: "今日無委託",
+    orderId: "委託編號",
+    orderStatus: "狀態",
+    dealQty: "成交量",
+    orderTime: "時間",
+
+    // Balance
+    balance: "帳戶餘額",
+    accBalance: "可用資金",
+    refreshBalance: "刷新",
+    asOf: "日期",
+
+    // Status values
+    statusPendingSubmit: "待送出",
+    statusSubmitted: "已送出",
+    statusFilled: "全部成交",
+    statusPartFilled: "部分成交",
+    statusCancelled: "已取消",
+    statusFailed: "失敗",
+  },
+
   // Chat
   chat: {
     title: "報告問答",
