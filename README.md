@@ -59,6 +59,7 @@
 | **修復「Failed to fetch」** | 交易頁改用相對路徑 `/api/trading/*`，請求透過 Next.js catch-all proxy 轉發至後端，與其他頁面一致，解決瀏覽器直連 `localhost:8000` 失敗的問題 |
 | **加密儲存 API 金鑰** | 連線成功後以 AES-256-GCM（`lib/crypto.ts`）加密 Sinopac API Key / Secret Key 並存入 localStorage；下次開啟頁面自動預填，並提供「Clear saved credentials」清除連結 |
 | **新增缺少的 UI 元件** | 補充 `components/ui/alert.tsx`（shadcn Alert/AlertDescription）及 `components/ui/switch.tsx`（純 CSS 切換開關，不依賴 @radix-ui/react-switch）|
+| **一鍵啟動腳本** | 新增 `start.sh`：自動啟動後端與前端、等待服務就緒後開啟 Chrome；支援已啟動時跳過重複啟動；搭配 Ubuntu 桌面捷徑（`.desktop` 檔）可雙擊圖示啟動，無需輸入指令 |
 
 ### v4 改進
 
@@ -143,6 +144,7 @@
 | `frontend/components/layout/Header.tsx` | 修改 | 桌面版與手機版導覽列新增「Trading / 即時交易」連結 |
 | `frontend/components/ui/alert.tsx` | **新增** | shadcn 標準 Alert / AlertTitle / AlertDescription 元件（交易頁警示用） |
 | `frontend/components/ui/switch.tsx` | **新增** | 純 CSS 切換開關元件，不依賴 `@radix-ui/react-switch`（未安裝）；以 `<input type="checkbox">` 搭配 Tailwind peer 類實作 |
+| `start.sh` | **新增** | 一鍵啟動腳本：偵測服務是否已啟動（跳過重複）、啟動後端與前端、等待埠就緒、開啟 Chrome；日誌輸出至 `/tmp/tradingagentsx-*.log` |
 
 ### TUI（終端機介面）
 
@@ -417,6 +419,33 @@ python -m tui.main
 - 於設定畫面選擇市場、股票代碼、分析師團隊、LLM 與嵌入模型；API 金鑰可留空改用 `.env` 中的設定
 - 按「開始分析」後，即時顯示各代理進度、訊息與工具呼叫、以及當前報告
 - 完成後顯示最終決策（買入 / 賣出 / 持有）；按 `q` 離開
+
+#### 6️⃣ Ubuntu 桌面捷徑（選用）
+
+一鍵啟動腳本 `start.sh` 會自動啟動後端、前端並開啟瀏覽器，可搭配桌面圖示使用：
+
+```bash
+# 確認腳本有執行權限（git clone 後應已設定）
+chmod +x ~/TradingAgentsX/start.sh
+
+# 建立桌面捷徑
+cat > ~/Desktop/TradingAgentsX.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=TradingAgentsX
+Comment=Multi-Agent LLM Trading Analysis Platform
+Exec=bash -c '/home/tparng/TradingAgentsX/start.sh > /tmp/tradingagentsx-launch.log 2>&1'
+Icon=/home/tparng/TradingAgentsX/frontend/public/icon-192-v8.png
+Terminal=false
+Categories=Finance;
+StartupNotify=true
+EOF
+chmod +x ~/Desktop/TradingAgentsX.desktop
+gio set ~/Desktop/TradingAgentsX.desktop metadata::trusted true
+```
+
+雙擊桌面圖示即可啟動。若顯示「未受信任」，右鍵 → **Allow Launching**。啟動日誌：`/tmp/tradingagentsx-backend.log`、`/tmp/tradingagentsx-frontend.log`。
 
 ---
 
