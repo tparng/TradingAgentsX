@@ -27,7 +27,8 @@ class ShioajiServerManager:
 
     # ── public API ────────────────────────────────────────────────────────────
 
-    def start(self, api_key: str, secret_key: str, simulation: bool = True) -> dict:
+    def start(self, api_key: str, secret_key: str, simulation: bool = True,
+              ca_path: str = "", ca_passwd: str = "") -> dict:
         with self._lock:
             if self._process and self._process.poll() is None:
                 return {"status": "already_running", "port": SIDECAR_PORT}
@@ -49,6 +50,10 @@ class ShioajiServerManager:
                 env["SJ_PRODUCTION"] = "true"
             else:
                 env.pop("SJ_PRODUCTION", None)
+            if ca_path:
+                env["SJ_CA_PATH"]   = ca_path
+            if ca_passwd:
+                env["SJ_CA_PASSWD"] = ca_passwd
 
             cmd = [str(SIDECAR_BIN), "server", "start", "--no-open"]
 

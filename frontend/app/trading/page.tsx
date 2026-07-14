@@ -101,6 +101,8 @@ export default function TradingPage() {
   const [serverStarting, setServerStarting] = useState(false);
   const [serverStopping, setServerStopping] = useState(false);
   const [serverError,    setServerError]    = useState("");
+  const [caPath,         setCaPath]         = useState("");
+  const [caPasswd,       setCaPasswd]       = useState("");
 
   // Connection state — sessionId starts null to avoid SSR/client hydration mismatch
   const [apiKey,        setApiKey]        = useState("");
@@ -155,6 +157,8 @@ export default function TradingPage() {
       } catch { /* ignore decryption errors */ }
       const stored = localStorage.getItem("shioaji_session_id");
       if (stored) setSessionId(stored);
+      const savedCaPath = localStorage.getItem("shioaji_ca_path");
+      if (savedCaPath) setCaPath(savedCaPath);
     })();
   }, []);
 
@@ -177,11 +181,15 @@ export default function TradingPage() {
     try {
       await apiFetch("/api/shioaji-server/start", {
         method: "POST",
-        body: JSON.stringify({ api_key: apiKey, secret_key: secretKey, simulation }),
+        body: JSON.stringify({
+          api_key: apiKey, secret_key: secretKey, simulation,
+          ca_path: caPath, ca_passwd: caPasswd,
+        }),
       });
       setServerRunning(true);
       localStorage.setItem("shioaji_api_key", await encrypt(apiKey));
       localStorage.setItem("shioaji_secret_key", await encrypt(secretKey));
+      if (caPath) localStorage.setItem("shioaji_ca_path", caPath);
       setHasSavedCreds(true);
     } catch (e: unknown) {
       setServerError(e instanceof Error ? e.message : String(e));
@@ -388,6 +396,33 @@ export default function TradingPage() {
               </div>
             </div>
 
+            {/* CA certificate — required for live (non-simulation) orders */}
+            <div className="border-t pt-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-medium">CA Certificate</p>
+                <span className="text-xs text-muted-foreground">（正式下單必填，模擬可留空）</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <Label>Sinopac.pfx path</Label>
+                  <Input
+                    placeholder="/home/user/SinoPac/Sinopac.pfx"
+                    value={caPath}
+                    onChange={e => setCaPath(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label>Certificate password</Label>
+                  <Input
+                    type="password"
+                    placeholder="CA password"
+                    value={caPasswd}
+                    onChange={e => setCaPasswd(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
             {hasSavedCreds && (
               <button
                 type="button"
@@ -395,7 +430,8 @@ export default function TradingPage() {
                 onClick={() => {
                   localStorage.removeItem("shioaji_api_key");
                   localStorage.removeItem("shioaji_secret_key");
-                  setApiKey(""); setSecretKey(""); setHasSavedCreds(false);
+                  localStorage.removeItem("shioaji_ca_path");
+                  setApiKey(""); setSecretKey(""); setCaPath(""); setCaPasswd(""); setHasSavedCreds(false);
                 }}
               >
                 Clear saved credentials

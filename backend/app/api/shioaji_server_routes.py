@@ -16,6 +16,8 @@ class StartRequest(BaseModel):
     api_key:    str  = Field(..., description="Sinopac API key")
     secret_key: str  = Field(..., description="Sinopac secret key")
     simulation: bool = Field(default=True, description="Paper trading mode")
+    ca_path:    str  = Field(default="", description="Path to Sinopac.pfx (required for live orders)")
+    ca_passwd:  str  = Field(default="", description="CA certificate password")
 
 
 @router.post("/start")
@@ -25,6 +27,7 @@ async def start_server(req: StartRequest):
         result = await asyncio.to_thread(
             shioaji_server_manager.start,
             req.api_key, req.secret_key, req.simulation,
+            req.ca_path, req.ca_passwd,
         )
         return result
     except RuntimeError as e:
