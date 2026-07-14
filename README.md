@@ -66,6 +66,12 @@
 | **Sidecar 內建 UI** | 發現 sidecar binary 已內建完整 Web 介面（`http://localhost:21322/`），「Open Pro Terminal」改為直接開啟 port 21322，無需另啟 shioaji-pro-app 開發伺服器 |
 | **Sidecar 啟動逾時 & 錯誤優化** | 健康輪詢從 10 s 延長至 60 s（載入 ~5 萬張合約需 20–40 s）；錯誤訊息截取上限從 500 字元增至 2000 字元並移除 ANSI 色碼 |
 | **修復 Port 衝突** | 啟動前先偵測 port 21322 是否已有健康 sidecar（採用既有 process），或以 `fuser` 清除殭屍 process 再啟動，避免 `EADDRINUSE` 錯誤 |
+| **Sidecar 正式模式 CA 憑證支援** | 新增 CA 憑證欄位（Sinopac.pfx 路徑、憑證密碼）；以 `SJ_CA_PATH` / `SJ_CA_PASSWD` 環境變數傳入 sidecar；切換 Simulation 關閉並設定 CA 路徑後，正式環境下單憑證自動啟用 |
+| **修正 Pro Terminal 開啟目標** | Port 21322 為 sidecar REST API 管理儀表板（Server Health、CA Certificates 等系統資訊），全功能交易介面（圖表、自選股、下單表單）為 shioaji-pro-app 前端（port 5173，由 `start.sh` 啟動）；「Open Pro Terminal」改回開啟 port 5173，並在卡片新增管理儀表板捷徑連結 |
+| **Sidecar stdout 即時擷取 & 停機診斷** | 後端以背景執行緒持續讀取 sidecar stdout，保留最後 50 行；`GET /api/shioaji-server/status` 新增 `last_output` 欄位；前端健康輪詢（每 10 s）偵測到伺服器意外停止時，自動顯示最後 10 行輸出協助診斷 |
+| **CA 啟動失敗即時警示** | sidecar 啟動成功後，後端掃描 stdout 比對 `"Failed to activate CA certificate:"` 模式；若 CA 啟動失敗（憑證過期、密碼錯誤），回傳 `ca_warning`；前端以黃色警示顯示失敗原因（「正式環境下單將被拒絕」） |
+| **修復模式切換未重啟問題** | 追蹤 `runningSimulation` 狀態，記錄 sidecar 實際啟動的模式；切換 Simulation 切換鈕時若與執行中 sidecar 模式不一致，顯示黃色警示並提供「Restart」一鍵重啟按鈕，確保模式變更實際生效 |
+| **CA 密碼持久化** | CA 憑證密碼現以 AES-256-GCM 加密存入 localStorage（與 API Key 一致），頁面重載後自動預填；先前每次重啟均需重新輸入密碼，導致 sidecar 以空密碼啟動而靜默失敗 CA 啟用 |
 
 ### v4 改進
 
@@ -137,8 +143,8 @@
 | `backend/app/services/trading_service.py` | 修改 | 將 `language` 傳入 `TradingAgentsXGraph` 設定；結果字典新增 `quant_report` |
 | `backend/app/services/shioaji_service.py` | **新增** | `ShioajiSessionManager` 單例：以 UUID 管理 Shioaji 連線（8 小時 TTL、threading.Lock），封裝報價、餘額、持倉、下單、取消委託等操作 |
 | `backend/app/api/trading_routes.py` | **新增** | 8 個 `/api/trading/*` REST 端點，以 `asyncio.to_thread()` 包裝阻塞式 Shioaji 呼叫以相容 FastAPI 非同步環境 |
-| `backend/app/services/shioaji_server_service.py` | **新增** | `ShioajiServerManager` 單例：管理 sidecar binary 生命週期；憑證以環境變數傳入；健康輪詢 60 s；啟動前偵測既有健康 process 或以 `fuser` 清除殭屍 process；錯誤訊息去除 ANSI 色碼 |
-| `backend/app/api/shioaji_server_routes.py` | **新增** | 3 個 `/api/shioaji-server/*` REST 端點：`POST /start`（啟動 sidecar）、`POST /stop`（停止）、`GET /status`（回傳 running/healthy/pid） |
+| `backend/app/services/shioaji_server_service.py` | **新增** | `ShioajiServerManager` 單例：管理 sidecar binary 生命週期；憑證以環境變數傳入（含 `SJ_CA_PATH`/`SJ_CA_PASSWD`）；健康輪詢 60 s；背景執行緒持續讀取 stdout（最後 50 行）；啟動成功後掃描 CA 啟動失敗模式；啟動前偵測既有健康 process 或以 `fuser` 清除殭屍 process；錯誤訊息去除 ANSI 色碼 |
+| `backend/app/api/shioaji_server_routes.py` | **新增** | 3 個 `/api/shioaji-server/*` REST 端點：`POST /start`（啟動 sidecar，含 `ca_path`/`ca_passwd`/`ca_warning` 回傳）、`POST /stop`（停止）、`GET /status`（回傳 running/healthy/pid/last_output） |
 | `backend/app/main.py` | 修改 | 匯入並註冊 `trading_router` 及 `shioaji_server_router` |
 
 ### 前端
@@ -148,7 +154,7 @@
 | `frontend/components/analysis/AnalysisForm.tsx` | 修改 | 新增「報告語言」下拉選單（繁體中文 / English）；新增「量化分析師」選項至分析師勾選清單 |
 | `frontend/lib/i18n/en.ts` | 修改 | 新增報告語言選單、量化分析師、即時交易（~50 鍵）及導覽列 `trading` 鍵的英文 i18n 字串 |
 | `frontend/lib/i18n/zh-TW.ts` | 修改 | 新增報告語言選單、量化分析師、即時交易（~50 鍵）及導覽列 `trading` 鍵的繁體中文 i18n 字串 |
-| `frontend/app/trading/page.tsx` | 修改 | 新增「Shioaji Pro Terminal」卡片：呼叫 `/api/shioaji-server/start` 啟動 sidecar；就緒後「Open Pro Terminal」在新分頁開啟 `localhost:21322`（sidecar 內建 UI）；憑證表單移至獨立常駐卡片（修復 hydration 錯誤及憑證被 `!isConnected` 隱藏的問題）；保留簡易交易四分頁 |
+| `frontend/app/trading/page.tsx` | 修改 | 新增「Shioaji Pro Terminal」卡片：呼叫 `/api/shioaji-server/start` 啟動 sidecar；就緒後「Open Pro Terminal」在新分頁開啟 `localhost:5173`（shioaji-pro-app 全功能交易介面）；憑證表單移至獨立常駐卡片（修復 hydration 錯誤及憑證被 `!isConnected` 隱藏的問題）；新增 CA 憑證欄位；`runningSimulation` 追蹤執行中模式並在模式不一致時顯示 Restart 警示；CA 密碼加密存入 localStorage；`ca_warning` 以黃色警示顯示；停機時顯示 sidecar 最後輸出；卡片附管理儀表板連結（port 21322）；保留簡易交易四分頁 |
 | `frontend/components/layout/Header.tsx` | 修改 | 桌面版與手機版導覽列新增「Trading / 即時交易」連結 |
 | `frontend/components/ui/alert.tsx` | **新增** | shadcn 標準 Alert / AlertTitle / AlertDescription 元件（交易頁警示用） |
 | `frontend/components/ui/switch.tsx` | **新增** | 純 CSS 切換開關元件，不依賴 `@radix-ui/react-switch`（未安裝）；以 `<input type="checkbox">` 搭配 Tailwind peer 類實作 |

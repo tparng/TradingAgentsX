@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -57,7 +57,8 @@ interface Trade {
 
 interface Balance { date: string; acc_balance: number; simulation: boolean; }
 
-const SIDECAR_PORT = 21322;
+const SIDECAR_PORT = 21322;      // sidecar REST API + management dashboard
+const SHIOAJI_APP_PORT = 5173;   // shioaji-pro-app full trading terminal UI
 
 async function apiFetch(path: string, opts: RequestInit = {}) {
   const res = await fetch(path, {
@@ -97,10 +98,13 @@ export default function TradingPage() {
   const prefilledPrice   = searchParams.get("price")   ?? "";
 
   // Sidecar server state (shioaji-pro-app)
-  const [serverRunning,  setServerRunning]  = useState(false);
-  const [serverStarting, setServerStarting] = useState(false);
-  const [serverStopping, setServerStopping] = useState(false);
-  const [serverError,    setServerError]    = useState("");
+  const [serverRunning,      setServerRunning]      = useState(false);
+  const [serverStarting,     setServerStarting]     = useState(false);
+  const [serverStopping,     setServerStopping]     = useState(false);
+  const [serverError,        setServerError]        = useState("");
+  const [serverWarning,      setServerWarning]      = useState("");
+  const [runningSimulation,  setRunningSimulation]  = useState<boolean | null>(null);
+  const prevServerRunning = useRef(false);
   const [caPath,         setCaPath]         = useState("");
   const [caPasswd,       setCaPasswd]       = useState("");
 
@@ -159,6 +163,10 @@ export default function TradingPage() {
       if (stored) setSessionId(stored);
       const savedCaPath = localStorage.getItem("shioaji_ca_path");
       if (savedCaPath) setCaPath(savedCaPath);
+      try {
+        const encCaPasswd = localStorage.getItem("shioaji_ca_passwd");
+        if (encCaPasswd) setCaPasswd(await decrypt(encCaPasswd));
+      } catch { /* ignore */ }
     })();
   }, []);
 
@@ -166,8 +174,27 @@ export default function TradingPage() {
   useEffect(() => {
     const check = () =>
       apiFetch("/api/shioaji-server/status")
-        .then(d => setServerRunning(d.running && d.healthy))
-        .catch(() => setServerRunning(false));
+        .then(d => {
+          const isRunning = !!(d.running && d.healthy);
+          const lines: string[] = d.last_output ?? [];
+          if (prevServerRunning.current && !isRunning) {
+            // Server stopped since last poll — show diagnostic output
+            const snippet = lines.slice(-10).join("\n");
+            setServerError(snippet
+              ? `Server stopped unexpectedly.\n\nLast output:\n${snippet}`
+              : "Server stopped unexpectedly. Please start it again.");
+            setRunningSimulation(null);
+          }
+          prevServerRunning.current = isRunning;
+          setServerRunning(isRunning);
+        })
+        .catch(() => {
+          if (prevServerRunning.current) {
+            setServerError("Server stopped unexpectedly. Please start it again.");
+          }
+          prevServerRunning.current = false;
+          setServerRunning(false);
+        });
     check();
     const id = setInterval(check, 10_000);
     return () => clearInterval(id);
@@ -177,9 +204,9 @@ export default function TradingPage() {
 
   const handleStartServer = async () => {
     if (!apiKey || !secretKey) { setServerError("Please enter API key and secret key below."); return; }
-    setServerStarting(true); setServerError("");
+    setServerStarting(true); setServerError(""); setServerWarning("");
     try {
-      await apiFetch("/api/shioaji-server/start", {
+      const result = await apiFetch("/api/shioaji-server/start", {
         method: "POST",
         body: JSON.stringify({
           api_key: apiKey, secret_key: secretKey, simulation,
@@ -187,9 +214,12 @@ export default function TradingPage() {
         }),
       });
       setServerRunning(true);
+      setRunningSimulation(simulation);
+      if (result.ca_warning) setServerWarning(result.ca_warning);
       localStorage.setItem("shioaji_api_key", await encrypt(apiKey));
       localStorage.setItem("shioaji_secret_key", await encrypt(secretKey));
       if (caPath) localStorage.setItem("shioaji_ca_path", caPath);
+      if (caPasswd) localStorage.setItem("shioaji_ca_passwd", await encrypt(caPasswd));
       setHasSavedCreds(true);
     } catch (e: unknown) {
       setServerError(e instanceof Error ? e.message : String(e));
@@ -203,10 +233,41 @@ export default function TradingPage() {
     try {
       await apiFetch("/api/shioaji-server/stop", { method: "POST" });
       setServerRunning(false);
+      setRunningSimulation(null);
     } catch (e: unknown) {
       setServerError(e instanceof Error ? e.message : String(e));
     } finally {
       setServerStopping(false);
+    }
+  };
+
+  const handleRestartServer = async () => {
+    if (!apiKey || !secretKey) { setServerError("Please enter API key and secret key below."); return; }
+    setServerStopping(true); setServerError(""); setServerWarning("");
+    try {
+      await apiFetch("/api/shioaji-server/stop", { method: "POST" });
+      setServerRunning(false);
+      setRunningSimulation(null);
+    } catch { /* ignore stop errors, proceed to start */ }
+    setServerStopping(false);
+    setServerStarting(true);
+    try {
+      const result = await apiFetch("/api/shioaji-server/start", {
+        method: "POST",
+        body: JSON.stringify({ api_key: apiKey, secret_key: secretKey, simulation, ca_path: caPath, ca_passwd: caPasswd }),
+      });
+      setServerRunning(true);
+      setRunningSimulation(simulation);
+      if (result.ca_warning) setServerWarning(result.ca_warning);
+      localStorage.setItem("shioaji_api_key", await encrypt(apiKey));
+      localStorage.setItem("shioaji_secret_key", await encrypt(secretKey));
+      if (caPath) localStorage.setItem("shioaji_ca_path", caPath);
+      if (caPasswd) localStorage.setItem("shioaji_ca_passwd", await encrypt(caPasswd));
+      setHasSavedCreds(true);
+    } catch (e: unknown) {
+      setServerError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setServerStarting(false);
     }
   };
 
@@ -431,6 +492,7 @@ export default function TradingPage() {
                   localStorage.removeItem("shioaji_api_key");
                   localStorage.removeItem("shioaji_secret_key");
                   localStorage.removeItem("shioaji_ca_path");
+                  localStorage.removeItem("shioaji_ca_passwd");
                   setApiKey(""); setSecretKey(""); setCaPath(""); setCaPasswd(""); setHasSavedCreds(false);
                 }}
               >
@@ -446,18 +508,59 @@ export default function TradingPage() {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle>Shioaji Pro Terminal</CardTitle>
-                <CardDescription>Full trading terminal — opens the sidecar&apos;s built-in dashboard (port {SIDECAR_PORT})</CardDescription>
+                <CardDescription>
+                  Full trading terminal UI (port {SHIOAJI_APP_PORT}) — started by <code className="text-xs">start.sh</code>.
+                  {" "}<a href={`http://localhost:${SIDECAR_PORT}`} target="_blank" rel="noreferrer" className="underline opacity-60 hover:opacity-100">Management dashboard ↗</a>
+                </CardDescription>
               </div>
               {serverRunning
-                ? <Badge className="bg-green-100 text-green-800 border-green-300">Server running · port 21322</Badge>
-                : <Badge variant="outline" className="text-gray-500">Server stopped</Badge>
+                ? <Badge className="bg-green-100 text-green-800 border-green-300">Sidecar running · port {SIDECAR_PORT}</Badge>
+                : <Badge variant="outline" className="text-gray-500">Sidecar stopped</Badge>
               }
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
             {serverError && (
               <Alert variant="destructive">
-                <AlertDescription>{serverError}</AlertDescription>
+                <AlertDescription>
+                  <pre className="whitespace-pre-wrap text-xs leading-relaxed">{serverError}</pre>
+                </AlertDescription>
+              </Alert>
+            )}
+            {serverWarning && (
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  <span className="font-medium">CA not activated — production orders will be rejected.</span>
+                  <pre className="mt-1 whitespace-pre-wrap text-xs leading-relaxed opacity-80">{serverWarning}</pre>
+                </AlertDescription>
+              </Alert>
+            )}
+            {!serverRunning && !simulation && (!caPath || !caPasswd) && (
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="text-xs">
+                  Production mode requires a CA certificate. Fill in <strong>Sinopac.pfx path</strong> and <strong>certificate password</strong> above before starting.
+                </AlertDescription>
+              </Alert>
+            )}
+            {serverRunning && runningSimulation !== null && runningSimulation !== simulation && (
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="flex items-center justify-between gap-3">
+                  <span>
+                    Server is running in <strong>{runningSimulation ? "simulation" : "production"}</strong> mode.
+                    Restart to apply the new setting.
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleRestartServer}
+                    disabled={serverStarting || serverStopping}
+                  >
+                    {serverStarting ? "Starting…" : serverStopping ? "Stopping…" : "Restart"}
+                  </Button>
+                </AlertDescription>
               </Alert>
             )}
             {serverRunning ? (
@@ -467,13 +570,19 @@ export default function TradingPage() {
                   onClick={async () => {
                     try {
                       const d = await apiFetch("/api/shioaji-server/status");
+                      const lines: string[] = d.last_output ?? [];
                       if (d.healthy) {
-                        window.open(`http://localhost:${SIDECAR_PORT}`, "_blank");
+                        window.open(`http://localhost:${SHIOAJI_APP_PORT}`, "_blank");
                       } else {
+                        prevServerRunning.current = false;
                         setServerRunning(false);
-                        setServerError("Server stopped unexpectedly. Please start it again.");
+                        const snippet = lines.slice(-10).join("\n");
+                        setServerError(snippet
+                          ? `Server stopped unexpectedly.\n\nLast output:\n${snippet}`
+                          : "Server stopped unexpectedly. Please start it again.");
                       }
                     } catch {
+                      prevServerRunning.current = false;
                       setServerRunning(false);
                       setServerError("Server stopped unexpectedly. Please start it again.");
                     }

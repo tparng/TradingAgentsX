@@ -18,3 +18,4 @@ shioaji-pro-app/
 eval_results/
 *.egg-info/
 .env
+Sinopac CA CertificatePassword.txt
