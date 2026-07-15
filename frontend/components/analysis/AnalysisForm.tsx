@@ -121,8 +121,8 @@ export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
       quick_think_llm: "custom",
       deep_think_llm: "custom",
       embedding_model: "all-MiniLM-L6-v2", // 預設使用本地開源模型
-      custom_quick_think_model: "qwen2.5:14b-32k",
-      custom_deep_think_model: "qwen2.5:14b-32k",
+      custom_quick_think_model: "qwen2.5:14b-16k",
+      custom_deep_think_model: "qwen2.5:14b-16k",
       quick_think_base_url: "http://localhost:11434/v1",
       deep_think_base_url: "http://localhost:11434/v1",
       quick_think_api_key: "",

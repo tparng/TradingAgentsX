@@ -46,7 +46,20 @@
 
 ## 🔧 近期變更
 
-### v5 改進（當前版本）
+### v6 改進（當前版本）
+
+| 變更項目 | 說明 |
+| -------- | ---- |
+| **預設模型改為 qwen2.5:14b-16k** | 將預設 LLM 從 `qwen2.5:14b-32k`（32768 token）改為 `qwen2.5:14b-16k`（16384 token）；16k context 的 KV cache 僅需 3 GB（32k 需 6 GB），使模型總記憶體需求（約 11.5 GB）可完整放入 RTX 3080 Ti（16 GB VRAM），避免退回 CPU 推理 |
+| **新增 Modelfile.qwen2.5-14b-16k** | 以 `ollama create qwen2.5:14b-16k -f Modelfile.qwen2.5-14b-16k` 建立本地 16k context 模型，不需重新下載權重（從 `qwen2.5:14b` 衍生） |
+| **分析表單預設更新** | 分析頁面快速/深層模型預設改為 `custom` + `qwen2.5:14b-16k` |
+| **shioaji 加入正式依賴** | `pyproject.toml` 新增 `shioaji>=1.5.6`，`uv sync` 後即可使用即時交易功能 |
+| **Ollama GPU 修復（升級至 v0.32.0）** | v0.23.1 存在 GPU 偵測 bug：bootstrap probe（`--ollama-engine`）回傳 `initial_count=0`，導致 model runner 不帶 `--num-gpu` 旗標，全程使用 CPU 推理（797% CPU、5–8 分鐘/次呼叫）；升級至 v0.32.0 後 GPU 正常偵測。**升級指令**：`curl -fsSL https://ollama.com/install.sh \| sudo sh` |
+| **Ollama 建議以手動方式啟動** | 安裝腳本建立的 systemd service 以 `User=ollama` 執行，無法存取 `/home/tparng/data/ollama/models`；建議停用 systemd service（`sudo systemctl disable --now ollama`）並以使用者身分手動啟動：`OLLAMA_MODELS=/home/tparng/data/ollama/models OLLAMA_NUM_CTX=16384 nohup ollama serve > /tmp/ollama.log 2>&1 &` |
+| **CUDA vs Vulkan 說明** | v0.32.0 升級後若出現 `cuInit failed: 999`（CUDA_ERROR_UNKNOWN），Ollama 會自動回退至 Vulkan GPU 加速（仍比 CPU 快數倍）；`cuInit: 999` 通常發生在驅動程式庫更新後尚未重開機，**重開機後 CUDA 即可正常使用** |
+| **tokenizers 版本修復** | `sentence-transformers` 需要 `tokenizers>=0.22.0`；若遇到匯入錯誤，執行 `uv pip install "tokenizers>=0.22.0" transformers -U` |
+
+### v5 改進
 
 | 變更項目 | 說明 |
 | -------- | ---- |
@@ -96,7 +109,7 @@
 
 | 變更項目 | 說明 |
 | -------- | ---- |
-| **預設 LLM 切換為 Ollama** | 預設使用 `qwen2.5:14b-32k`（本地推理，32768 token 上下文），無需 OpenAI API 金鑰 |
+| **預設 LLM 切換為 Ollama** | 預設使用 `qwen2.5:14b-16k`（本地推理，16384 token 上下文），無需 OpenAI API 金鑰（v6 起從 32k 改為 16k 以確保 GPU 加速） |
 | **套件管理切換為 uv** | 取代 conda，使用 `uv sync` + `uv pip install -r backend/requirements.txt` 安裝依賴 |
 | **新聞資料來源調整** | `news_data` 改用 `google`（Google News RSS，無需 API 金鑰），`get_global_news` 改用 `local`（Reddit） |
 | **修復分析師工具呼叫** | 為每個分析師節點注入含預計算參數的明確啟動訊息，解決小型本地模型（如 qwen2.5:14b）不呼叫工具而改為詢問用戶的問題 |
@@ -129,7 +142,7 @@
 
 | 檔案 | 變更類型 | 原因 |
 | ---- | -------- | ---- |
-| `tradingagents/default_config.py` | 修改 | 預設 LLM 改為 Ollama/qwen2.5:14b-32k（32768 token 上下文）；新聞來源改為 Google News RSS（無需 API 金鑰）；全域新聞改為 local/Reddit |
+| `tradingagents/default_config.py` | 修改 | 預設 LLM 改為 Ollama/qwen2.5:14b-16k（16384 token 上下文，v6 從 32k 改為 16k 以啟用 GPU 加速）；新聞來源改為 Google News RSS（無需 API 金鑰）；全域新聞改為 local/Reddit |
 | `tradingagents/dataflows/interface.py` | 修改 | 所有中文除錯輸出改為英文 `[vendor]` 格式；錯誤訊息英文化 |
 | `tradingagents/dataflows/local.py` | 修改 | 頂層 `import polars` 改為 `try/except ImportError`，避免未安裝 polars 時後端啟動崩潰 |
 | `tradingagents/dataflows/alpha_vantage_common.py` | 修改 | 同上，防護性 polars 匯入 |
@@ -350,12 +363,16 @@ cd TradingAgentsX
 # 確認 Ollama 已安裝並執行
 ollama serve          # 若尚未在背景執行
 
-# 下載並建立 32k context 版本（約 9 GB，首次需要）
+# 下載模型（約 9 GB，首次需要）
 ollama pull qwen2.5:14b
-ollama create qwen2.5:14b-32k -f - <<'EOF'
-FROM qwen2.5:14b
-PARAMETER num_ctx 32768
-EOF
+
+# 建立 16k context 版本（推薦：可完整放入 16 GB VRAM，啟用 GPU 加速）
+ollama create qwen2.5:14b-16k -f Modelfile.qwen2.5-14b-16k
+# 或手動建立：
+# ollama create qwen2.5:14b-16k -f - <<'EOF'
+# FROM qwen2.5:14b
+# PARAMETER num_ctx 16384
+# EOF
 ```
 
 #### 3️⃣ 後端設置
@@ -616,8 +633,8 @@ Content-Type: application/json
   "analysis_date": "2024-01-15",
   "research_depth": 2,
   "analysts": ["market", "social", "news", "fundamentals"],
-  "quick_think_llm": "qwen2.5:14b-32k",
-  "deep_think_llm": "qwen2.5:14b-32k",
+  "quick_think_llm": "qwen2.5:14b-16k",
+  "deep_think_llm": "qwen2.5:14b-16k",
   "quick_think_base_url": "http://localhost:11434/v1",
   "deep_think_base_url": "http://localhost:11434/v1",
   "quick_think_api_key": "ollama",
