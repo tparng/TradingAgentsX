@@ -10,8 +10,8 @@ DEFAULT_CONFIG = {
     )),
     # LLM 設定
     "llm_provider": "ollama",
-    "deep_think_llm": "qwen2.5:14b",
-    "quick_think_llm": "qwen2.5:14b",
+    "deep_think_llm": "qwen2.5:14b-32k",
+    "quick_think_llm": "qwen2.5:14b-32k",
     "backend_url": "http://localhost:11434/v1",
     "deep_think_api_key": "ollama",
     "quick_think_api_key": "ollama",

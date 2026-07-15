@@ -96,7 +96,7 @@
 
 | 變更項目 | 說明 |
 | -------- | ---- |
-| **預設 LLM 切換為 Ollama** | 預設使用 `qwen2.5:14b`（本地推理），無需 OpenAI API 金鑰 |
+| **預設 LLM 切換為 Ollama** | 預設使用 `qwen2.5:14b-32k`（本地推理，32768 token 上下文），無需 OpenAI API 金鑰 |
 | **套件管理切換為 uv** | 取代 conda，使用 `uv sync` + `uv pip install -r backend/requirements.txt` 安裝依賴 |
 | **新聞資料來源調整** | `news_data` 改用 `google`（Google News RSS，無需 API 金鑰），`get_global_news` 改用 `local`（Reddit） |
 | **修復分析師工具呼叫** | 為每個分析師節點注入含預計算參數的明確啟動訊息，解決小型本地模型（如 qwen2.5:14b）不呼叫工具而改為詢問用戶的問題 |
@@ -129,7 +129,7 @@
 
 | 檔案 | 變更類型 | 原因 |
 | ---- | -------- | ---- |
-| `tradingagents/default_config.py` | 修改 | 預設 LLM 改為 Ollama/qwen2.5:14b；新聞來源改為 Google News RSS（無需 API 金鑰）；全域新聞改為 local/Reddit |
+| `tradingagents/default_config.py` | 修改 | 預設 LLM 改為 Ollama/qwen2.5:14b-32k（32768 token 上下文）；新聞來源改為 Google News RSS（無需 API 金鑰）；全域新聞改為 local/Reddit |
 | `tradingagents/dataflows/interface.py` | 修改 | 所有中文除錯輸出改為英文 `[vendor]` 格式；錯誤訊息英文化 |
 | `tradingagents/dataflows/local.py` | 修改 | 頂層 `import polars` 改為 `try/except ImportError`，避免未安裝 polars 時後端啟動崩潰 |
 | `tradingagents/dataflows/alpha_vantage_common.py` | 修改 | 同上，防護性 polars 匯入 |
@@ -350,8 +350,12 @@ cd TradingAgentsX
 # 確認 Ollama 已安裝並執行
 ollama serve          # 若尚未在背景執行
 
-# 下載預設模型（約 9 GB，首次需要）
+# 下載並建立 32k context 版本（約 9 GB，首次需要）
 ollama pull qwen2.5:14b
+ollama create qwen2.5:14b-32k -f - <<'EOF'
+FROM qwen2.5:14b
+PARAMETER num_ctx 32768
+EOF
 ```
 
 #### 3️⃣ 後端設置
@@ -612,8 +616,8 @@ Content-Type: application/json
   "analysis_date": "2024-01-15",
   "research_depth": 2,
   "analysts": ["market", "social", "news", "fundamentals"],
-  "quick_think_llm": "qwen2.5:14b",
-  "deep_think_llm": "qwen2.5:14b",
+  "quick_think_llm": "qwen2.5:14b-32k",
+  "deep_think_llm": "qwen2.5:14b-32k",
   "quick_think_base_url": "http://localhost:11434/v1",
   "deep_think_base_url": "http://localhost:11434/v1",
   "quick_think_api_key": "ollama",
