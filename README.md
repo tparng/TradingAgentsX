@@ -607,7 +607,18 @@ docker compose down -v
 
 ### 📄 範例報告
 
-查看完整的 PDF 分析報告範例：
+**Markdown 報告**（由本系統生成，可直接在 GitHub 上閱讀）：
+
+| 股票 | 日期 | 連結 |
+| ---- | ---- | ---- |
+| NVDA (NVIDIA) | 2026-07-15 | [NVDA_Report_2026-07-15.md](report/NVDA/NVDA_Report_2026-07-15.md) |
+| NVDA (NVIDIA) | 2026-07-13 | [NVDA_Report_2026-07-13.md](report/NVDA/NVDA_Report_2026-07-13.md) |
+| NVDA (NVIDIA) | 2025-01-10 | [NVDA_Report_2025-01-10.md](report/NVDA/NVDA_Report_2025-01-10.md) |
+| 2330 (台積電) | 2026-07-14 | [2330_Report_2026-07-14.md](report/2330/2330_Report_2026-07-14.md) |
+
+> 報告由 `scripts/export_reports_to_md.py` 從 `eval_results/` 自動轉換，執行 `python3 scripts/export_reports_to_md.py` 可更新。
+
+**PDF 報告**：
 
 📥 **[AVGO 博通公司分析報告 (2026-03-21)](report/zh_tw/AVGO_Report_2026-03-21.pdf)**
 
