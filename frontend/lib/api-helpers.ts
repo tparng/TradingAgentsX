@@ -9,6 +9,11 @@ import { ApiSettings } from "./storage";
  * If custom_base_url is set, it takes precedence
  */
 export function getBaseUrlForModel(model: string, customBaseUrl?: string): string {
+  // Ollama models use model:tag format — always local
+  if (model.includes(":")) {
+    return "http://localhost:11434/v1";
+  }
+
   // OpenAI models - always use OpenAI API
   if (model.startsWith("gpt-")) {
     return "https://api.openai.com/v1";
@@ -56,6 +61,11 @@ export function getApiKeyForModel(
   model: string,
   settings: ApiSettings
 ): string {
+  // Ollama models use model:tag format — no API key needed
+  if (model.includes(":")) {
+    return "ollama";
+  }
+
   // OpenAI models - always use OpenAI API key
   if (model.startsWith("gpt-")) {
     return settings.openai_api_key;
