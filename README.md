@@ -72,6 +72,8 @@
 | **CA 啟動失敗即時警示** | sidecar 啟動成功後，後端掃描 stdout 比對 `"Failed to activate CA certificate:"` 模式；若 CA 啟動失敗（憑證過期、密碼錯誤），回傳 `ca_warning`；前端以黃色警示顯示失敗原因（「正式環境下單將被拒絕」） |
 | **修復模式切換未重啟問題** | 追蹤 `runningSimulation` 狀態，記錄 sidecar 實際啟動的模式；切換 Simulation 切換鈕時若與執行中 sidecar 模式不一致，顯示黃色警示並提供「Restart」一鍵重啟按鈕，確保模式變更實際生效 |
 | **CA 密碼持久化** | CA 憑證密碼現以 AES-256-GCM 加密存入 localStorage（與 API Key 一致），頁面重載後自動預填；先前每次重啟均需重新輸入密碼，導致 sidecar 以空密碼啟動而靜默失敗 CA 啟用 |
+| **帳號簽署後須重啟 sidecar** | 在永豐 API 管理頁簽署 API 約定書後，sidecar 需重啟才能讀取更新的 `signed: true` 狀態；簽署前 sidecar 快取的帳號資訊仍為 `signed: false`，導致 Portfolio / Order 端點回傳 406 |
+| **帳號類型說明** | shioaji 僅支援 `S`（證券）與 `F`（期貨）兩種帳號類型；永豐可能回傳 `H`（Sinopac 內部類型，如海外證券）等額外類型，shioaji-pro-app 會略過 `S`/`F` 以外的帳號，Margin 等功能亦不適用 |
 
 ### v4 改進
 
@@ -437,6 +439,8 @@ chmod +x src-tauri/binaries/shioaji-x86_64-unknown-linux-gnu
 設置完成後，`start.sh` 會自動啟動 shioaji-pro-app（port 5173）。在 `/trading` 頁面輸入永豐證券憑證，點選「Start Pro Terminal Server」→「Open Pro Terminal」即可開啟完整交易介面。
 
 > **注意**：sidecar binary 和 `shioaji-pro-app/` 目錄已加入 `.gitignore`，不會被提交至版本控制。每位使用者需自行下載 binary。
+
+> **帳號簽署**：Portfolio / Order 功能需先至[永豐 API 管理頁](https://www.sinotrade.com.tw/ec/20210518/index.html)簽署 API 約定書（帳號 `signed: true`）。簽署後須重啟 sidecar（在 `/trading` 頁面點選 Stop → Start）才能生效。shioaji 僅支援 `S`（證券）與 `F`（期貨）帳號，`H` 等其他類型會被略過。
 
 #### 4️⃣ 前端設置
 
