@@ -118,13 +118,13 @@ export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
       research_depth: 3, // 預設中等層級
       market_type: "us", // 預設美股
       report_language: (locale as "en" | "zh-TW") ?? "zh-TW",
-      quick_think_llm: "claude-haiku-4-5-20251001",
-      deep_think_llm: "claude-sonnet-4-6",
+      quick_think_llm: "custom",
+      deep_think_llm: "custom",
       embedding_model: "all-MiniLM-L6-v2", // 預設使用本地開源模型
-      custom_quick_think_model: "",
-      custom_deep_think_model: "",
-      quick_think_base_url: "https://api.anthropic.com/v1",
-      deep_think_base_url: "https://api.anthropic.com/v1",
+      custom_quick_think_model: "qwen2.5:14b-32k",
+      custom_deep_think_model: "qwen2.5:14b-32k",
+      quick_think_base_url: "http://localhost:11434/v1",
+      deep_think_base_url: "http://localhost:11434/v1",
       quick_think_api_key: "",
       deep_think_api_key: "",
       embedding_base_url: "https://api.openai.com/v1",
@@ -152,11 +152,11 @@ export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
       if (isQuickThinkCustom) {
         form.setValue(
           "quick_think_base_url",
-          savedSettings.custom_base_url || ""
+          savedSettings.custom_base_url || "http://localhost:11434/v1"
         );
         form.setValue(
           "quick_think_api_key",
-          savedSettings.custom_api_key || ""
+          savedSettings.custom_api_key || "ollama"
         );
       } else {
         form.setValue(
@@ -172,9 +172,9 @@ export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
       if (isDeepThinkCustom) {
         form.setValue(
           "deep_think_base_url",
-          savedSettings.custom_base_url || ""
+          savedSettings.custom_base_url || "http://localhost:11434/v1"
         );
-        form.setValue("deep_think_api_key", savedSettings.custom_api_key || "");
+        form.setValue("deep_think_api_key", savedSettings.custom_api_key || "ollama");
       } else {
         form.setValue(
           "deep_think_base_url",
