@@ -4,8 +4,16 @@ import { useEffect, useState } from "react";
 import { CheckCircle2, Loader2, Circle } from "lucide-react";
 import type { ProgressData } from "@/hooks/useAnalysis";
 
-// Ordered pipeline — the frontend renders all steps in this sequence.
-// Steps that aren't in the selected analysts are simply skipped (they never appear in `completed`).
+// Analyst form key → pipeline node name (only for the "analysts" phase)
+const ANALYST_KEY_TO_NODE: Record<string, string> = {
+  market:       "Market Analyst",
+  social:       "Social Analyst",
+  news:         "News Analyst",
+  fundamentals: "Fundamentals Analyst",
+  quant:        "Quant Analyst",
+};
+
+// Full ordered pipeline — analyst-phase entries are filtered by selected analysts at render time
 const PIPELINE: { node: string; label_zh: string; label_en: string; phase: string }[] = [
   { node: "Market Analyst",       label_zh: "市場技術分析",       label_en: "Market Technical Analysis",    phase: "analysts" },
   { node: "Social Analyst",       label_zh: "社群媒體情緒分析",   label_en: "Social Media Sentiment",       phase: "analysts" },
@@ -39,9 +47,10 @@ function formatElapsed(seconds: number): string {
 interface Props {
   progressData: ProgressData | null;
   locale?: string;
+  analysts?: string[];
 }
 
-export function AnalysisProgress({ progressData, locale = "zh-TW" }: Props) {
+export function AnalysisProgress({ progressData, locale = "zh-TW", analysts }: Props) {
   const isZh = locale === "zh-TW";
 
   // Live elapsed-time ticker (counts up every second from the server value)
@@ -55,14 +64,22 @@ export function AnalysisProgress({ progressData, locale = "zh-TW" }: Props) {
   const completedSet = new Set(progressData?.completed ?? []);
   const currentStep = progressData?.step ?? null;
 
-  // Only show steps that are relevant (completed or active or pending from pipeline)
-  // Filter: show all pipeline steps where the phase has at least one completed node
-  // + the current step + the next few upcoming
-  const activeIdx = PIPELINE.findIndex((s) => s.node === currentStep);
-  const lastCompletedIdx = PIPELINE.reduce((acc, s, i) => completedSet.has(s.node) ? i : acc, -1);
-  const showUpTo = Math.max(activeIdx, lastCompletedIdx) + 3; // show a couple ahead
+  // Filter analyst-phase steps to only those the user selected.
+  // Non-analyst phases (research, risk, trader) always appear.
+  const selectedNodeSet = analysts
+    ? new Set(analysts.map((k) => ANALYST_KEY_TO_NODE[k]).filter(Boolean))
+    : null;
 
-  const visibleSteps = PIPELINE.filter((_, i) => i <= showUpTo);
+  const activePipeline = PIPELINE.filter(
+    (s) => s.phase !== "analysts" || !selectedNodeSet || selectedNodeSet.has(s.node)
+  );
+
+  // Only show steps up to a few ahead of the current/last-completed position
+  const activeIdx = activePipeline.findIndex((s) => s.node === currentStep);
+  const lastCompletedIdx = activePipeline.reduce((acc, s, i) => completedSet.has(s.node) ? i : acc, -1);
+  const showUpTo = Math.max(activeIdx, lastCompletedIdx) + 3;
+
+  const visibleSteps = activePipeline.filter((_, i) => i <= showUpTo);
 
   return (
     <div className="w-full max-w-lg mx-auto py-8 px-4">
@@ -89,7 +106,7 @@ export function AnalysisProgress({ progressData, locale = "zh-TW" }: Props) {
           const phaseInfo = PHASE_LABELS[step.phase];
 
           // Show phase header when phase changes
-          const showPhaseHeader = idx === 0 || PIPELINE[idx - 1]?.phase !== step.phase;
+          const showPhaseHeader = idx === 0 || visibleSteps[idx - 1]?.phase !== step.phase;
           const isPhaseVisible = visibleSteps.some((s) => s.phase === step.phase);
 
           return (

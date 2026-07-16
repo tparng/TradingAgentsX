@@ -3,7 +3,7 @@
  */
 "use client";
 
-import { useEffect, useCallback, useRef, Suspense } from "react";
+import { useEffect, useCallback, useRef, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AnalysisForm } from "@/components/analysis/AnalysisForm";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
@@ -24,6 +24,7 @@ function AnalysisPageInner() {
   const initialMarketType = searchParams.get("market_type") ?? undefined;
   const { setAnalysisResult, setTaskId, setMarketType, marketType } = useAnalysisContext();
   const { runAnalysis, cancelAnalysis, loading, error, result, taskId, progressData } = useAnalysis();
+  const [selectedAnalysts, setSelectedAnalysts] = useState<string[]>(["market", "social", "news", "fundamentals"]);
   const { isAuthenticated } = useAuth();
   const { t, locale } = useLanguage();
   
@@ -126,10 +127,11 @@ function AnalysisPageInner() {
 
   const handleSubmit = async (data: AnalysisRequest) => {
     try {
-      // Store the market type for later use when saving the report
+      // Store the market type and selected analysts for later use
       if (data.market_type) {
         setMarketType(data.market_type);
       }
+      setSelectedAnalysts(data.analysts ?? ["market", "social", "news", "fundamentals"]);
       await runAnalysis(data);
     } catch (err) {
       // Error is handled by the hook
@@ -167,7 +169,7 @@ function AnalysisPageInner() {
 
         {loading && (
           progressData
-            ? <AnalysisProgress progressData={progressData} locale={locale} />
+            ? <AnalysisProgress progressData={progressData} locale={locale} analysts={selectedAnalysts} />
             : <LoadingSpinner message={t.form.analysisLoading} />
         )}
 

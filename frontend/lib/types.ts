@@ -121,7 +121,7 @@ export interface TaskCreatedResponse {
 
 export interface TaskStatusResponse {
   task_id: string;
-  status: "pending" | "running" | "completed" | "failed";
+  status: "pending" | "running" | "completed" | "failed" | "cancelling" | "cancelled";
   created_at: string;
   updated_at: string;
   progress?: string;
