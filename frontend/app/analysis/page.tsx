@@ -3,8 +3,8 @@
  */
 "use client";
 
-import { useEffect, useCallback, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useCallback, useRef, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AnalysisForm } from "@/components/analysis/AnalysisForm";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { ErrorAlert } from "@/components/shared/ErrorAlert";
@@ -16,8 +16,11 @@ import { saveReport, checkDuplicateReport } from "@/lib/reports-db";
 import { saveCloudReport, isCloudSyncEnabled } from "@/lib/user-api";
 import type { AnalysisRequest } from "@/lib/types";
 
-export default function AnalysisPage() {
+function AnalysisPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialTicker = searchParams.get("ticker") ?? undefined;
+  const initialMarketType = searchParams.get("market_type") ?? undefined;
   const { setAnalysisResult, setTaskId, setMarketType, marketType } = useAnalysisContext();
   const { runAnalysis, loading, error, result, taskId } = useAnalysis();
   const { isAuthenticated } = useAuth();
@@ -153,7 +156,12 @@ export default function AnalysisPage() {
           </p>
         </div>
 
-        <AnalysisForm onSubmit={handleSubmit} loading={loading} />
+        <AnalysisForm
+          onSubmit={handleSubmit}
+          loading={loading}
+          initialTicker={initialTicker}
+          initialMarketType={initialMarketType}
+        />
 
         {loading && (
           <LoadingSpinner message={t.form.analysisLoading} />
@@ -163,5 +171,13 @@ export default function AnalysisPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AnalysisPage() {
+  return (
+    <Suspense>
+      <AnalysisPageInner />
+    </Suspense>
   );
 }

@@ -14,6 +14,9 @@ import type {
   ChatMessageResponse,
   WatchlistItem,
   WatchlistStatus,
+  WatchlistCandidate,
+  CandidateDetail,
+  ScreenerParams,
 } from "./types";
 
 const apiClient = axios.create({
@@ -128,6 +131,40 @@ export const api = {
 
   async getWatchlistStatus(): Promise<WatchlistStatus> {
     const response = await apiClient.get<WatchlistStatus>("/api/watchlist/status");
+    return response.data;
+  },
+
+  async getCandidates(): Promise<WatchlistCandidate[]> {
+    const response = await apiClient.get<WatchlistCandidate[]>("/api/watchlist/candidates");
+    return response.data;
+  },
+
+  async generateCandidates(params?: ScreenerParams): Promise<WatchlistCandidate[]> {
+    const response = await apiClient.post<WatchlistCandidate[]>(
+      "/api/watchlist/candidates/generate",
+      params ?? {},
+      { timeout: 120_000 },
+    );
+    return response.data;
+  },
+
+  async addCandidatesToWatchlist(tickers: string[]): Promise<{ added: string[]; skipped: string[] }> {
+    const response = await apiClient.post<{ added: string[]; skipped: string[] }>(
+      "/api/watchlist/candidates/add",
+      { tickers },
+    );
+    return response.data;
+  },
+
+  async dismissCandidate(ticker: string): Promise<void> {
+    await apiClient.delete(`/api/watchlist/candidates/${ticker}`);
+  },
+
+  async getCandidateDetail(ticker: string): Promise<CandidateDetail> {
+    const response = await apiClient.get<CandidateDetail>(
+      `/api/watchlist/candidates/${ticker}/detail`,
+      { timeout: 120_000 },
+    );
     return response.data;
   },
 };

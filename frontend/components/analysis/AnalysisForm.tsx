@@ -93,11 +93,13 @@ const formSchema = z.object({
 interface AnalysisFormProps {
   onSubmit: (data: AnalysisRequest) => void;
   loading?: boolean;
+  initialTicker?: string;
+  initialMarketType?: string;
 }
 
 // ANALYSTS is now defined inside the component using translations
 
-export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
+export function AnalysisForm({ onSubmit, loading = false, initialTicker, initialMarketType }: AnalysisFormProps) {
   const { t, locale } = useLanguage();
   
   // Define ANALYSTS using translations
@@ -112,11 +114,11 @@ export function AnalysisForm({ onSubmit, loading = false }: AnalysisFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      ticker: "NVDA",
+      ticker: initialTicker ?? "NVDA",
       analysis_date: format(new Date(), "yyyy-MM-dd"),
       analysts: ["market", "social", "news", "fundamentals"], // 預設全選
       research_depth: 3, // 預設中等層級
-      market_type: "us", // 預設美股
+      market_type: (initialMarketType ?? "us") as "us" | "twse" | "tpex",
       report_language: (locale as "en" | "zh-TW") ?? "zh-TW",
       quick_think_llm: "custom",
       deep_think_llm: "custom",

@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { AnalysisProvider } from "@/context/AnalysisContext";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { FontSizeProvider } from "@/contexts/FontSizeContext";
 import { AuthProvider } from "@/contexts/auth-context";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { SyncInitializer } from "@/components/providers/SyncInitializer";
@@ -140,6 +141,7 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <ThemeProvider>
+          <FontSizeProvider>
           <LanguageProvider>
             <AuthProvider>
               <SyncInitializer />
@@ -155,6 +157,7 @@ export default function RootLayout({
               </AnalysisProvider>
             </AuthProvider>
           </LanguageProvider>
+          </FontSizeProvider>
         </ThemeProvider>
       </body>
     </html>

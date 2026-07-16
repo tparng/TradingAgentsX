@@ -5,6 +5,12 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Font size scale — applied by FontSizeContext via data-font-size on <html> */
+html[data-font-size="sm"] { font-size: 13px; }
+html[data-font-size="md"] { font-size: 16px; }
+html[data-font-size="lg"] { font-size: 18px; }
+html[data-font-size="xl"] { font-size: 20px; }
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

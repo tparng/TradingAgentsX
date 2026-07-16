@@ -7,6 +7,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { FontSizeToggle } from "@/components/theme/FontSizeToggle";
 import { ApiSettingsDialog } from "@/components/settings/ApiSettingsDialog";
 import { LanguageSwitcher } from "@/components/settings/LanguageSwitcher";
 import { LoginButton } from "@/components/auth/login-button";
@@ -75,6 +76,7 @@ export function Header() {
             </Link>
             <ApiSettingsDialog />
             <LanguageSwitcher />
+            <FontSizeToggle />
             <ThemeToggle />
             <LoginButton />
           </nav>
@@ -82,6 +84,7 @@ export function Header() {
           {/* Mobile Menu Button */}
           <div className="flex md:hidden items-center gap-2">
             <LanguageSwitcher />
+            <FontSizeToggle />
             <ThemeToggle />
             <Button
               variant="ghost"

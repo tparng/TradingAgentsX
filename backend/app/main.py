@@ -50,17 +50,25 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
-    """Simple in-memory rate limiting middleware"""
-    
-    def __init__(self, app, max_requests: int = 30, window_seconds: int = 60):
+    """Simple in-memory rate limiting middleware.
+
+    GET requests are exempt — they are read-only and cheap.
+    Only POST / PUT / DELETE (state-changing or compute-heavy) are counted.
+    The limit is configurable via RATE_LIMIT_MAX_REQUESTS / RATE_LIMIT_WINDOW_SECONDS.
+    """
+
+    # Paths always exempt regardless of method
+    _EXEMPT_PATHS = {"/api/health"}
+
+    def __init__(self, app, max_requests: int = 60, window_seconds: int = 60):
         super().__init__(app)
         self.max_requests = max_requests
         self.window_seconds = window_seconds
         self.requests: dict[str, list[float]] = defaultdict(list)
-    
+
     async def dispatch(self, request: Request, call_next):
-        # Skip rate limiting for health checks
-        if request.url.path == "/api/health":
+        # Exempt health check and all read-only GETs
+        if request.url.path in self._EXEMPT_PATHS or request.method == "GET":
             return await call_next(request)
         
         # Get client IP
@@ -141,8 +149,13 @@ app = FastAPI(
 )
 
 # Add security middleware (order matters - added first, executed last)
+import os as _os
 app.add_middleware(SecurityHeadersMiddleware)
-app.add_middleware(RateLimitMiddleware, max_requests=30, window_seconds=60)
+app.add_middleware(
+    RateLimitMiddleware,
+    max_requests=int(_os.getenv("RATE_LIMIT_MAX_REQUESTS", "60")),
+    window_seconds=int(_os.getenv("RATE_LIMIT_WINDOW_SECONDS", "60")),
+)
 
 # Setup CORS
 setup_cors(app)

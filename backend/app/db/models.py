@@ -4,7 +4,7 @@ Database models for users, settings, and reports
 import uuid
 from datetime import datetime
 from typing import Optional
-from sqlalchemy import String, Text, DateTime, ForeignKey, JSON, Float
+from sqlalchemy import String, Text, DateTime, ForeignKey, JSON, Float, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -119,3 +119,20 @@ class WatchlistItem(Base):
     last_analyzed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     last_recommendation: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)
     last_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+
+
+class WatchlistCandidate(Base):
+    """Auto-generated stock candidates from screener + LLM ranking."""
+    __tablename__ = "watchlist_candidates"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    ticker: Mapped[str] = mapped_column(String(20), nullable=False, unique=True, index=True)
+    market_type: Mapped[str] = mapped_column(String(10), nullable=False, default="us")
+    price_change_pct: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    volume_ratio: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    rsi: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    rationale: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    rank: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    signal: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)  # BULLISH/BEARISH/NEUTRAL
+    screened_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")  # pending/added/dismissed

@@ -42,12 +42,30 @@
 | 🌐 **多語言支援**        | 支援繁體中文、英文                                              |
 | 📈 **即時交易**          | 整合 Sinopac Shioaji API，支援台股即時報價、下單、持倉管理（模擬模式預設開啟） |
 | 📋 **自選股清單**        | 追蹤股票、同步 Google Sheets、Telegram 通知、APScheduler 定時自動分析          |
+| 🔍 **候選股篩選**        | 規則篩選（漲幅 + 量比）＋ LLM 評分排名，UI 選取後一鍵加入自選股              |
+| 🌏 **美股/台股切換**     | 自選股與候選股均支援市場切換，一鍵分別檢視美股與台股清單                      |
+| 🔡 **字體大小調整**      | 頁首提供 Small / Medium / Large / X-Large 四段字體大小選擇，設定自動保存       |
 
 ---
 
 ## 🔧 近期變更
 
-### v7 改進（當前版本）
+### v8 改進（當前版本）
+
+| 變更項目 | 說明 |
+| -------- | ---- |
+| **候選股篩選器（Screener）** | 新增 `screener_service.py`：對美股（65 支）與台股（32 支）Universe 進行規則篩選（`min_price_change_pct`、`min_volume_ratio`）與綜合評分（`price_change_weight`），取 Top-N 傳遞給 LLM |
+| **LLM 候選股排名（Candidate Service）** | 新增 `candidate_service.py`：`rank_candidates()` 呼叫本地 Ollama（或任意 LLM）對篩選結果評分排名並輸出信號（BUY/SELL/NEUTRAL）與理由；`generate_detail_report()` 按需（懶載入）生成完整 7 段 Markdown 分析報告，支援中英文切換 |
+| **候選股 REST API** | `POST /api/watchlist/candidates/generate`（執行篩選 + LLM 排名，接受 `ScreenerParams` 參數體）、`GET /api/watchlist/candidates`（列出 pending 候選股）、`POST /api/watchlist/candidates/add`（批量加入自選股）、`GET /api/watchlist/candidates/{ticker}/detail`（按需生成詳細報告）、`DELETE /api/watchlist/candidates/{ticker}`（忽略候選股）|
+| **WatchlistCandidate 資料模型** | `backend/app/db/models.py` 新增 `WatchlistCandidate`：ticker（唯一索引）、market_type、price_change_pct、volume_ratio、rsi、rationale、rank、signal、screened_at、status（pending/added/dismissed）|
+| **候選股 UI 面板** | 自選股頁面新增候選股區塊：「Generate Candidates」按鈕觸發篩選；複選框選取後批量加入；點擊候選股卡片開啟 Dialog，顯示當前價、30日高低、RSI 等指標，並以 ReactMarkdown 渲染按需生成的 AI 詳細分析報告 |
+| **篩選器參數調整 UI** | 候選股面板新增可展開的 ScreenerSettingsPanel：滑桿調整最小漲幅（0.5–10%）、最小量比（1.0–5.0×）、漲幅/量比權重（即時顯示比例）、篩選上限（5–50）、LLM 評選上限（3–15）；US/TW 宇宙 Switch；「Reset」一鍵還原預設值 |
+| **「Full Analysis」預填 ticker** | 候選股詳細報告 Dialog 新增「Full Analysis」按鈕，開啟 `/analysis?ticker=XXX&market_type=us`；`AnalysisForm` 新增 `initialTicker`/`initialMarketType` props；`app/analysis/page.tsx` 以 `useSearchParams` 讀取並預填表單；以 `<Suspense>` 包裹解決 Next.js App Router 靜態渲染問題 |
+| **美股 / 台股市場切換** | 自選股頁面頁首新增 US / TWN 雙鍵切換，自選股清單與候選股均以市場類型做 Client 端過濾（無需後端改動）；切換時自動更新「Generate」篩選範圍，並顯示各市場筆數角標 |
+| **修復 429 Rate Limit 錯誤** | `RateLimitMiddleware` 改為僅對 POST/PUT/DELETE 計次，GET 請求全部豁免（自選股頁面一次觸發 3 個 GET）；預設上限從 30 提升至 60 次/分鐘；新增 `RATE_LIMIT_MAX_REQUESTS` / `RATE_LIMIT_WINDOW_SECONDS` 環境變數支援動態調整 |
+| **字體大小選擇器** | 新增 `FontSizeContext`（localStorage 持久化）及 `FontSizeToggle` 組件；頁首（桌面版與行動版）新增字體大小圖示（`ALargeSmall`），下拉選單提供 Small（13px）/ Medium（16px）/ Large（18px）/ X-Large（20px）四段選擇；透過 `html[data-font-size]` CSS 屬性全局縮放所有 rem 尺寸 |
+
+### v7 改進
 
 | 變更項目 | 說明 |
 | -------- | ---- |
@@ -171,11 +189,13 @@
 | `backend/app/services/sheets_service.py` | **新增** | `SheetsService`：以 GCP 服務帳戶連接試算表；`get_tickers_from_sheet()`（自動偵測市場類型）、`add/remove_ticker_from_sheet()`、`write_analysis_result()`（更新 Last Analyzed / Recommendation / Score 欄） |
 | `backend/app/services/telegram_service.py` | **新增** | `TelegramService`：透過 httpx 呼叫 Bot API；`send_analysis_complete()`、`send_daily_digest()`、`send_error()` |
 | `backend/app/services/scheduler_service.py` | **新增** | `WatchlistScheduler`（`AsyncIOScheduler`）：`sheet_sync` job（每 15 分鐘）+ `daily_analysis` job（CRON 排程）；`run_watchlist_analysis()` 可依 ticker 清單或全部執行 |
-| `backend/app/api/watchlist_routes.py` | **新增** | `GET/POST/DELETE /api/watchlist`、`POST /api/watchlist/sync`、`POST /api/watchlist/analyze`、`GET /api/watchlist/status` |
-| `backend/app/db/models.py` | 修改 | 新增 `WatchlistItem` 模型（ticker、market_type、notes、added_at、last_analyzed_at、last_recommendation、last_score）；單一擁有者設計，無 user_id |
+| `backend/app/services/screener_service.py` | **新增** | 規則篩選引擎：美股（65 支）/ 台股（32 支）Universe；`run_screener()` 以 asyncio.gather 並發篩選兩個市場；`get_ticker_detail()` 取得 30 日價格區間、RSI、量比；`_score_ticker()` 計算綜合評分 |
+| `backend/app/services/candidate_service.py` | **新增** | LLM 評分層：`rank_candidates()` 呼叫 Ollama 排名篩選結果並輸出 JSON 信號；`generate_detail_report()` 按需生成完整 7 段 Markdown 報告（支援中英文）；`_parse_llm_response()` 解析並驗證 LLM 輸出 |
+| `backend/app/api/watchlist_routes.py` | **新增/修改** | 原有 `GET/POST/DELETE /api/watchlist`、`/sync`、`/analyze`、`/status`；v8 新增候選股 5 個端點：`POST /candidates/generate`（`ScreenerParams` 參數體）、`GET /candidates`、`POST /candidates/add`（批量）、`GET /candidates/{ticker}/detail`（按需報告）、`DELETE /candidates/{ticker}`（忽略）；新增 `ScreenerParams`、`CandidateOut`、`BulkAddRequest` Pydantic 模型 |
+| `backend/app/db/models.py` | 修改 | 新增 `WatchlistItem` 模型（ticker、market_type、notes、added_at、last_analyzed_at、last_recommendation、last_score）；單一擁有者設計，無 user_id；v8 新增 `WatchlistCandidate` 模型（ticker 唯一索引、signal、rationale、rank、screened_at、status） |
 | `backend/app/db/database.py` | 修改 | `init_db()` 新增 watchlist 資料表欄位 migration |
 | `backend/app/core/config.py` | 修改 | 新增 Telegram、Google Sheets、watchlist 排程器相關環境變數欄位 |
-| `backend/app/main.py` | 修改 | 頂部呼叫 `load_dotenv()` 修復 uvicorn reload 子行程讀不到 `.env` 的問題；新增 `watchlist_router`；startup/shutdown 事件啟動/停止排程器 |
+| `backend/app/main.py` | 修改 | 頂部呼叫 `load_dotenv()` 修復 uvicorn reload 子行程讀不到 `.env` 的問題；新增 `watchlist_router`；startup/shutdown 事件啟動/停止排程器；v8：`RateLimitMiddleware` 豁免所有 GET 請求，預設限制提升至 60/min，新增 `RATE_LIMIT_MAX_REQUESTS`/`RATE_LIMIT_WINDOW_SECONDS` 環境變數 |
 | `backend/__main__.py` | 修改 | 頂部呼叫 `load_dotenv()` 確保主行程也能讀取 `.env` |
 | `backend/requirements.txt` | 修改 | 新增 `apscheduler>=3.10.4`、`gspread>=6.0.0`、`google-auth>=2.0.0` |
 | `.env.example` | 修改 | 新增 `DATABASE_URL`、`TELEGRAM_BOT_TOKEN`、`TELEGRAM_CHAT_ID`、`GOOGLE_SERVICE_ACCOUNT_JSON`、`GOOGLE_SHEET_ID`、`WATCHLIST_*` 相關環境變數 |
@@ -191,12 +211,18 @@
 
 | 檔案 | 變更類型 | 原因 |
 | ---- | -------- | ---- |
-| `frontend/app/watchlist/page.tsx` | **新增** | 自選股清單頁面：新增表單（ticker + 市場 + 備註）、CRUD 操作、Sync from Sheet、Analyze All / 單一分析按鈕、排程器狀態與服務連線狀態列 |
-| `frontend/lib/types.ts` | 修改 | 新增 `WatchlistItem`、`WatchlistStatus` 型別 |
-| `frontend/lib/api.ts` | 修改 | 新增 `getWatchlist`、`addToWatchlist`、`removeFromWatchlist`、`syncWatchlistFromSheet`、`triggerWatchlistAnalysis`、`getWatchlistStatus` 6 個 API 方法 |
-| `frontend/components/layout/Header.tsx` | 修改 | 桌面版與手機版導覽列新增「Watchlist / 自選股」連結 |
-| `frontend/lib/i18n/en.ts` | 修改 | 新增 `nav.watchlist` 及 `watchlist` 區段（30+ 鍵）英文 i18n 字串；新增報告語言選單、量化分析師、即時交易（~50 鍵）及導覽列 `trading` 鍵的英文 i18n 字串 |
-| `frontend/lib/i18n/zh-TW.ts` | 修改 | 新增 `nav.watchlist`（自選股）及 `watchlist` 區段繁體中文 i18n 字串；新增報告語言選單、量化分析師、即時交易（~50 鍵）及導覽列 `trading` 鍵的繁體中文 i18n 字串 |
+| `frontend/app/watchlist/page.tsx` | **新增/修改** | v7：自選股清單頁面（CRUD、Sync、Analyze、狀態列）；v8：新增候選股面板（Generate 按鈕、篩選器設定 Panel、候選股卡片複選）、`CandidateDetailModal`（Dialog + ReactMarkdown 詳細報告、指標列、Dismiss/Full Analysis/Add 按鈕）、美股/台股市場切換頁首按鈕、Client 端市場過濾邏輯 |
+| `frontend/lib/types.ts` | 修改 | 新增 `WatchlistItem`、`WatchlistStatus`；v8 新增 `WatchlistCandidate`、`CandidateDetail`、`ScreenerParams` 介面及 `DEFAULT_SCREENER_PARAMS` 常數 |
+| `frontend/lib/api.ts` | 修改 | 新增 `getWatchlist`、`addToWatchlist`、`removeFromWatchlist`、`syncWatchlistFromSheet`、`triggerWatchlistAnalysis`、`getWatchlistStatus`；v8 新增 `getCandidates`、`generateCandidates`、`addCandidatesToWatchlist`、`dismissCandidate`、`getCandidateDetail`（120s 逾時）|
+| `frontend/contexts/FontSizeContext.tsx` | **新增** | `FontSizeProvider`：將字體大小偏好以 `data-font-size` 屬性設於 `<html>` 元素，並持久化至 localStorage；`useFontSize()` Hook |
+| `frontend/components/theme/FontSizeToggle.tsx` | **新增** | 下拉選單組件（`ALargeSmall` 圖示）：Small / Medium / Large / X-Large 四段字體大小選擇，支援中英文標籤，當前選項高亮 |
+| `frontend/components/analysis/AnalysisForm.tsx` | 修改 | 新增 `initialTicker`/`initialMarketType` props，讓候選股「Full Analysis」按鈕可預填 ticker 與市場類型 |
+| `frontend/app/analysis/page.tsx` | 修改 | 以 `useSearchParams` 讀取 `?ticker=` 與 `?market_type=` URL 參數並傳入 `AnalysisForm`；以 `<Suspense>` 包裹解決 App Router 靜態渲染限制 |
+| `frontend/app/layout.tsx` | 修改 | 在 Provider 樹中加入 `<FontSizeProvider>` |
+| `frontend/components/layout/Header.tsx` | 修改 | 桌面版與手機版導覽列新增「Watchlist / 自選股」連結；v8 新增 `<FontSizeToggle />`（位於語言切換器與主題切換器之間）|
+| `frontend/app/globals.css` | 修改 | 新增 `html[data-font-size="sm|md|lg|xl"]` CSS 規則（13/16/18/20px），全局縮放所有 rem 尺寸 |
+| `frontend/lib/i18n/en.ts` | 修改 | 新增 `nav.watchlist` 及 `watchlist` 區段（30+ 鍵）英文 i18n 字串；v8 新增 `watchlist.marketSwitch`、`watchlist.candidates.settings`、`watchlist.candidates.detail` 等候選股相關字串 |
+| `frontend/lib/i18n/zh-TW.ts` | 修改 | 新增 `nav.watchlist`（自選股）及 `watchlist` 區段繁體中文 i18n 字串；v8 新增候選股相關繁體中文字串 |
 | `frontend/app/trading/page.tsx` | 修改 | 新增「Shioaji Pro Terminal」卡片：呼叫 `/api/shioaji-server/start` 啟動 sidecar；就緒後「Open Pro Terminal」在新分頁開啟 `localhost:5173`（shioaji-pro-app 全功能交易介面）；憑證表單移至獨立常駐卡片（修復 hydration 錯誤及憑證被 `!isConnected` 隱藏的問題）；新增 CA 憑證欄位；`runningSimulation` 追蹤執行中模式並在模式不一致時顯示 Restart 警示；CA 密碼加密存入 localStorage；`ca_warning` 以黃色警示顯示；停機時顯示 sidecar 最後輸出；卡片附管理儀表板連結（port 21322）；保留簡易交易四分頁 |
 | `frontend/components/layout/Header.tsx` | 修改 | 桌面版與手機版導覽列新增「Trading / 即時交易」連結 |
 | `frontend/components/ui/alert.tsx` | **新增** | shadcn 標準 Alert / AlertTitle / AlertDescription 元件（交易頁警示用） |
@@ -238,7 +264,7 @@ TradingAgentsX/
 │   │   ├── shared/             # 共用組件
 │   │   ├── theme/              # 主題相關組件
 │   │   └── ui/                 # shadcn/ui 基礎組件（16 個）
-│   ├── contexts/               # React Context（認證狀態）
+│   ├── contexts/               # React Context（認證、語言、字體大小）
 │   ├── hooks/                  # 自定義 Hooks
 │   └── lib/                    # 工具函式
 │       ├── api.ts              # API 調用
@@ -270,6 +296,8 @@ TradingAgentsX/
 │           ├── trading_service.py      # 交易分析服務
 │           ├── shioaji_service.py      # Shioaji Python lib session 管理
 │           ├── shioaji_server_service.py # Sidecar binary 生命週期管理
+│           ├── screener_service.py     # 候選股規則篩選（漲幅 + 量比 + RSI）
+│           ├── candidate_service.py    # LLM 評分排名 + 詳細報告生成
 │           ├── sheets_service.py       # Google Sheets 雙向同步（gspread）
 │           ├── telegram_service.py     # Telegram Bot 推播通知（httpx）
 │           ├── scheduler_service.py    # APScheduler：Sheet 同步 + 定時分析
@@ -598,7 +626,7 @@ docker compose down -v
 
 ### 後端安全
 
-- **Rate Limiting** - 每分鐘 30 次請求限制
+- **Rate Limiting** - 預設每分鐘 60 次請求限制（僅對 POST/PUT/DELETE 計次，GET 全部豁免）；可透過 `RATE_LIMIT_MAX_REQUESTS` / `RATE_LIMIT_WINDOW_SECONDS` 環境變數調整
 - **Security Headers** - X-Content-Type-Options、X-Frame-Options 等
 - **敏感資料遮罩** - API Key 在日誌中自動遮罩
 - **CORS 配置** - 限制跨域請求來源
@@ -719,6 +747,35 @@ POST /api/watchlist/analyze
 
 # 排程器與服務狀態
 GET /api/watchlist/status
+```
+
+### 候選股篩選
+
+```bash
+# 執行篩選 + LLM 排名（接受自訂參數）
+POST /api/watchlist/candidates/generate
+{
+  "min_price_change_pct": 1.5,
+  "min_volume_ratio": 1.5,
+  "price_change_weight": 0.6,
+  "include_us": true,
+  "include_tw": true,
+  "max_screener_candidates": 20,
+  "llm_top_n": 8
+}
+
+# 取得目前 pending 候選股
+GET /api/watchlist/candidates
+
+# 批量加入自選股
+POST /api/watchlist/candidates/add
+{ "tickers": ["NVDA", "AAPL"] }
+
+# 按需生成詳細 AI 分析報告（約 15–40 秒）
+GET /api/watchlist/candidates/{ticker}/detail
+
+# 忽略候選股（標記為 dismissed）
+DELETE /api/watchlist/candidates/{ticker}
 ```
 
 完整文檔: http://localhost:8000/docs

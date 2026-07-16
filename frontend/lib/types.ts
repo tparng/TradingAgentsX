@@ -166,3 +166,51 @@ export interface WatchlistStatus {
   sheets_configured: boolean;
   telegram_configured: boolean;
 }
+
+export interface ScreenerParams {
+  min_price_change_pct: number;
+  min_volume_ratio: number;
+  price_change_weight: number;
+  include_us: boolean;
+  include_tw: boolean;
+  max_screener_candidates: number;
+  llm_top_n: number;
+}
+
+export const DEFAULT_SCREENER_PARAMS: ScreenerParams = {
+  min_price_change_pct: 1.5,
+  min_volume_ratio: 1.5,
+  price_change_weight: 0.6,
+  include_us: true,
+  include_tw: true,
+  max_screener_candidates: 20,
+  llm_top_n: 8,
+};
+
+export interface CandidateDetail {
+  ticker: string;
+  market_type: string;
+  signal?: string;
+  price_change_pct?: number;
+  volume_ratio?: number;
+  rsi?: number;
+  current_price?: number;
+  price_low_30d?: number;
+  price_high_30d?: number;
+  report_md: string;
+  generated_at: string;
+}
+
+export interface WatchlistCandidate {
+  id: string;
+  ticker: string;
+  market_type: string;
+  price_change_pct?: number;
+  volume_ratio?: number;
+  rsi?: number;
+  rationale?: string;
+  rank?: number;
+  signal?: "BULLISH" | "BEARISH" | "NEUTRAL";
+  screened_at: string;
+  status: "pending" | "added" | "dismissed";
+}
