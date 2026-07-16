@@ -38,7 +38,8 @@ stockstats
 eodhd
 langgraph
 chromadb
-sentence-transformers
+sentence-transformers>=5.6.0
+transformers>=5.14.0
 setuptools
 backtrader
 akshare

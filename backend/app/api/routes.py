@@ -162,7 +162,8 @@ async def run_analysis(
             if "status" in result and result["status"] == "error":
                 task_manager.set_task_error(
                     task_id,
-                    error=result.get("message", "Analysis failed")
+                    error=result.get("error", "Analysis failed"),
+                    result=result,  # pass full structured dict so frontend can show error_type, retry_after, etc.
                 )
             else:
                 task_manager.set_task_result(task_id, result=result)

@@ -193,16 +193,14 @@ class HybridTaskManager:
             self._save_to_storage(task_id, task_data, use_short_expiry=True)
             logger.info(f"✅ Task {task_id} completed, will be auto-cleaned from Redis in {self._completed_task_expiry} seconds")
     
-    def set_task_error(self, task_id: str, error: str):
+    def set_task_error(self, task_id: str, error: str, result: Optional[Any] = None):
         """
         Set task error and mark as failed.
-        
-        Note: Failed tasks will be automatically cleaned up from Redis
-        after a short TTL (10 minutes by default) to free up space.
-        
+
         Args:
             task_id: Task ID
-            error: Error message
+            error: Human-readable error message
+            result: Optional structured error dict (e.g. with error_type, retry_after)
         """
         task_data = self._get_from_storage(task_id)
         if task_data:
@@ -210,6 +208,8 @@ class HybridTaskManager:
             task_data["error"] = error
             task_data["progress"] = "Analysis failed"
             task_data["failed_at"] = datetime.now().isoformat()
+            if result is not None:
+                task_data["result"] = result
             # Save with shorter TTL for auto cleanup
             self._save_to_storage(task_id, task_data, use_short_expiry=True)
             logger.info(f"❌ Task {task_id} failed, will be auto-cleaned from Redis in {self._completed_task_expiry} seconds")
