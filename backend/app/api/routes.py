@@ -587,6 +587,21 @@ async def delete_pdf_temp(temp_id: str):
     return {"ok": True}
 
 
+@router.get("/llm/status")
+async def check_llm_status(base_url: str):
+    """Check if an LLM server is reachable at the given base URL."""
+    import httpx
+    url = base_url.rstrip("/") + "/models"
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            r = await client.get(url)
+        # 2xx/3xx/4xx all mean the server is up; 5xx or connection errors mean offline
+        online = r.status_code < 500
+    except Exception:
+        online = False
+    return {"status": "online" if online else "offline", "base_url": base_url}
+
+
 @router.post("/chat", response_model=ChatResponse)
 async def chat_with_report(request: ChatRequest):
     """

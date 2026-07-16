@@ -96,6 +96,17 @@ export const api = {
   },
 
   /**
+   * Check if an LLM server is reachable at the given base URL
+   */
+  async checkLlmStatus(baseUrl: string): Promise<{ status: "online" | "offline"; base_url: string }> {
+    const response = await apiClient.get<{ status: "online" | "offline"; base_url: string }>(
+      "/api/llm/status",
+      { params: { base_url: baseUrl } }
+    );
+    return response.data;
+  },
+
+  /**
    * Send a chat message about analysis reports
    */
   async sendChatMessage(request: ChatMessageRequest): Promise<ChatMessageResponse> {

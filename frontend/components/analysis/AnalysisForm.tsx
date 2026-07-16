@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { TickerCombobox } from "@/components/analysis/TickerCombobox";
+import { LlmStatusIndicator } from "@/components/analysis/LlmStatusIndicator";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
@@ -142,6 +143,7 @@ export function AnalysisForm({ onSubmit, onCancel, loading = false, initialTicke
   const deepThinkLlm = form.watch("deep_think_llm");
   const embeddingModel = form.watch("embedding_model");
   const marketType = form.watch("market_type");
+  const quickThinkBaseUrl = form.watch("quick_think_base_url");
   const isQuickThinkCustom = quickThinkLlm === "custom";
   const isDeepThinkCustom = deepThinkLlm === "custom";
   const isLocalEmbedding = ["all-MiniLM-L6-v2", "all-mpnet-base-v2"].includes(embeddingModel);
@@ -562,6 +564,14 @@ export function AnalysisForm({ onSubmit, onCancel, loading = false, initialTicke
                     </FormItem>
                   )}
                 />
+
+                {/* LLM 設定標題 + 伺服器狀態 */}
+                <div className="md:col-span-2 flex items-center justify-between border-t pt-4">
+                  <span className="text-base font-semibold">{t.form.llmSettings}</span>
+                  {quickThinkBaseUrl && (
+                    <LlmStatusIndicator baseUrl={quickThinkBaseUrl} />
+                  )}
+                </div>
 
                 <FormField
                   control={form.control}
