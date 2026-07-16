@@ -253,20 +253,32 @@ class TradingAgentsXGraph:
             ),
         }
 
-    def propagate(self, company_name, trade_date):
+    # Nodes worth surfacing to the user; tool-call and msg-clear nodes are skipped
+    _PROGRESS_NODES = {
+        "Market Analyst", "Social Analyst", "News Analyst",
+        "Fundamentals Analyst", "Quant Analyst",
+        "Report Summarizer",
+        "Bull Researcher", "Bear Researcher", "Research Manager",
+        "Risky Analyst", "Neutral Analyst", "Safe Analyst", "Risk Judge",
+        "Trader",
+    }
+
+    def propagate(self, company_name, trade_date, on_progress=None):
         """
         在特定日期為某家公司執行交易代理圖。
 
         Args:
             company_name (str): 公司名稱或股票代碼。
             trade_date (str): 交易日期。
+            on_progress: Optional callable(current_node: str, completed: list[str]).
+                         Called after each meaningful node finishes.
 
         Returns:
             tuple: 包含最終狀態和處理後信號的元組。
         """
         # 防呆：將股票代碼轉換為大寫並去除空白
         company_name = company_name.strip().upper()
-        
+
         self.ticker = company_name
 
         # 初始化狀態
@@ -274,6 +286,8 @@ class TradingAgentsXGraph:
             company_name, trade_date
         )
         args = self.propagator.get_graph_args()
+
+        completed_nodes: list[str] = []
 
         if self.debug:
             # Debug mode: stream and print, but skip duplicate messages
@@ -288,12 +302,29 @@ class TradingAgentsXGraph:
                     if msg_id != last_printed_id:
                         last_msg.pretty_print()
                         last_printed_id = msg_id
+                # Emit progress for meaningful nodes
+                for node_name in chunk:
+                    if node_name in self._PROGRESS_NODES and node_name not in completed_nodes:
+                        completed_nodes.append(node_name)
+                        if on_progress:
+                            on_progress(node_name, list(completed_nodes))
                 trace.append(chunk)
 
             final_state = trace[-1]
         else:
-            # 不帶追蹤的標準模式
-            final_state = self.graph.invoke(init_agent_state, **args)
+            if on_progress:
+                # Stream so we can emit progress even outside debug mode
+                trace = []
+                for chunk in self.graph.stream(init_agent_state, **args):
+                    for node_name in chunk:
+                        if node_name in self._PROGRESS_NODES and node_name not in completed_nodes:
+                            completed_nodes.append(node_name)
+                            on_progress(node_name, list(completed_nodes))
+                    trace.append(chunk)
+                final_state = trace[-1]
+            else:
+                # 不帶追蹤的標準模式
+                final_state = self.graph.invoke(init_agent_state, **args)
 
         # 儲存當前狀態以供反思
         self.curr_state = final_state

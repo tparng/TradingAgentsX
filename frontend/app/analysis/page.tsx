@@ -7,6 +7,7 @@ import { useEffect, useCallback, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AnalysisForm } from "@/components/analysis/AnalysisForm";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import { AnalysisProgress } from "@/components/analysis/AnalysisProgress";
 import { ErrorAlert } from "@/components/shared/ErrorAlert";
 import { useAnalysis } from "@/hooks/useAnalysis";
 import { useAnalysisContext } from "@/context/AnalysisContext";
@@ -22,7 +23,7 @@ function AnalysisPageInner() {
   const initialTicker = searchParams.get("ticker") ?? undefined;
   const initialMarketType = searchParams.get("market_type") ?? undefined;
   const { setAnalysisResult, setTaskId, setMarketType, marketType } = useAnalysisContext();
-  const { runAnalysis, loading, error, result, taskId } = useAnalysis();
+  const { runAnalysis, loading, error, result, taskId, progressData } = useAnalysis();
   const { isAuthenticated } = useAuth();
   const { t, locale } = useLanguage();
   
@@ -164,7 +165,9 @@ function AnalysisPageInner() {
         />
 
         {loading && (
-          <LoadingSpinner message={t.form.analysisLoading} />
+          progressData
+            ? <AnalysisProgress progressData={progressData} locale={locale} />
+            : <LoadingSpinner message={t.form.analysisLoading} />
         )}
 
         {error && <ErrorAlert error={error} />}

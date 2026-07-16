@@ -66,6 +66,7 @@ class TradingService:
         deep_think_llm: str = "qwen2.5:14b",
         quick_think_llm: str = "qwen2.5:14b",
         language: str = "zh-TW",  # Language for agent reports: 'en' or 'zh-TW'
+        on_progress=None,  # Optional callable(current_node: str, completed: list[str])
     ) -> Dict[str, Any]:
         """
         Run trading analysis for a given ticker and date with user-provided API keys
@@ -199,7 +200,7 @@ class TradingService:
                 
                 # Run analysis
                 logger.info(f"Running analysis for {ticker}")
-                final_state, decision = graph.propagate(ticker, analysis_date)
+                final_state, decision = graph.propagate(ticker, analysis_date, on_progress=on_progress)
             
                 # Extract reports from final state
                 reports = {

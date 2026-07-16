@@ -127,14 +127,25 @@ async def run_analysis(
     # Start background analysis
     def run_background_analysis():
         import asyncio
-        
-        try:
-            task_manager.update_task_status(
+        import json
+        import time
+
+        start_time = time.time()
+
+        task_manager.update_task_status(
+            task_id,
+            "running",
+            progress=json.dumps({"step": None, "completed": [], "elapsed": 0}),
+        )
+
+        def on_progress(current_node: str, completed: list):
+            elapsed = int(time.time() - start_time)
+            task_manager.update_task_progress(
                 task_id,
-                "running",
-                progress="Starting analysis..."
+                json.dumps({"step": current_node, "completed": completed, "elapsed": elapsed}),
             )
-            
+
+        try:
             # Run async function in sync context
             result = asyncio.run(service.run_analysis(
                 ticker=request.ticker,
@@ -156,6 +167,7 @@ async def run_analysis(
                 alpha_vantage_api_key=request.alpha_vantage_api_key or "",
                 finmind_api_key=request.finmind_api_key or "",
                 language=request.language or "zh-TW",  # Pass language for agent reports
+                on_progress=on_progress,
             ))
             
             # Check for errors in result

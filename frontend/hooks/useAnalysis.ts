@@ -7,6 +7,21 @@ import { useState, useEffect, useRef } from "react";
 import { api } from "@/lib/api";
 import type { AnalysisRequest, AnalysisResponse } from "@/lib/types";
 
+export interface ProgressData {
+  step: string | null;       // currently-running node name
+  completed: string[];       // node names that finished
+  elapsed: number;           // seconds since analysis started
+}
+
+function parseProgress(raw: string | null): ProgressData | null {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    if (typeof parsed === "object" && "completed" in parsed) return parsed as ProgressData;
+  } catch {}
+  return null;
+}
+
 export function useAnalysis() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | {
@@ -18,6 +33,7 @@ export function useAnalysis() {
   const [result, setResult] = useState<AnalysisResponse | null>(null);
   const [taskId, setTaskId] = useState<string | null>(null);
   const [progress, setProgress] = useState<string | null>(null);
+  const [progressData, setProgressData] = useState<ProgressData | null>(null);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Poll for task status
@@ -28,6 +44,7 @@ export function useAnalysis() {
       // Update progress
       if (status.progress) {
         setProgress(status.progress);
+        setProgressData(parseProgress(status.progress));
       }
       
       // Check if completed
@@ -172,12 +189,13 @@ export function useAnalysis() {
       clearInterval(pollingIntervalRef.current);
       pollingIntervalRef.current = null;
     }
-    
+
     setLoading(false);
     setError(null);
     setResult(null);
     setTaskId(null);
     setProgress(null);
+    setProgressData(null);
   };
 
   return {
@@ -187,6 +205,7 @@ export function useAnalysis() {
     result,
     taskId,
     progress,
+    progressData,
     reset,
   };
 }
