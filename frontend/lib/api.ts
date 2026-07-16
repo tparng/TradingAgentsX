@@ -12,6 +12,8 @@ import type {
   TaskStatusResponse,
   ChatMessageRequest,
   ChatMessageResponse,
+  WatchlistItem,
+  WatchlistStatus,
 } from "./types";
 
 const apiClient = axios.create({
@@ -91,6 +93,41 @@ export const api = {
       "/api/chat",
       request
     );
+    return response.data;
+  },
+
+  // ── Watchlist ──────────────────────────────────────────────────────────────
+
+  async getWatchlist(): Promise<WatchlistItem[]> {
+    const response = await apiClient.get<WatchlistItem[]>("/api/watchlist");
+    return response.data;
+  },
+
+  async addToWatchlist(ticker: string, market_type: string, notes?: string): Promise<WatchlistItem> {
+    const response = await apiClient.post<WatchlistItem>("/api/watchlist", {
+      ticker, market_type, notes: notes ?? "",
+    });
+    return response.data;
+  },
+
+  async removeFromWatchlist(ticker: string): Promise<void> {
+    await apiClient.delete(`/api/watchlist/${ticker}`);
+  },
+
+  async syncWatchlistFromSheet(): Promise<{ message: string }> {
+    const response = await apiClient.post<{ message: string }>("/api/watchlist/sync");
+    return response.data;
+  },
+
+  async triggerWatchlistAnalysis(ticker?: string): Promise<{ message: string }> {
+    const response = await apiClient.post<{ message: string }>("/api/watchlist/analyze", {
+      ticker: ticker ?? null,
+    });
+    return response.data;
+  },
+
+  async getWatchlistStatus(): Promise<WatchlistStatus> {
+    const response = await apiClient.get<WatchlistStatus>("/api/watchlist/status");
     return response.data;
   },
 };

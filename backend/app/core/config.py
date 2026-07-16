@@ -51,7 +51,26 @@ class Settings(BaseSettings):
     max_risk_discuss_rounds: int = 1
     deep_think_llm: str = "claude-sonnet-4-6"
     quick_think_llm: str = "claude-haiku-4-5-20251001"
-    
+
+    # Telegram notifications
+    telegram_bot_token: Optional[str] = None
+    telegram_chat_id: Optional[str] = None
+
+    # Google Sheets / GCP service account
+    google_service_account_json: Optional[str] = None  # JSON string or base64
+    google_sheet_id: Optional[str] = None
+
+    # Watchlist auto-analysis scheduler
+    watchlist_analysis_cron: Optional[str] = None  # e.g. "0 9 * * 1-5"
+    watchlist_deep_think_llm: str = "qwen2.5:14b"
+    watchlist_quick_think_llm: str = "qwen2.5:14b"
+    watchlist_deep_think_base_url: str = "http://localhost:11434/v1"
+    watchlist_quick_think_base_url: str = "http://localhost:11434/v1"
+    watchlist_deep_think_api_key: str = "ollama"
+    watchlist_quick_think_api_key: str = "ollama"
+    watchlist_analysts: str = "market,fundamentals,quant"
+    watchlist_report_language: str = "zh-TW"
+
     class Config:
         env_file = ".env"
         case_sensitive = False

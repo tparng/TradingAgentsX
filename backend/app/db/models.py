@@ -4,7 +4,7 @@ Database models for users, settings, and reports
 import uuid
 from datetime import datetime
 from typing import Optional
-from sqlalchemy import String, Text, DateTime, ForeignKey, JSON
+from sqlalchemy import String, Text, DateTime, ForeignKey, JSON, Float
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -103,3 +103,19 @@ class Report(Base):
     
     # Relationship
     user: Mapped["User"] = relationship("User", back_populates="reports")
+
+
+class WatchlistItem(Base):
+    """Single-owner watchlist — tickers to track and auto-analyze."""
+    __tablename__ = "watchlist"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    ticker: Mapped[str] = mapped_column(String(20), nullable=False, unique=True, index=True)
+    market_type: Mapped[str] = mapped_column(String(10), nullable=False, default="us")
+    notes: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    added_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    last_analyzed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    last_recommendation: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)
+    last_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)

@@ -41,12 +41,26 @@
 | 📊 **PDF預覽**           | 支援PDF預覽功能                                                 |
 | 🌐 **多語言支援**        | 支援繁體中文、英文                                              |
 | 📈 **即時交易**          | 整合 Sinopac Shioaji API，支援台股即時報價、下單、持倉管理（模擬模式預設開啟） |
+| 📋 **自選股清單**        | 追蹤股票、同步 Google Sheets、Telegram 通知、APScheduler 定時自動分析          |
 
 ---
 
 ## 🔧 近期變更
 
-### v6 改進（當前版本）
+### v7 改進（當前版本）
+
+| 變更項目 | 說明 |
+| -------- | ---- |
+| **自選股清單頁面** | 新增 `/watchlist` 頁面：新增/移除股票代碼、查看最後分析結果（決策/評分）、一鍵觸發分析或跳轉分析頁 |
+| **Google Sheets 雙向同步** | 以 GCP 服務帳戶（`GOOGLE_SERVICE_ACCOUNT_JSON`）連接指定試算表（`GOOGLE_SHEET_ID`）；新增時同步寫入 Sheet，分析完成後自動更新 Last Analyzed / Recommendation / Score 欄位；支援現有 Sheet 格式（公司名稱欄自動識別、市場類型自動偵測：純數字→ twse，英文字母→ us） |
+| **Telegram Bot 通知** | 分析完成時推送個股結果（決策 + 評分）；支援每日摘要（所有自選股一覽）；分析失敗時推送錯誤訊息；以 httpx 直接呼叫 Bot API，無需 python-telegram-bot 套件 |
+| **APScheduler 排程器** | 內嵌於 FastAPI 行程（`AsyncIOScheduler`）；每 15 分鐘自動從 Sheet 同步自選股清單；支援自定義 Cron 排程（`WATCHLIST_ANALYSIS_CRON`，如 `0 9 * * 1-5`）定時分析全部自選股 |
+| **自選股 REST API** | `GET/POST/DELETE /api/watchlist`（CRUD）、`POST /api/watchlist/sync`（手動 Sheet 同步）、`POST /api/watchlist/analyze`（觸發分析，支援全部或單一標的）、`GET /api/watchlist/status`（排程器與服務狀態）|
+| **PostgreSQL 本地設置** | 新增 `DATABASE_URL` 至 `.env`；修復 uvicorn reload 子行程未載入 `.env` 的問題（在 `backend/app/main.py` 頂部呼叫 `load_dotenv()`，確保 `asyncpg` 引擎在子行程中也能讀取環境變數） |
+| **新增套件** | `apscheduler>=3.10.4`、`gspread>=6.0.0`、`google-auth>=2.0.0`、`asyncpg`（補裝）加入 `backend/requirements.txt` |
+| **修正模型名稱** | 排程器 LLM 預設從 `qwen2.5:14b` 修正為 `qwen2.5:14b-16k`，與其他頁面保持一致 |
+
+### v6 改進
 
 | 變更項目 | 說明 |
 | -------- | ---- |
@@ -154,6 +168,17 @@
 
 | 檔案 | 變更類型 | 原因 |
 | ---- | -------- | ---- |
+| `backend/app/services/sheets_service.py` | **新增** | `SheetsService`：以 GCP 服務帳戶連接試算表；`get_tickers_from_sheet()`（自動偵測市場類型）、`add/remove_ticker_from_sheet()`、`write_analysis_result()`（更新 Last Analyzed / Recommendation / Score 欄） |
+| `backend/app/services/telegram_service.py` | **新增** | `TelegramService`：透過 httpx 呼叫 Bot API；`send_analysis_complete()`、`send_daily_digest()`、`send_error()` |
+| `backend/app/services/scheduler_service.py` | **新增** | `WatchlistScheduler`（`AsyncIOScheduler`）：`sheet_sync` job（每 15 分鐘）+ `daily_analysis` job（CRON 排程）；`run_watchlist_analysis()` 可依 ticker 清單或全部執行 |
+| `backend/app/api/watchlist_routes.py` | **新增** | `GET/POST/DELETE /api/watchlist`、`POST /api/watchlist/sync`、`POST /api/watchlist/analyze`、`GET /api/watchlist/status` |
+| `backend/app/db/models.py` | 修改 | 新增 `WatchlistItem` 模型（ticker、market_type、notes、added_at、last_analyzed_at、last_recommendation、last_score）；單一擁有者設計，無 user_id |
+| `backend/app/db/database.py` | 修改 | `init_db()` 新增 watchlist 資料表欄位 migration |
+| `backend/app/core/config.py` | 修改 | 新增 Telegram、Google Sheets、watchlist 排程器相關環境變數欄位 |
+| `backend/app/main.py` | 修改 | 頂部呼叫 `load_dotenv()` 修復 uvicorn reload 子行程讀不到 `.env` 的問題；新增 `watchlist_router`；startup/shutdown 事件啟動/停止排程器 |
+| `backend/__main__.py` | 修改 | 頂部呼叫 `load_dotenv()` 確保主行程也能讀取 `.env` |
+| `backend/requirements.txt` | 修改 | 新增 `apscheduler>=3.10.4`、`gspread>=6.0.0`、`google-auth>=2.0.0` |
+| `.env.example` | 修改 | 新增 `DATABASE_URL`、`TELEGRAM_BOT_TOKEN`、`TELEGRAM_CHAT_ID`、`GOOGLE_SERVICE_ACCOUNT_JSON`、`GOOGLE_SHEET_ID`、`WATCHLIST_*` 相關環境變數 |
 | `backend/app/models/schemas.py` | 修改 | `AnalysisRequest` 新增 `language` 欄位，接收前端傳入的報告語言設定 |
 | `backend/app/services/trading_service.py` | 修改 | 將 `language` 傳入 `TradingAgentsXGraph` 設定；結果字典新增 `quant_report` |
 | `backend/app/services/shioaji_service.py` | **新增** | `ShioajiSessionManager` 單例：以 UUID 管理 Shioaji 連線（8 小時 TTL、threading.Lock），封裝報價、餘額、持倉、下單、取消委託等操作 |
@@ -166,9 +191,12 @@
 
 | 檔案 | 變更類型 | 原因 |
 | ---- | -------- | ---- |
-| `frontend/components/analysis/AnalysisForm.tsx` | 修改 | 新增「報告語言」下拉選單（繁體中文 / English）；新增「量化分析師」選項至分析師勾選清單 |
-| `frontend/lib/i18n/en.ts` | 修改 | 新增報告語言選單、量化分析師、即時交易（~50 鍵）及導覽列 `trading` 鍵的英文 i18n 字串 |
-| `frontend/lib/i18n/zh-TW.ts` | 修改 | 新增報告語言選單、量化分析師、即時交易（~50 鍵）及導覽列 `trading` 鍵的繁體中文 i18n 字串 |
+| `frontend/app/watchlist/page.tsx` | **新增** | 自選股清單頁面：新增表單（ticker + 市場 + 備註）、CRUD 操作、Sync from Sheet、Analyze All / 單一分析按鈕、排程器狀態與服務連線狀態列 |
+| `frontend/lib/types.ts` | 修改 | 新增 `WatchlistItem`、`WatchlistStatus` 型別 |
+| `frontend/lib/api.ts` | 修改 | 新增 `getWatchlist`、`addToWatchlist`、`removeFromWatchlist`、`syncWatchlistFromSheet`、`triggerWatchlistAnalysis`、`getWatchlistStatus` 6 個 API 方法 |
+| `frontend/components/layout/Header.tsx` | 修改 | 桌面版與手機版導覽列新增「Watchlist / 自選股」連結 |
+| `frontend/lib/i18n/en.ts` | 修改 | 新增 `nav.watchlist` 及 `watchlist` 區段（30+ 鍵）英文 i18n 字串；新增報告語言選單、量化分析師、即時交易（~50 鍵）及導覽列 `trading` 鍵的英文 i18n 字串 |
+| `frontend/lib/i18n/zh-TW.ts` | 修改 | 新增 `nav.watchlist`（自選股）及 `watchlist` 區段繁體中文 i18n 字串；新增報告語言選單、量化分析師、即時交易（~50 鍵）及導覽列 `trading` 鍵的繁體中文 i18n 字串 |
 | `frontend/app/trading/page.tsx` | 修改 | 新增「Shioaji Pro Terminal」卡片：呼叫 `/api/shioaji-server/start` 啟動 sidecar；就緒後「Open Pro Terminal」在新分頁開啟 `localhost:5173`（shioaji-pro-app 全功能交易介面）；憑證表單移至獨立常駐卡片（修復 hydration 錯誤及憑證被 `!isConnected` 隱藏的問題）；新增 CA 憑證欄位；`runningSimulation` 追蹤執行中模式並在模式不一致時顯示 Restart 警示；CA 密碼加密存入 localStorage；`ca_warning` 以黃色警示顯示；停機時顯示 sidecar 最後輸出；卡片附管理儀表板連結（port 21322）；保留簡易交易四分頁 |
 | `frontend/components/layout/Header.tsx` | 修改 | 桌面版與手機版導覽列新增「Trading / 即時交易」連結 |
 | `frontend/components/ui/alert.tsx` | **新增** | shadcn 標準 Alert / AlertTitle / AlertDescription 元件（交易頁警示用） |
@@ -197,6 +225,7 @@ TradingAgentsX/
 │   │   ├── globals.css         # 全域樣式
 │   │   ├── analysis/           # 分析功能頁面
 │   │   ├── history/            # 歷史報告頁面
+│   │   ├── watchlist/          # 自選股清單頁面
 │   │   ├── auth/               # OAuth 回調
 │   │   └── api/                # API 路由（config, auth）
 │   ├── components/             # React 組件
@@ -232,14 +261,18 @@ TradingAgentsX/
 │       │   ├── user.py         # 使用者資料同步
 │       │   ├── trading_routes.py       # 即時交易 API（Python shioaji 套件）
 │       │   ├── shioaji_server_routes.py # Sidecar 管理 API（start/stop/status）
+│       │   ├── watchlist_routes.py     # 自選股 CRUD + 觸發 API
 │       │   └── dependencies.py # 依賴注入
 │       ├── core/               # 核心配置
-│       ├── db/                 # PostgreSQL 資料庫
+│       ├── db/                 # PostgreSQL 資料庫（含 WatchlistItem 模型）
 │       ├── models/             # Pydantic 模型
 │       └── services/           # 業務邏輯
 │           ├── trading_service.py      # 交易分析服務
 │           ├── shioaji_service.py      # Shioaji Python lib session 管理
 │           ├── shioaji_server_service.py # Sidecar binary 生命週期管理
+│           ├── sheets_service.py       # Google Sheets 雙向同步（gspread）
+│           ├── telegram_service.py     # Telegram Bot 推播通知（httpx）
+│           ├── scheduler_service.py    # APScheduler：Sheet 同步 + 定時分析
 │           ├── task_manager.py     # 任務管理器
 │           ├── pdf_generator.py    # PDF 報告生成
 │           ├── price_service.py    # 股價數據服務
@@ -347,6 +380,8 @@ TradingAgentsX/
 | Alpha Vantage（選填） | 美股基本面資料    | https://www.alphavantage.co/support/#api-key |
 | FinMind（選填）       | 台股資料          | https://finmindtrade.com/                    |
 | OpenAI / Anthropic 等（選填） | 雲端 LLM 替代方案 | 各平台申請                           |
+| Telegram Bot（選填）  | 自選股分析通知    | 向 @BotFather 建立 Bot，以 @userinfobot 取得 Chat ID |
+| GCP 服務帳戶（選填）  | Google Sheets 同步 | GCP Console → IAM → 服務帳戶，賦予試算表編輯權限 |
 
 ### 安裝步驟
 
@@ -662,6 +697,30 @@ Content-Type: application/json
 GET /api/task/{task_id}
 ```
 
+### 自選股清單
+
+```bash
+# 取得清單
+GET /api/watchlist
+
+# 新增股票
+POST /api/watchlist
+{ "ticker": "2330", "market_type": "twse", "notes": "台積電" }
+
+# 移除股票
+DELETE /api/watchlist/2330
+
+# 從 Google Sheet 同步
+POST /api/watchlist/sync
+
+# 觸發分析（全部或單一）
+POST /api/watchlist/analyze
+{ "ticker": "NVDA" }   # 省略 ticker 則分析全部自選股
+
+# 排程器與服務狀態
+GET /api/watchlist/status
+```
+
 完整文檔: http://localhost:8000/docs
 
 ---
@@ -681,6 +740,9 @@ GET /api/task/{task_id}
 | SQLAlchemy + asyncpg | 異步資料庫 ORM                    |
 | Pydantic             | 資料驗證                          |
 | uv                   | Python 套件管理                   |
+| APScheduler          | 排程器（Sheet 同步 + 定時分析）   |
+| gspread + google-auth | Google Sheets 雙向同步           |
+| httpx                | Telegram Bot API 推播通知         |
 
 ### 前端
 

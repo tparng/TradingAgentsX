@@ -101,7 +101,21 @@ async def init_db():
                 """))
         except Exception as e:
             print(f"Skipping manual migration (might be SQLite or syntax not supported): {e}")
-    
+
+        # Watchlist table migrations
+        try:
+            await conn.execute(text("""
+                ALTER TABLE watchlist ADD COLUMN IF NOT EXISTS last_analyzed_at TIMESTAMP;
+            """))
+            await conn.execute(text("""
+                ALTER TABLE watchlist ADD COLUMN IF NOT EXISTS last_recommendation VARCHAR(10);
+            """))
+            await conn.execute(text("""
+                ALTER TABLE watchlist ADD COLUMN IF NOT EXISTS last_score FLOAT;
+            """))
+        except Exception:
+            pass
+
     print("Database tables initialized successfully")
 
 

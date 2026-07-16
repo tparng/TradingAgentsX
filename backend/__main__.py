@@ -11,6 +11,10 @@ import os
 import sys
 import argparse
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load .env before any module reads os.getenv (database.py does this at import time)
+load_dotenv(Path(__file__).parent.parent / ".env")
 
 # Add parent directory to path to import tradingagents
 parent_dir = str(Path(__file__).parent.parent)

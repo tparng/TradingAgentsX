@@ -147,3 +147,22 @@ export interface ChatMessageRequest {
 export interface ChatMessageResponse {
   reply: string;
 }
+
+// Watchlist Types
+
+export interface WatchlistItem {
+  id: string;
+  ticker: string;
+  market_type: string;
+  notes?: string;
+  added_at: string;
+  last_analyzed_at?: string;
+  last_recommendation?: string;
+  last_score?: number;
+}
+
+export interface WatchlistStatus {
+  jobs: { id: string; next_run: string | null }[];
+  sheets_configured: boolean;
+  telegram_configured: boolean;
+}

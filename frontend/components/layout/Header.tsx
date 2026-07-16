@@ -67,6 +67,12 @@ export function Header() {
             >
               {t.nav.trading}
             </Link>
+            <Link
+              href="/watchlist"
+              className="px-4 py-2 rounded-xl font-semibold text-sm text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-300 transition-all duration-200"
+            >
+              {t.nav.watchlist}
+            </Link>
             <ApiSettingsDialog />
             <LanguageSwitcher />
             <ThemeToggle />
@@ -118,6 +124,13 @@ export function Header() {
               onClick={() => setMobileMenuOpen(false)}
             >
               {t.nav.trading}
+            </Link>
+            <Link
+              href="/watchlist"
+              className="block px-4 py-2 rounded-xl font-semibold text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-300 transition-all"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              {t.nav.watchlist}
             </Link>
             <div className="flex items-center gap-3 pt-2">
               <ApiSettingsDialog />

@@ -1,6 +1,11 @@
 """
 FastAPI application entry point for TradingAgentsX Backend
 """
+# Load .env before any module-level os.getenv calls (e.g. database.py)
+from pathlib import Path as _Path
+from dotenv import load_dotenv as _load_dotenv
+_load_dotenv(_Path(__file__).parents[3] / ".env")
+
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -18,6 +23,7 @@ from backend.app.api.auth import router as auth_router
 from backend.app.api.user import router as user_router
 from backend.app.api.trading_routes import router as trading_router
 from backend.app.api.shioaji_server_routes import router as shioaji_server_router
+from backend.app.api.watchlist_routes import router as watchlist_router
 
 # Configure logging
 logging.basicConfig(
@@ -147,16 +153,16 @@ app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(trading_router)
 app.include_router(shioaji_server_router)
+app.include_router(watchlist_router)
 
 
 # Database initialization on startup
 @app.on_event("startup")
 async def startup_event():
-    """Initialize database on startup"""
+    """Initialize database and start background scheduler on startup"""
     try:
         from backend.app.db import init_db, check_db_connection
-        
-        # Check if database is configured
+
         if await check_db_connection():
             logger.info("Database connection successful")
             await init_db()
@@ -165,6 +171,22 @@ async def startup_event():
             logger.warning("Database not configured or connection failed - running without database")
     except Exception as e:
         logger.warning(f"Database initialization failed: {e} - running without database")
+
+    try:
+        from backend.app.services.scheduler_service import scheduler
+        scheduler.start()
+    except Exception as e:
+        logger.warning(f"Watchlist scheduler failed to start: {e}")
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Gracefully stop the watchlist scheduler."""
+    try:
+        from backend.app.services.scheduler_service import scheduler
+        scheduler.shutdown()
+    except Exception:
+        pass
 
 
 @app.get("/")

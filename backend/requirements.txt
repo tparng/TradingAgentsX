@@ -62,3 +62,8 @@ matplotlib>=3.8.0
 # Toon format for token optimization
 git+https://github.com/toon-format/toon-python.git
 
+# Watchlist: scheduler + Google Sheets + Telegram
+apscheduler>=3.10.4
+gspread>=6.0.0
+google-auth>=2.0.0
+
