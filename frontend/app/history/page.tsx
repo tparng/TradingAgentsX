@@ -403,15 +403,15 @@ export default function HistoryPage() {
     return cloudReportsPromiseRef.current;
   };
 
-  // Load reports when tab changes, auth state changes, or language changes
+  // Load reports when tab changes or auth state changes
   useEffect(() => {
     loadReports();
-  }, [activeTab, isAuthenticated, locale]);
+  }, [activeTab, isAuthenticated]);
 
-  // Load counts on mount, auth change, or language change
+  // Load counts on mount or auth change
   useEffect(() => {
     loadCounts();
-  }, [isAuthenticated, locale]);
+  }, [isAuthenticated]);
 
   // Bidirectional sync: upload local to cloud AND download cloud to local
   const performBidirectionalSync = async (isInitialSync = false) => {
@@ -658,24 +658,11 @@ export default function HistoryPage() {
     // Bump version so any older in-flight invocations can self-abort
     const myVersion = ++loadVersionRef.current;
 
-    // Helper to filter reports by current UI language (captured at call time)
-    const currentLocale = locale;
-    const filterByLang = (reports: SavedReport[]) =>
-      reports.filter((report) => {
-        // Use explicit language field when available; otherwise scan the FULL
-        // result object so even old reports without a language field are
-        // detected correctly (report.result?.reports may be undefined for
-        // some report shapes — scanning the whole object is more robust).
-        const reportLang =
-          report.language || detectReportLanguage(report.result);
-        return reportLang === currentLocale;
-      });
-
     // ── PHASE 1: Show local IndexedDB data INSTANTLY (no loading spinner) ──
     try {
       const localData = await getReportsByMarketType(activeTab);
       if (loadVersionRef.current !== myVersion) return; // stale — newer call took over
-      setReports(filterByLang(localData));
+      setReports(localData);
       setIsCloudData(false);
     } catch (error) {
       console.error("Failed to load local reports:", error);
@@ -717,7 +704,7 @@ export default function HistoryPage() {
         merged.sort(
           (a, b) => new Date(b.saved_at).getTime() - new Date(a.saved_at).getTime(),
         );
-        setReports(filterByLang(merged));
+        setReports(merged);
         setIsCloudData(true);
       }
     } catch (error) {
@@ -727,61 +714,28 @@ export default function HistoryPage() {
 
   const loadCounts = async () => {
     try {
-      // Helper to filter reports by language (matches current UI locale)
-      const filterByLanguage = (reports: SavedReport[]) =>
-        reports.filter((report) => {
-          const reportLang =
-            report.language || detectReportLanguage(report.result);
-          return reportLang === locale;
-        });
-      
       if (isAuthenticated && isCloudSyncEnabled()) {
         const cloudReports = await fetchCloudReportsCached();
-        
+
         if (cloudReports && cloudReports.length > 0) {
-          // Get local reports to check for duplicates
           const [usLocal, twseLocal, tpexLocal] = await Promise.all([
             getReportsByMarketType("us"),
             getReportsByMarketType("twse"),
             getReportsByMarketType("tpex"),
           ]);
-          
-          // Cloud report keys for deduplication
-          const cloudKeys = new Set(
-            cloudReports.map(r => getReportSignature(r))
-          );
-          
-          // Convert cloud reports to SavedReport format for language filtering
-          const cloudAsSaved = cloudReports.map(r => ({
-            id: 0,
-            ticker: r.ticker,
-            market_type: r.market_type as "us" | "twse" | "tpex",
-            analysis_date: r.analysis_date,
-            saved_at: parseUTCDate(r.created_at),
-            result: r.result,
-            language: r.language,
-          })) as SavedReport[];
-          
-          // Filter cloud reports by language
-          const cloudFiltered = filterByLanguage(cloudAsSaved);
-          
-          // Count local-only reports (not in cloud) and filter by language
-          const usLocalOnly = filterByLanguage(usLocal.filter(
-            r => !cloudKeys.has(getReportSignature(r))
-          )).length;
-          const twseLocalOnly = filterByLanguage(twseLocal.filter(
-            r => !cloudKeys.has(getReportSignature(r))
-          )).length;
-          const tpexLocalOnly = filterByLanguage(tpexLocal.filter(
-            r => !cloudKeys.has(getReportSignature(r))
-          )).length;
-          
-          // Cloud counts (already filtered by language)
-          const usCloud = cloudFiltered.filter(r => r.market_type === "us").length;
-          const twseCloud = cloudFiltered.filter(r => r.market_type === "twse").length;
-          const tpexCloud = cloudFiltered.filter(r => r.market_type === "tpex").length;
-          
-          // Merged counts: cloud + local-only (both filtered by language)
+
+          // Cloud keys for deduplication
+          const cloudKeys = new Set(cloudReports.map(r => getReportSignature(r)));
+
+          // Count unique reports: cloud + local-only (not already in cloud)
+          const usLocalOnly = usLocal.filter(r => !cloudKeys.has(getReportSignature(r))).length;
+          const twseLocalOnly = twseLocal.filter(r => !cloudKeys.has(getReportSignature(r))).length;
+          const tpexLocalOnly = tpexLocal.filter(r => !cloudKeys.has(getReportSignature(r))).length;
+
+          const usCloud = cloudReports.filter(r => r.market_type === "us").length;
+          const twseCloud = cloudReports.filter(r => r.market_type === "twse").length;
+          const tpexCloud = cloudReports.filter(r => r.market_type === "tpex").length;
+
           setCounts({
             us: usCloud + usLocalOnly,
             twse: twseCloud + twseLocalOnly,
@@ -790,19 +744,15 @@ export default function HistoryPage() {
           return;
         }
       }
-      
-      // If no cloud data or not authenticated, use local only with language filter
+
+      // Local-only path (no cloud or not authenticated)
       const [usLocal, twseLocal, tpexLocal] = await Promise.all([
         getReportsByMarketType("us"),
         getReportsByMarketType("twse"),
         getReportsByMarketType("tpex"),
       ]);
-      
-      setCounts({
-        us: filterByLanguage(usLocal).length,
-        twse: filterByLanguage(twseLocal).length,
-        tpex: filterByLanguage(tpexLocal).length,
-      });
+
+      setCounts({ us: usLocal.length, twse: twseLocal.length, tpex: tpexLocal.length });
     } catch (error) {
       console.error("Failed to load counts:", error);
     }
