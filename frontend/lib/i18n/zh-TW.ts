@@ -324,6 +324,7 @@ export const zhTW = {
     customModelName: "自訂模型名稱",
     customDeepThinkModelName: "自訂深層思維模型名稱",
     executeAnalysis: "執行分析",
+    cancelAnalysis: "取消分析",
     otherCustomModel: "Other（自訂模型）",
     quickResponseModel: "快速回應模型",
     complexReasoningModel: "複雜推理模型",

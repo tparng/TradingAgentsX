@@ -263,7 +263,7 @@ class TradingAgentsXGraph:
         "Trader",
     }
 
-    def propagate(self, company_name, trade_date, on_progress=None):
+    def propagate(self, company_name, trade_date, on_progress=None, cancel_event=None):
         """
         在特定日期為某家公司執行交易代理圖。
 
@@ -289,12 +289,17 @@ class TradingAgentsXGraph:
 
         completed_nodes: list[str] = []
 
+        def _should_cancel():
+            return cancel_event is not None and cancel_event.is_set()
+
         if self.debug:
             # Debug mode: stream and print, but skip duplicate messages
             # (risk debaters don't update messages, so the last message repeats)
             trace = []
             last_printed_id = None
             for chunk in self.graph.stream(init_agent_state, **args):
+                if _should_cancel():
+                    break
                 msgs = chunk.get("messages", [])
                 if msgs:
                     last_msg = msgs[-1]
@@ -310,17 +315,24 @@ class TradingAgentsXGraph:
                             on_progress(node_name, list(completed_nodes))
                 trace.append(chunk)
 
+            if _should_cancel():
+                return None, None
             final_state = trace[-1]
         else:
-            if on_progress:
-                # Stream so we can emit progress even outside debug mode
+            if on_progress or cancel_event:
+                # Stream so we can emit progress and check cancellation
                 trace = []
                 for chunk in self.graph.stream(init_agent_state, **args):
+                    if _should_cancel():
+                        break
                     for node_name in chunk:
                         if node_name in self._PROGRESS_NODES and node_name not in completed_nodes:
                             completed_nodes.append(node_name)
-                            on_progress(node_name, list(completed_nodes))
+                            if on_progress:
+                                on_progress(node_name, list(completed_nodes))
                     trace.append(chunk)
+                if _should_cancel():
+                    return None, None
                 final_state = trace[-1]
             else:
                 # 不帶追蹤的標準模式

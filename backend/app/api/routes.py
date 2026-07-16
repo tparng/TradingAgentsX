@@ -124,6 +124,10 @@ async def run_analysis(
             detail=f"Task creation failed ({type(e).__name__}). The task service may be temporarily unavailable. Please try again."
         )
     
+    # Cancel event — set by POST /api/task/{task_id}/cancel
+    cancel_event = threading.Event()
+    task_manager.register_cancel_event(task_id, cancel_event)
+
     # Start background analysis
     def run_background_analysis():
         import asyncio
@@ -168,24 +172,26 @@ async def run_analysis(
                 finmind_api_key=request.finmind_api_key or "",
                 language=request.language or "zh-TW",  # Pass language for agent reports
                 on_progress=on_progress,
+                cancel_event=cancel_event,
             ))
-            
-            # Check for errors in result
-            if "status" in result and result["status"] == "error":
+
+            if cancel_event.is_set() or (isinstance(result, dict) and result.get("status") == "cancelled"):
+                task_manager._finish_cancel(task_id)
+            elif isinstance(result, dict) and result.get("status") == "error":
                 task_manager.set_task_error(
                     task_id,
                     error=result.get("error", "Analysis failed"),
-                    result=result,  # pass full structured dict so frontend can show error_type, retry_after, etc.
+                    result=result,
                 )
             else:
                 task_manager.set_task_result(task_id, result=result)
-                
+
         except Exception as e:
-            logger.error(f"Analysis task {task_id} failed: {str(e)}", exc_info=True)
-            task_manager.set_task_error(
-                task_id,
-                error=str(e)
-            )
+            if cancel_event.is_set():
+                task_manager._finish_cancel(task_id)
+            else:
+                logger.error(f"Analysis task {task_id} failed: {str(e)}", exc_info=True)
+                task_manager.set_task_error(task_id, error=str(e))
     
     # Start background thread
     thread = threading.Thread(target=run_background_analysis, daemon=True)
@@ -218,6 +224,25 @@ async def get_task_status(task_id: str):
         raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
     
     return TaskStatusResponse(**task)
+
+
+@router.post("/task/{task_id}/cancel")
+async def cancel_task(task_id: str):
+    """
+    Request cancellation of a running analysis task.
+    Sets a threading.Event that the analysis thread checks between agent nodes.
+    The current node finishes before the thread exits.
+    """
+    task = task_manager.get_task_status(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+    if task.get("status") not in ("running", "cancelling"):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Task is not running (status: {task.get('status')})"
+        )
+    task_manager.cancel_task(task_id)
+    return {"message": "Cancellation requested", "task_id": task_id}
 
 
 @router.delete("/task/{task_id}/cleanup")

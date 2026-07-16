@@ -75,6 +75,13 @@ export const api = {
    * Cleanup task from Redis storage after saving results
    * This helps keep Redis memory usage low
    */
+  async cancelTask(taskId: string): Promise<{ message: string; task_id: string }> {
+    const response = await apiClient.post<{ message: string; task_id: string }>(
+      `/api/task/${taskId}/cancel`
+    );
+    return response.data;
+  },
+
   async cleanupTask(taskId: string): Promise<{ success: boolean; message: string }> {
     try {
       const response = await apiClient.delete<{ success: boolean; message: string; task_id: string }>(

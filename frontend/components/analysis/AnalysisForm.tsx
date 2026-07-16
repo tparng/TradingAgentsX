@@ -92,6 +92,7 @@ const formSchema = z.object({
 
 interface AnalysisFormProps {
   onSubmit: (data: AnalysisRequest) => void;
+  onCancel?: () => void;
   loading?: boolean;
   initialTicker?: string;
   initialMarketType?: string;
@@ -99,7 +100,7 @@ interface AnalysisFormProps {
 
 // ANALYSTS is now defined inside the component using translations
 
-export function AnalysisForm({ onSubmit, loading = false, initialTicker, initialMarketType }: AnalysisFormProps) {
+export function AnalysisForm({ onSubmit, onCancel, loading = false, initialTicker, initialMarketType }: AnalysisFormProps) {
   const { t, locale } = useLanguage();
   
   // Define ANALYSTS using translations
@@ -314,6 +315,8 @@ export function AnalysisForm({ onSubmit, loading = false, initialTicker, initial
             onSubmit={form.handleSubmit(handleSubmit)}
             className="space-y-6"
           >
+            {/* Overlay that locks all form fields while analysis is running */}
+            <div className={loading ? "pointer-events-none opacity-50 select-none" : ""}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* 分析師選擇區塊 - 全寬 */}
               <div className="md:col-span-2 border-b pb-6">
@@ -964,23 +967,31 @@ export function AnalysisForm({ onSubmit, loading = false, initialTicker, initial
                 />
               </div>
             </div>
+            </div> {/* end of lockable overlay */}
 
-            <Button
-              type="submit"
-              className="w-full bg-gradient-to-r from-blue-500 to-pink-500 dark:from-blue-600 dark:to-purple-600 hover:from-blue-600 hover:to-pink-600 dark:hover:from-blue-700 dark:hover:to-purple-700 shadow-lg hover:shadow-xl transition-all animate-heartbeat"
-              disabled={loading}
-              size="lg"
-              style={{
-                touchAction: "manipulation",
-                WebkitTapHighlightColor: "transparent",
-              }}
-              onClick={(e) => {
-                // Ensure touch events work on Safari mobile
-                e.currentTarget.blur();
-              }}
-            >
-              {loading ? t.form.analyzing : t.form.executeAnalysis}
-            </Button>
+            {loading && onCancel ? (
+              <Button
+                type="button"
+                variant="destructive"
+                className="w-full"
+                size="lg"
+                onClick={onCancel}
+                style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
+              >
+                {t.form.cancelAnalysis ?? "Cancel Analysis"}
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-blue-500 to-pink-500 dark:from-blue-600 dark:to-purple-600 hover:from-blue-600 hover:to-pink-600 dark:hover:from-blue-700 dark:hover:to-purple-700 shadow-lg hover:shadow-xl transition-all animate-heartbeat"
+                disabled={loading}
+                size="lg"
+                style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
+                onClick={(e) => { e.currentTarget.blur(); }}
+              >
+                {loading ? t.form.analyzing : t.form.executeAnalysis}
+              </Button>
+            )}
           </form>
         </Form>
       </CardContent>

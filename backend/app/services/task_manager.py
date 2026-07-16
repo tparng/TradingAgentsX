@@ -38,6 +38,8 @@ class HybridTaskManager:
         # In-memory storage (always available as fallback)
         self._tasks: Dict[str, Dict[str, Any]] = {}
         self._lock = threading.RLock()
+        # Cancel events keyed by task_id (in-memory only — not persisted)
+        self._cancel_events: Dict[str, threading.Event] = {}
         self._cleanup_interval = 3600  # 1 hour
         self._task_expiry = 86400  # 24 hours for pending/running tasks
         self._completed_task_expiry = 14400  # 4 hours for completed/failed tasks (auto cleanup) — give users time to save reports
@@ -172,6 +174,37 @@ class HybridTaskManager:
             task_data["updated_at"] = datetime.now().isoformat()
             self._save_to_storage(task_id, task_data)
     
+    def register_cancel_event(self, task_id: str, event: threading.Event):
+        """Store the cancel event so cancel_task() can signal it."""
+        with self._lock:
+            self._cancel_events[task_id] = event
+
+    def cancel_task(self, task_id: str) -> bool:
+        """Signal the running task to stop. Returns True if the event was found."""
+        with self._lock:
+            event = self._cancel_events.get(task_id)
+        if event:
+            event.set()
+        # Mark status immediately so the frontend sees "cancelling"
+        task_data = self._get_from_storage(task_id)
+        if task_data and task_data.get("status") == "running":
+            task_data["status"] = "cancelling"
+            task_data["progress"] = "Cancelling..."
+            task_data["updated_at"] = datetime.now().isoformat()
+            self._save_to_storage(task_id, task_data)
+        return event is not None
+
+    def _finish_cancel(self, task_id: str):
+        """Mark a task as cancelled after the thread has acknowledged the signal."""
+        task_data = self._get_from_storage(task_id)
+        if task_data:
+            task_data["status"] = "cancelled"
+            task_data["progress"] = "Cancelled by user"
+            task_data["failed_at"] = datetime.now().isoformat()
+            self._save_to_storage(task_id, task_data, use_short_expiry=True)
+        with self._lock:
+            self._cancel_events.pop(task_id, None)
+
     def set_task_result(self, task_id: str, result: Any):
         """
         Set task result and mark as completed.
@@ -192,7 +225,9 @@ class HybridTaskManager:
             # Save with shorter TTL for auto cleanup
             self._save_to_storage(task_id, task_data, use_short_expiry=True)
             logger.info(f"✅ Task {task_id} completed, will be auto-cleaned from Redis in {self._completed_task_expiry} seconds")
-    
+        with self._lock:
+            self._cancel_events.pop(task_id, None)
+
     def set_task_error(self, task_id: str, error: str, result: Optional[Any] = None):
         """
         Set task error and mark as failed.
@@ -213,6 +248,8 @@ class HybridTaskManager:
             # Save with shorter TTL for auto cleanup
             self._save_to_storage(task_id, task_data, use_short_expiry=True)
             logger.info(f"❌ Task {task_id} failed, will be auto-cleaned from Redis in {self._completed_task_expiry} seconds")
+        with self._lock:
+            self._cancel_events.pop(task_id, None)
     
     def get_task(self, task_id: str) -> Optional[Dict[str, Any]]:
         """

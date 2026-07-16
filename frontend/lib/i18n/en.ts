@@ -440,6 +440,7 @@ export const en = {
     customModelName: "Custom Model Name",
     customDeepThinkModelName: "Custom Deep Think Model Name",
     executeAnalysis: "Execute Analysis",
+    cancelAnalysis: "Cancel Analysis",
     otherCustomModel: "Other (Custom Model)",
     quickResponseModel: "Quick response model",
     complexReasoningModel: "Complex reasoning model",

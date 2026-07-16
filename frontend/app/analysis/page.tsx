@@ -23,7 +23,7 @@ function AnalysisPageInner() {
   const initialTicker = searchParams.get("ticker") ?? undefined;
   const initialMarketType = searchParams.get("market_type") ?? undefined;
   const { setAnalysisResult, setTaskId, setMarketType, marketType } = useAnalysisContext();
-  const { runAnalysis, loading, error, result, taskId, progressData } = useAnalysis();
+  const { runAnalysis, cancelAnalysis, loading, error, result, taskId, progressData } = useAnalysis();
   const { isAuthenticated } = useAuth();
   const { t, locale } = useLanguage();
   
@@ -159,6 +159,7 @@ function AnalysisPageInner() {
 
         <AnalysisForm
           onSubmit={handleSubmit}
+          onCancel={cancelAnalysis}
           loading={loading}
           initialTicker={initialTicker}
           initialMarketType={initialMarketType}

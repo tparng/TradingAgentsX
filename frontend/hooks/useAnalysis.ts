@@ -77,6 +77,21 @@ export function useAnalysis() {
         return true;
       }
       
+      // Check if cancelled
+      if (status.status === "cancelled") {
+        setError("Analysis was cancelled.");
+        setLoading(false);
+        setProgress(null);
+        setProgressData(null);
+        const { clearPendingTask } = await import('@/lib/pending-task');
+        clearPendingTask();
+        if (pollingIntervalRef.current) {
+          clearInterval(pollingIntervalRef.current);
+          pollingIntervalRef.current = null;
+        }
+        return true;
+      }
+
       // Check if failed
       if (status.status === "failed") {
         // Check if we have structured error data from result
@@ -183,6 +198,26 @@ export function useAnalysis() {
     }
   };
 
+  const cancelAnalysis = async () => {
+    if (!taskId) return;
+    try {
+      await api.cancelTask(taskId);
+    } catch (err) {
+      console.warn("Cancel request failed:", err);
+    }
+    // Optimistically stop the UI immediately; polling will confirm "cancelled"
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+    setLoading(false);
+    setProgress(null);
+    setProgressData(null);
+    setError("Analysis was cancelled.");
+    const { clearPendingTask } = await import('@/lib/pending-task');
+    clearPendingTask();
+  };
+
   const reset = () => {
     // Stop polling
     if (pollingIntervalRef.current) {
@@ -200,6 +235,7 @@ export function useAnalysis() {
 
   return {
     runAnalysis,
+    cancelAnalysis,
     loading,
     error,
     result,

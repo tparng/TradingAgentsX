@@ -151,7 +151,7 @@ class TaskCreatedResponse(BaseModel):
 class TaskStatusResponse(BaseModel):
     """Response for task status query"""
     task_id: str = Field(..., description="Task identifier")
-    status: Literal["pending", "running", "completed", "failed"] = Field(..., description="Current task status")
+    status: Literal["pending", "running", "completed", "failed", "cancelling", "cancelled"] = Field(..., description="Current task status")
     created_at: str = Field(..., description="Task creation timestamp")
     updated_at: str = Field(..., description="Last update timestamp")
     progress: Optional[str] = Field(None, description="Progress message")
