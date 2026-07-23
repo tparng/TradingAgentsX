@@ -54,6 +54,15 @@
 - Added `window.addEventListener('message')` handler; routes `sj-select-code` messages to `selectByCodeRef.current(code)`
 - Fixed `?code=` URL param handling for the main window: added `initialCodeApplied` ref + `useEffect` so the first symbol comes from the URL param instead of always defaulting to `items[0]`
 
+### 10. Tick Microstructure Page in Analysis PDF (Taiwan stocks)
+- Raw tick data fetched independently in `trading_service.py` after analysis completes (separate from the LLM text path); stored as `tick_data` in the result dict; threaded through `download_service → pdf_generator`
+- New `_generate_tick_chart()` in `pdf_generator.py` — two-panel matplotlib chart:
+  - **Top panel:** Intraday price line with dashed VWAP; green fill above VWAP, red fill below
+  - **Bottom panel:** Buy vs sell volume as mirrored bars bucketed into ~30 time segments
+- New `_build_tick_page()` — dedicated PDF page inserted after the price chart page; includes the chart + a 12-row metrics table (tick count, volume, avg trade size, VWAP, last price, VWAP deviation, buy/sell split, imbalance index, block trade %, session momentum, avg spread)
+- i18n labels added to `PDF_LABELS` for both EN and ZH-TW
+- Page is silently skipped for US stocks or when sidecar is offline — no error, no empty page
+
 ### 9. Intraday Tick Microstructure in Market Analyst (Taiwan stocks)
 - New `tradingagents/dataflows/shioaji_ticks.py` — calls `POST /api/v1/data/ticks` on the Shioaji sidecar (port 21322), fetches all ticks for a given trading day, and aggregates into 12 microstructure metrics
 - Metrics computed: total tick count, total volume, avg trade size, VWAP, last price vs VWAP deviation, buy/sell volume split, order flow imbalance index (−1 to +1), block-trade count and % of volume (threshold: ≥10,000 shares/tick), intraday momentum (early vs late session), avg bid-ask spread
@@ -137,12 +146,19 @@ The trash icon uses a **two-click confirmation** (by design, to prevent accident
 | `tradingagents/agents/utils/tick_tools.py` | New — `get_tick_microstructure` LangChain tool wrapper |
 | `tradingagents/agents/utils/agent_utils.py` | Export `get_tick_microstructure` |
 | `tradingagents/agents/analysts/market_analyst.py` | Add tick tool for Taiwan stocks; update EN/ZH prompts |
+| `tradingagents/dataflows/shioaji_ticks.py` | Added `fetch_raw_ticks()` for PDF renderer (raw sidecar JSON) |
+| `backend/app/services/trading_service.py` | Fetch raw tick data post-analysis for Taiwan stocks; store as `tick_data` in result |
+| `backend/app/services/pdf_generator.py` | New `_generate_tick_chart()` matplotlib chart; new `_build_tick_page()`; i18n labels EN/ZH-TW |
+| `backend/app/services/download_service.py` | Thread `tick_data` through `create_combined_pdf()` signature |
+| `backend/app/api/routes.py` | Thread `tick_data` through `/pdf/download` and `/pdf/generate` endpoints |
 
 ---
 
 ## Commits (this period)
 
 ```
+9c20d40  Add intraday tick microstructure page to analysis PDF
+a658cf7  Update bring-up report with tick microstructure feature and full commit log
 965e64d  Add bring-up report
 f430a3b  Add intraday tick microstructure to market analyst (Taiwan stocks)
 0b8a076  Sync TradingAgentsX watchlist as named list in Shioaji Pro Terminal
@@ -169,3 +185,4 @@ c57a027  Switch default LLM to qwen2.5:14b-32k (32768 token context)
 - Watchlist delete in Pro Terminal requires **two clicks** within 2.5 s — this is intentional but worth noting for new users
 - Tick microstructure only available for Taiwan stocks (TWSE/TPEx) via Shioaji sidecar; no equivalent tick source for US stocks currently
 - Tick data volumes in Shioaji are in shares (not 張/lots); block-trade threshold is set to ≥10,000 shares (10 張) per tick — adjust `LARGE_LOT_THRESHOLD` in `shioaji_ticks.py` if needed
+- Tick PDF page only appears when the Shioaji sidecar is running and logged in at the time the PDF is generated (post-analysis fetch); if sidecar goes offline after analysis but before PDF download, the page will be missing — no error shown
