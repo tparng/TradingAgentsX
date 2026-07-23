@@ -67,7 +67,25 @@ import {
   ChevronDown,
   ChevronUp,
   RotateCcw,
+  LineChart,
 } from "lucide-react";
+
+const PRO_TERMINAL_URL = "http://localhost:5173";
+const proTerminalChannel = typeof window !== "undefined"
+  ? new BroadcastChannel("sj-select-code")
+  : null;
+let proTerminalWindow: Window | null = null;
+
+function openInProTerminal(ticker: string) {
+  // If the window is already open and alive, push via BroadcastChannel
+  if (proTerminalWindow && !proTerminalWindow.closed) {
+    proTerminalChannel?.postMessage(ticker);
+    proTerminalWindow.focus();
+    return;
+  }
+  // Otherwise open a new window with ?code= pre-selected
+  proTerminalWindow = window.open(`${PRO_TERMINAL_URL}/?code=${ticker}`, "shioaji-pro-terminal");
+}
 
 const MARKET_OPTIONS = [
   { value: "us", label: "US" },
@@ -801,6 +819,12 @@ export default function WatchlistPage() {
                               title={wt.analyze} onClick={() => handleAnalyzeSingle(item.ticker)} disabled={analyzingTicker === item.ticker}>
                               <BarChart2 className={`w-3.5 h-3.5 ${analyzingTicker === item.ticker ? "animate-pulse" : ""}`} />
                             </Button>
+                            {(item.market_type === "twse" || item.market_type === "tpex") && (
+                              <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:text-purple-600"
+                                title="Open in Pro Terminal" onClick={() => openInProTerminal(item.ticker)}>
+                                <LineChart className="w-3.5 h-3.5" />
+                              </Button>
+                            )}
                             <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:text-red-500"
                               title={wt.remove} onClick={() => handleRemove(item.ticker)}>
                               <Trash2 className="w-3.5 h-3.5" />
