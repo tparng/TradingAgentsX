@@ -76,6 +76,11 @@ def json_to_md(json_path: Path, out_dir: Path):
             lines.append("## 🔢 量化分析\n")
             lines.append(extract_text(day.get("quant_report")))
 
+        if day.get("orderflow_report"):
+            lines.append("\n---\n")
+            lines.append("## 🌊 委託流向分析\n")
+            lines.append(extract_text(day.get("orderflow_report")))
+
         # ── Research debate ───────────────────────────────────────────────
         lines.append("\n---\n")
         lines.append("## ⚖️ 研究辯論（看漲 vs 看跌）\n")
