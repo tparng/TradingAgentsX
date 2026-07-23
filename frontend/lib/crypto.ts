@@ -32,37 +32,21 @@ function getOrCreateSalt(): Uint8Array {
   return newSalt;
 }
 
-/**
- * Generate a browser fingerprint for key derivation
- * This creates a semi-unique identifier based on browser characteristics
- */
-function getBrowserFingerprint(): string {
-  if (typeof window === "undefined") {
-    return "server-side";
-  }
-
-  const components = [
-    navigator.userAgent,
-    navigator.language,
-    screen.width.toString(),
-    screen.height.toString(),
-    screen.colorDepth.toString(),
-    new Date().getTimezoneOffset().toString(),
-    navigator.hardwareConcurrency?.toString() || "unknown",
-  ];
-
-  return components.join("|");
-}
+// Stable per-app password for key derivation.
+// Using a fixed constant keeps the key consistent across browser updates,
+// DST changes, and screen resolution changes — all of which would silently
+// break the fingerprint-based approach.  The random salt stored in
+// localStorage still ensures the key is unique to each browser installation.
+const APP_KEY_MATERIAL = "tradingagentsx-secure-storage-v1";
 
 /**
- * Derive an encryption key from the browser fingerprint using PBKDF2
+ * Derive an encryption key from the app constant + per-browser salt using PBKDF2
  */
 async function deriveKey(salt: Uint8Array): Promise<CryptoKey> {
-  const fingerprint = getBrowserFingerprint();
   const encoder = new TextEncoder();
   const keyMaterial = await crypto.subtle.importKey(
     "raw",
-    encoder.encode(fingerprint),
+    encoder.encode(APP_KEY_MATERIAL),
     "PBKDF2",
     false,
     ["deriveBits", "deriveKey"]
@@ -142,8 +126,10 @@ export async function decrypt(ciphertext: string): Promise<string> {
     const decoder = new TextDecoder();
     return decoder.decode(decrypted);
   } catch (error) {
-    console.error("Decryption failed:", error);
-    throw new Error("Failed to decrypt data");
+    // OperationError means the ciphertext was encrypted with a different key
+    // (e.g., stale data from before a key-derivation change).  Return empty
+    // string so callers can prompt the user to re-enter their credentials.
+    return "";
   }
 }
 

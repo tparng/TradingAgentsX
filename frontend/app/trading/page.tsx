@@ -153,20 +153,28 @@ export default function TradingPage() {
   // Load saved credentials and session on mount (client-only to avoid hydration mismatch)
   useEffect(() => {
     (async () => {
-      try {
-        const encKey = localStorage.getItem("shioaji_api_key");
-        const encSec = localStorage.getItem("shioaji_secret_key");
-        if (encKey) { setApiKey(await decrypt(encKey)); setHasSavedCreds(true); }
-        if (encSec) setSecretKey(await decrypt(encSec));
-      } catch { /* ignore decryption errors */ }
+      const encKey = localStorage.getItem("shioaji_api_key");
+      const encSec = localStorage.getItem("shioaji_secret_key");
+      if (encKey) {
+        const val = await decrypt(encKey);
+        if (val) { setApiKey(val); setHasSavedCreds(true); }
+        else localStorage.removeItem("shioaji_api_key"); // stale — re-derive failed
+      }
+      if (encSec) {
+        const val = await decrypt(encSec);
+        if (val) setSecretKey(val);
+        else localStorage.removeItem("shioaji_secret_key");
+      }
       const stored = localStorage.getItem("shioaji_session_id");
       if (stored) setSessionId(stored);
       const savedCaPath = localStorage.getItem("shioaji_ca_path");
       if (savedCaPath) setCaPath(savedCaPath);
-      try {
-        const encCaPasswd = localStorage.getItem("shioaji_ca_passwd");
-        if (encCaPasswd) setCaPasswd(await decrypt(encCaPasswd));
-      } catch { /* ignore */ }
+      const encCaPasswd = localStorage.getItem("shioaji_ca_passwd");
+      if (encCaPasswd) {
+        const val = await decrypt(encCaPasswd);
+        if (val) setCaPasswd(val);
+        else localStorage.removeItem("shioaji_ca_passwd");
+      }
     })();
   }, []);
 
