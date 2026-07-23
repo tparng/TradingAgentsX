@@ -54,6 +54,17 @@
 - Added `window.addEventListener('message')` handler; routes `sj-select-code` messages to `selectByCodeRef.current(code)`
 - Fixed `?code=` URL param handling for the main window: added `initialCodeApplied` ref + `useEffect` so the first symbol comes from the URL param instead of always defaulting to `items[0]`
 
+### 9. Intraday Tick Microstructure in Market Analyst (Taiwan stocks)
+- New `tradingagents/dataflows/shioaji_ticks.py` — calls `POST /api/v1/data/ticks` on the Shioaji sidecar (port 21322), fetches all ticks for a given trading day, and aggregates into 12 microstructure metrics
+- Metrics computed: total tick count, total volume, avg trade size, VWAP, last price vs VWAP deviation, buy/sell volume split, order flow imbalance index (−1 to +1), block-trade count and % of volume (threshold: ≥10,000 shares/tick), intraday momentum (early vs late session), avg bid-ask spread
+- New LangChain tool `tradingagents/agents/utils/tick_tools.py` wrapping the above as `get_tick_microstructure(symbol, date)`
+- Exported from `agent_utils.py` alongside existing tools
+- `market_analyst.py` updated:
+  - Tool added to tool list only for 4–6 digit numeric tickers (Taiwan heuristic)
+  - EN and ZH prompts extended with a 5th analysis focus area ("Microstructure" / "籌碼微結構")
+  - Kickoff `HumanMessage` instructs the analyst to call the tool with the exact symbol and date
+  - If sidecar is offline or returns no data, tool returns a plain-text error string and analyst skips the section — no crash
+
 ### 8. Sync TradingAgentsX Watchlist as Named List in Pro Terminal
 - **Backend:** `POST /api/shioaji-server/watchlist-sync` in `shioaji_server_routes.py`
   - Fetches all TWSE / TPEx items from the database
@@ -122,14 +133,26 @@ The trash icon uses a **two-click confirmation** (by design, to prevent accident
 | `backend/app/api/routes.py` | Added `GET /api/llm/status` |
 | `backend/app/api/shioaji_server_routes.py` | Added `POST /api/shioaji-server/watchlist-sync` |
 | `shioaji-pro-app/src/App.tsx` | postMessage listener; `?code=` fix for main window *(git-ignored, local only)* |
+| `tradingagents/dataflows/shioaji_ticks.py` | New — fetch + aggregate intraday ticks from Shioaji sidecar |
+| `tradingagents/agents/utils/tick_tools.py` | New — `get_tick_microstructure` LangChain tool wrapper |
+| `tradingagents/agents/utils/agent_utils.py` | Export `get_tick_microstructure` |
+| `tradingagents/agents/analysts/market_analyst.py` | Add tick tool for Taiwan stocks; update EN/ZH prompts |
 
 ---
 
 ## Commits (this period)
 
 ```
+965e64d  Add bring-up report
+f430a3b  Add intraday tick microstructure to market analyst (Taiwan stocks)
 0b8a076  Sync TradingAgentsX watchlist as named list in Shioaji Pro Terminal
-f3fd9c4  Add watchlist–Pro Terminal integration and button for Taiwan stocks
+f3fd9c4  Fix Pro Terminal ticker switch — handle ?code= on mount and improve window detection
+3089ebf  Fix Pro Terminal ticker switch using postMessage instead of BroadcastChannel
+252a9ce  Add Pro Terminal button to watchlist for Taiwan stocks
+c687063  Persist all Trading page credentials across sessions
+662c622  Fix OperationError on Pro Terminal open due to unstable key derivation
+3125a8e  Fix history page showing 0 counts due to language filter
+d4824ab  Add LLM server status indicator to analysis form
 66a54b7  Add markdown analysis reports and export script
 171691c  Switch default LLM to qwen2.5:14b-16k and fix Ollama GPU detection
 3e9ab2b  Default analysis form to custom/qwen2.5:14b-32k (Ollama local model)
@@ -144,3 +167,5 @@ c57a027  Switch default LLM to qwen2.5:14b-32k (32768 token context)
 - `shioaji-pro-app/` is listed in `.gitignore` — App.tsx changes (postMessage listener, `?code=` fix) live only in the local working tree and must be manually re-applied after any clean checkout
 - The "Sync to Pro Terminal" button requires the Shioaji sidecar to be running; it will show a toast error if the sidecar is offline
 - Watchlist delete in Pro Terminal requires **two clicks** within 2.5 s — this is intentional but worth noting for new users
+- Tick microstructure only available for Taiwan stocks (TWSE/TPEx) via Shioaji sidecar; no equivalent tick source for US stocks currently
+- Tick data volumes in Shioaji are in shares (not 張/lots); block-trade threshold is set to ≥10,000 shares (10 張) per tick — adjust `LARGE_LOT_THRESHOLD` in `shioaji_ticks.py` if needed
