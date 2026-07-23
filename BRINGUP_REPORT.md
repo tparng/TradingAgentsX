@@ -54,6 +54,17 @@
 - Added `window.addEventListener('message')` handler; routes `sj-select-code` messages to `selectByCodeRef.current(code)`
 - Fixed `?code=` URL param handling for the main window: added `initialCodeApplied` ref + `useEffect` so the first symbol comes from the URL param instead of always defaulting to `items[0]`
 
+### 11. Order Flow Analyst — 5th Parallel Analyst in Propagation Phase
+- New `tradingagents/agents/analysts/orderflow_analyst.py` — `create_orderflow_analyst(llm, language)` node
+- **Taiwan stocks**: calls `get_tick_microstructure` first (VWAP, buy/sell imbalance, block-trade footprint, session momentum), then `get_stock_data` for 30-day OHLCV volume context
+- **US stocks**: no tick source; falls back to volume-pattern analysis via `get_stock_data` only (OBV trend, price-volume divergence, accumulation/distribution)
+- Full bilingual EN / ZH-TW 5-section report structure: order flow summary → microstructure deep-dive → volume context → trading implication → key metrics table
+- `orderflow_report` field added to `AgentState`; `should_continue_orderflow` routing added to `ConditionalLogic`; `"orderflow"` tool node (`get_tick_microstructure` + `get_stock_data`) added to `TradingAgentsXGraph._create_tool_nodes()`; `"Orderflow Analyst"` added to `_PROGRESS_NODES`
+- `setup.py` wires the analyst into the sequential chain when `"orderflow"` is in `selected_analysts`
+- `trading_service.py` extracts `orderflow_report`; both `ANALYST_MAPPING` blocks in `routes.py` include `"orderflow"` key; `pdf_generator.py` TEAMS and `download_service.py` analyst_order include the new analyst
+- Frontend: `orderflow_analyst` i18n keys (EN + ZH-TW), checkbox in `AnalysisForm.tsx`, pipeline entry in `AnalysisProgress.tsx`
+- **Clean separation**: tick tool, `is_taiwan` detection, and all `tick_section`/`tick_tool_note` variables removed from `market_analyst.py` — microstructure analysis now exclusively owned by the orderflow analyst
+
 ### 10. Tick Microstructure Page in Analysis PDF (Taiwan stocks)
 - Raw tick data fetched independently in `trading_service.py` after analysis completes (separate from the LLM text path); stored as `tick_data` in the result dict; threaded through `download_service → pdf_generator`
 - New `_generate_tick_chart()` in `pdf_generator.py` — two-panel matplotlib chart:
@@ -145,7 +156,12 @@ The trash icon uses a **two-click confirmation** (by design, to prevent accident
 | `tradingagents/dataflows/shioaji_ticks.py` | New — fetch + aggregate intraday ticks from Shioaji sidecar |
 | `tradingagents/agents/utils/tick_tools.py` | New — `get_tick_microstructure` LangChain tool wrapper |
 | `tradingagents/agents/utils/agent_utils.py` | Export `get_tick_microstructure` |
-| `tradingagents/agents/analysts/market_analyst.py` | Add tick tool for Taiwan stocks; update EN/ZH prompts |
+| `tradingagents/agents/analysts/market_analyst.py` | Remove tick tool (moved to orderflow analyst); clean up EN/ZH prompts |
+| `tradingagents/agents/analysts/orderflow_analyst.py` | New — 5th parallel analyst: order flow + microstructure |
+| `tradingagents/agents/utils/agent_states.py` | Added `orderflow_report` field to `AgentState` |
+| `tradingagents/graph/conditional_logic.py` | Added `should_continue_orderflow` |
+| `tradingagents/graph/setup.py` | Wired orderflow analyst block |
+| `tradingagents/graph/trading_graph.py` | Added orderflow tool node, progress node, log state field |
 | `tradingagents/dataflows/shioaji_ticks.py` | Added `fetch_raw_ticks()` for PDF renderer (raw sidecar JSON) |
 | `backend/app/services/trading_service.py` | Fetch raw tick data post-analysis for Taiwan stocks; store as `tick_data` in result |
 | `backend/app/services/pdf_generator.py` | New `_generate_tick_chart()` matplotlib chart; new `_build_tick_page()`; i18n labels EN/ZH-TW |
@@ -157,6 +173,7 @@ The trash icon uses a **two-click confirmation** (by design, to prevent accident
 ## Commits (this period)
 
 ```
+6df59d1  Add orderflow analyst as 5th parallel analyst in propagation phase
 9c20d40  Add intraday tick microstructure page to analysis PDF
 a658cf7  Update bring-up report with tick microstructure feature and full commit log
 965e64d  Add bring-up report
@@ -186,3 +203,4 @@ c57a027  Switch default LLM to qwen2.5:14b-32k (32768 token context)
 - Tick microstructure only available for Taiwan stocks (TWSE/TPEx) via Shioaji sidecar; no equivalent tick source for US stocks currently
 - Tick data volumes in Shioaji are in shares (not 張/lots); block-trade threshold is set to ≥10,000 shares (10 張) per tick — adjust `LARGE_LOT_THRESHOLD` in `shioaji_ticks.py` if needed
 - Tick PDF page only appears when the Shioaji sidecar is running and logged in at the time the PDF is generated (post-analysis fetch); if sidecar goes offline after analysis but before PDF download, the page will be missing — no error shown
+- Orderflow analyst runs after the other analysts in the sequential propagation chain; for US stocks it only calls `get_stock_data` (no tick source), so the microstructure deep-dive section will contain volume-proxy analysis only
