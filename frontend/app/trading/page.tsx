@@ -158,7 +158,7 @@ export default function TradingPage() {
       if (encKey) {
         const val = await decrypt(encKey);
         if (val) { setApiKey(val); setHasSavedCreds(true); }
-        else localStorage.removeItem("shioaji_api_key"); // stale — re-derive failed
+        else localStorage.removeItem("shioaji_api_key");
       }
       if (encSec) {
         const val = await decrypt(encSec);
@@ -175,6 +175,9 @@ export default function TradingPage() {
         if (val) setCaPasswd(val);
         else localStorage.removeItem("shioaji_ca_passwd");
       }
+      // Restore simulation preference (default true)
+      const savedSim = localStorage.getItem("shioaji_simulation");
+      if (savedSim !== null) setSimulation(savedSim === "true");
     })();
   }, []);
 
@@ -226,8 +229,11 @@ export default function TradingPage() {
       if (result.ca_warning) setServerWarning(result.ca_warning);
       localStorage.setItem("shioaji_api_key", await encrypt(apiKey));
       localStorage.setItem("shioaji_secret_key", await encrypt(secretKey));
+      localStorage.setItem("shioaji_simulation", String(simulation));
       if (caPath) localStorage.setItem("shioaji_ca_path", caPath);
+      else localStorage.removeItem("shioaji_ca_path");
       if (caPasswd) localStorage.setItem("shioaji_ca_passwd", await encrypt(caPasswd));
+      else localStorage.removeItem("shioaji_ca_passwd");
       setHasSavedCreds(true);
     } catch (e: unknown) {
       setServerError(e instanceof Error ? e.message : String(e));
@@ -269,8 +275,11 @@ export default function TradingPage() {
       if (result.ca_warning) setServerWarning(result.ca_warning);
       localStorage.setItem("shioaji_api_key", await encrypt(apiKey));
       localStorage.setItem("shioaji_secret_key", await encrypt(secretKey));
+      localStorage.setItem("shioaji_simulation", String(simulation));
       if (caPath) localStorage.setItem("shioaji_ca_path", caPath);
+      else localStorage.removeItem("shioaji_ca_path");
       if (caPasswd) localStorage.setItem("shioaji_ca_passwd", await encrypt(caPasswd));
+      else localStorage.removeItem("shioaji_ca_passwd");
       setHasSavedCreds(true);
     } catch (e: unknown) {
       setServerError(e instanceof Error ? e.message : String(e));
@@ -300,6 +309,7 @@ export default function TradingPage() {
       setAccounts(data.accounts ?? []);
       localStorage.setItem("shioaji_api_key", await encrypt(apiKey));
       localStorage.setItem("shioaji_secret_key", await encrypt(secretKey));
+      localStorage.setItem("shioaji_simulation", String(simulation));
       setHasSavedCreds(true);
     } catch (e: unknown) {
       setConnError(e instanceof Error ? e.message : String(e));
@@ -501,6 +511,7 @@ export default function TradingPage() {
                   localStorage.removeItem("shioaji_secret_key");
                   localStorage.removeItem("shioaji_ca_path");
                   localStorage.removeItem("shioaji_ca_passwd");
+                  localStorage.removeItem("shioaji_simulation");
                   setApiKey(""); setSecretKey(""); setCaPath(""); setCaPasswd(""); setHasSavedCreds(false);
                 }}
               >
