@@ -62,6 +62,7 @@ class AgentState(MessagesState):
     ]
     fundamentals_report: Annotated[str, "基本面研究員的報告"]
     quant_report: Annotated[str, "量化分析師的報告"]
+    orderflow_report: Annotated[str, "委託流向分析師的報告"]
     analyst_summary: Annotated[str, "報告摘要員彙整的 4 份分析師報告摘要"]
 
     # 研究團隊討論步驟

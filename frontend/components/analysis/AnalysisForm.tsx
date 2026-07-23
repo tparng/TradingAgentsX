@@ -111,6 +111,7 @@ export function AnalysisForm({ onSubmit, onCancel, loading = false, initialTicke
     { value: "news", label: t.agents.news_analyst },
     { value: "fundamentals", label: t.agents.fundamentals_analyst },
     { value: "quant", label: t.agents.quant_analyst },
+    { value: "orderflow", label: t.agents.orderflow_analyst },
   ], [t]);
 
   const form = useForm<z.infer<typeof formSchema>>({

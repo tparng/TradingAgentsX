@@ -11,6 +11,7 @@ const ANALYST_KEY_TO_NODE: Record<string, string> = {
   news:         "News Analyst",
   fundamentals: "Fundamentals Analyst",
   quant:        "Quant Analyst",
+  orderflow:    "Orderflow Analyst",
 };
 
 // Full ordered pipeline — analyst-phase entries are filtered by selected analysts at render time
@@ -20,6 +21,7 @@ const PIPELINE: { node: string; label_zh: string; label_en: string; phase: strin
   { node: "News Analyst",         label_zh: "新聞分析",           label_en: "News Analysis",                phase: "analysts" },
   { node: "Fundamentals Analyst", label_zh: "基本面分析",         label_en: "Fundamentals Analysis",        phase: "analysts" },
   { node: "Quant Analyst",        label_zh: "量化分析",           label_en: "Quantitative Analysis",        phase: "analysts" },
+  { node: "Orderflow Analyst",    label_zh: "委託流向分析",       label_en: "Order Flow Analysis",          phase: "analysts" },
   { node: "Report Summarizer",    label_zh: "分析報告摘要",       label_en: "Report Summarization",         phase: "research" },
   { node: "Bull Researcher",      label_zh: "看漲研究員評估",     label_en: "Bull Researcher",              phase: "research" },
   { node: "Bear Researcher",      label_zh: "看跌研究員評估",     label_en: "Bear Researcher",              phase: "research" },

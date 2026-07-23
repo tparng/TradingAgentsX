@@ -77,9 +77,10 @@ class DownloadService:
         if language == "en":
             analyst_order = [
                 'Market Analyst',
-                'Fundamentals Analyst', 
+                'Fundamentals Analyst',
                 'Social Media Analyst',
                 'News Analyst',
+                'Order Flow Analyst',
                 'Bull Researcher',
                 'Bear Researcher',
                 'Aggressive Analyst',
@@ -92,9 +93,10 @@ class DownloadService:
         else:
             analyst_order = [
                 '市場分析師',
-                '基本面分析師', 
+                '基本面分析師',
                 '社群媒體分析師',
                 '新聞分析師',
+                '委託流向分析師',
                 '看漲研究員',
                 '看跌研究員',
                 '激進分析師',

@@ -1168,7 +1168,7 @@ class PDFGenerator:
                 {
                     'name': 'Analysts Team',
                     'members': ['Market Analyst', 'Social Media Analyst',
-                                'News Analyst', 'Fundamentals Analyst'],
+                                'News Analyst', 'Fundamentals Analyst', 'Order Flow Analyst'],
                 },
                 {
                     'name': 'Research Team',
@@ -1184,7 +1184,7 @@ class PDFGenerator:
             TEAMS = [
                 {
                     'name': '分析師團隊',
-                    'members': ['市場分析師', '社群媒體分析師', '新聞分析師', '基本面分析師'],
+                    'members': ['市場分析師', '社群媒體分析師', '新聞分析師', '基本面分析師', '委託流向分析師'],
                 },
                 {
                     'name': '研究團隊',

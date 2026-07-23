@@ -3,7 +3,7 @@ from langchain_core.messages import HumanMessage, ToolMessage
 import time
 import json
 from datetime import datetime, timedelta
-from tradingagents.agents.utils.agent_utils import get_stock_data, get_indicators, get_tick_microstructure
+from tradingagents.agents.utils.agent_utils import get_stock_data, get_indicators
 from tradingagents.agents.utils.prompts import get_language_instruction, get_language_closing_instruction, get_agent_role_instruction, get_context_message
 from tradingagents.dataflows.config import get_config
 
@@ -34,12 +34,9 @@ def create_market_analyst(llm, language: str = "zh-TW"):
         ticker = state["company_of_interest"]
         company_name = state.get("company_name", ticker)
 
-        import re as _re
-        is_taiwan = bool(_re.fullmatch(r"\d{4,6}", ticker))
         tools = [
             get_stock_data,
             get_indicators,
-            *([ get_tick_microstructure ] if is_taiwan else []),
         ]
 
         # Get language-specific instructions
@@ -47,27 +44,6 @@ def create_market_analyst(llm, language: str = "zh-TW"):
         lang_closing = get_language_closing_instruction(language)
         role_instruction = get_agent_role_instruction(language)
         context_msg = get_context_message(language, current_date, company_name, ticker)
-
-        tick_tool_note_en = (
-            "• Use get_tick_microstructure to obtain intraday order-flow and microstructure "
-            "metrics (VWAP deviation, buy/sell imbalance, block-trade footprint, session momentum). "
-            "Pass the stock symbol and today's date. If the tool returns an error, skip this step."
-            if is_taiwan else ""
-        )
-        tick_section_en = (
-            "\n5. **Microstructure** (Taiwan stocks): Order flow imbalance, VWAP position, "
-            "block-trade ratio, and session momentum from intraday tick data."
-            if is_taiwan else ""
-        )
-        tick_tool_note_zh = (
-            "• 使用 get_tick_microstructure 取得當日盤中籌碼微結構數據（VWAP偏離、"
-            "買賣力道、大單佔比、盤中動能）。傳入股票代碼與今日日期。若工具回傳錯誤則略過此步驟。"
-            if is_taiwan else ""
-        )
-        tick_section_zh = (
-            "\n5. **籌碼微結構**（台股專屬）：盤中買賣力道、VWAP位置、大單佔比、盤中動能（來自逐筆交易資料）"
-            if is_taiwan else ""
-        )
 
         if language == "en":
             system_message = f"""{lang_instruction}
@@ -79,12 +55,11 @@ You are a senior technical analyst responsible for providing precise market tech
 1. **Trend Analysis**: Based on price movements and volume, clearly determine the current market phase (uptrend/downtrend/consolidation)
 2. **Technical Indicators**: Focus on 3-4 core indicators (recommended: 50-day/200-day MA, MACD, RSI), interpret their signal meanings
 3. **Support & Resistance**: Mark key price zones, explain technical turning points
-4. **Trading Recommendations**: Provide entry/exit positions, risk control parameters{tick_section_en}
+4. **Trading Recommendations**: Provide entry/exit positions, risk control parameters
 
 【Technical Operations】
 • Use get_stock_data to obtain historical price data
 • Use get_indicators to calculate technical indicators (set look_back_days to 50 or 200 for moving averages)
-{tick_tool_note_en}
 • Integrate data to provide professional insights
 
 【Report Structure】
@@ -119,12 +94,11 @@ Please provide a professional, precise, and actionable technical analysis report
 1. **趨勢研判**：基於價格走勢與成交量，明確判斷當前市場階段（上升趨勢/下降趨勢/區間整理）
 2. **技術指標**：聚焦3-4個核心指標（建議：50日/200日均線、MACD、RSI），解讀其訊號意義
 3. **支撐壓力**：標示關鍵價格區間，說明技術面轉折點
-4. **操作建議**：提供進出場位置、風險控制參數{tick_section_zh}
+4. **操作建議**：提供進出場位置、風險控制參數
 
 【技術操作】
 • 使用 get_stock_data 取得歷史價格資料
 • 使用 get_indicators 計算技術指標（均線請設定 look_back_days 為 50 或 200）
-{tick_tool_note_zh}
 • 整合數據後提出專業見解
 
 【報告架構】
@@ -172,11 +146,6 @@ Please provide a professional, precise, and actionable technical analysis report
         start_date = (datetime.strptime(current_date, "%Y-%m-%d") - timedelta(days=365)).strftime("%Y-%m-%d")
         messages = list(state["messages"])
         last = messages[-1] if messages else None
-        tick_instruction = (
-            f" Also call get_tick_microstructure with symbol={ticker}, date={current_date} "
-            f"to obtain intraday microstructure data."
-            if is_taiwan else ""
-        )
         if isinstance(last, HumanMessage):
             # First invocation: inject explicit kickoff with pre-computed dates
             messages[-1] = HumanMessage(content=(
@@ -184,7 +153,6 @@ Please provide a professional, precise, and actionable technical analysis report
                 f"Use the get_stock_data tool to fetch price history: "
                 f"ticker={ticker}, start_date={start_date}, end_date={current_date}. "
                 f"Use these exact dates. Do not ask for any parameters."
-                f"{tick_instruction}"
             ))
         elif isinstance(last, ToolMessage):
             lang_note = "Your ENTIRE response MUST be in English only." if language == "en" else "您的回覆必須完全使用繁體中文。"

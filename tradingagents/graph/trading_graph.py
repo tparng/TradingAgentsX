@@ -42,6 +42,7 @@ from tradingagents.agents.utils.agent_utils import (
     get_institutional_flows,
     get_revenue_trend,
     get_valuation_metrics,
+    get_tick_microstructure,
 )
 
 # 匯入圖的其他組件
@@ -251,12 +252,19 @@ class TradingAgentsXGraph:
                     get_valuation_metrics,
                 ]
             ),
+            "orderflow": ToolNode(
+                [
+                    # 委託流向工具：tick 微結構 + OHLCV 量能背景
+                    get_tick_microstructure,
+                    get_stock_data,
+                ]
+            ),
         }
 
     # Nodes worth surfacing to the user; tool-call and msg-clear nodes are skipped
     _PROGRESS_NODES = {
         "Market Analyst", "Social Analyst", "News Analyst",
-        "Fundamentals Analyst", "Quant Analyst",
+        "Fundamentals Analyst", "Quant Analyst", "Orderflow Analyst",
         "Report Summarizer",
         "Bull Researcher", "Bear Researcher", "Research Manager",
         "Risky Analyst", "Neutral Analyst", "Safe Analyst", "Risk Judge",
@@ -357,6 +365,7 @@ class TradingAgentsXGraph:
             "news_report": final_state["news_report"],
             "fundamentals_report": final_state["fundamentals_report"],
             "quant_report": final_state.get("quant_report", ""),
+            "orderflow_report": final_state.get("orderflow_report", ""),
             "investment_debate_state": {
                 "bull_history": final_state["investment_debate_state"]["bull_history"],
                 "bear_history": final_state["investment_debate_state"]["bear_history"],

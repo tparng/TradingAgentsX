@@ -214,6 +214,7 @@ class TradingService:
                     "news_report": final_state.get("news_report"),
                     "fundamentals_report": final_state.get("fundamentals_report"),
                     "quant_report": final_state.get("quant_report"),
+                    "orderflow_report": final_state.get("orderflow_report"),
                     "investment_plan": final_state.get("investment_plan"),
                     "trader_investment_plan": final_state.get("trader_investment_plan"),
                     "final_trade_decision": final_state.get("final_trade_decision"),

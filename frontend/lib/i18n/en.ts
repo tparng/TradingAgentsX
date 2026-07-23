@@ -251,6 +251,11 @@ export const en = {
     quant_analyst_desc:
       "Algorithmic scoring (0-100), backtest win-rate, entry/stop/target prices, position sizing, volume patterns",
 
+    orderflow_analyst: "Order Flow Analyst",
+    orderflow_analyst_role: "Order Flow Analysis",
+    orderflow_analyst_desc:
+      "VWAP position, buy/sell imbalance, block-trade footprint, session momentum (tick data for Taiwan stocks)",
+
     // Researchers
     bull_researcher: "Bull Researcher",
     bull_researcher_role: "Bullish Analysis",

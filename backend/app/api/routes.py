@@ -369,6 +369,7 @@ async def download_reports(request: DownloadRequest):
             "social": ("Social Media Analyst", "sentiment_report"),
             "news": ("News Analyst", "news_report"),
             "fundamentals": ("Fundamentals Analyst", "fundamentals_report"),
+            "orderflow": ("Order Flow Analyst", "orderflow_report"),
             "bull": ("Bull Researcher", "investment_debate_state.bull_history"),
             "bear": ("Bear Researcher", "investment_debate_state.bear_history"),
             "research_manager": ("Research Manager", "investment_debate_state.judge_decision"),
@@ -384,6 +385,7 @@ async def download_reports(request: DownloadRequest):
             "social": ("社群媒體分析師", "sentiment_report"),
             "news": ("新聞分析師", "news_report"),
             "fundamentals": ("基本面分析師", "fundamentals_report"),
+            "orderflow": ("委託流向分析師", "orderflow_report"),
             "bull": ("看漲研究員", "investment_debate_state.bull_history"),
             "bear": ("看跌研究員", "investment_debate_state.bear_history"),
             "research_manager": ("研究經理", "investment_debate_state.judge_decision"),
@@ -393,7 +395,7 @@ async def download_reports(request: DownloadRequest):
             "neutral": ("中立分析師", "risk_debate_state.neutral_history"),
             "risk_manager": ("風險經理", "risk_debate_state.judge_decision"),
         }
-    
+
     # Helper function to get nested value
     def get_nested_value(obj: dict, path: str):
         keys = path.split('.')
@@ -403,7 +405,7 @@ async def download_reports(request: DownloadRequest):
             else:
                 return None
         return obj
-    
+
     # Collect reports
     reports_to_download = []
     for analyst_key in request.analysts:
@@ -484,6 +486,7 @@ async def generate_pdf_temp(request: DownloadRequest):
             "social": ("Social Media Analyst", "sentiment_report"),
             "news": ("News Analyst", "news_report"),
             "fundamentals": ("Fundamentals Analyst", "fundamentals_report"),
+            "orderflow": ("Order Flow Analyst", "orderflow_report"),
             "bull": ("Bull Researcher", "investment_debate_state.bull_history"),
             "bear": ("Bear Researcher", "investment_debate_state.bear_history"),
             "research_manager": ("Research Manager", "investment_debate_state.judge_decision"),
@@ -499,6 +502,7 @@ async def generate_pdf_temp(request: DownloadRequest):
             "social": ("社群媒體分析師", "sentiment_report"),
             "news": ("新聞分析師", "news_report"),
             "fundamentals": ("基本面分析師", "fundamentals_report"),
+            "orderflow": ("委託流向分析師", "orderflow_report"),
             "bull": ("看漲研究員", "investment_debate_state.bull_history"),
             "bear": ("看跌研究員", "investment_debate_state.bear_history"),
             "research_manager": ("研究經理", "investment_debate_state.judge_decision"),

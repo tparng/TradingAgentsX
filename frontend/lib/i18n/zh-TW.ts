@@ -145,6 +145,10 @@ export const zhTW = {
     quant_analyst_role: "量化分析",
     quant_analyst_desc: "演算法評分（0-100）、回測勝率、進場/停損/目標價、倉位建議、量價型態",
 
+    orderflow_analyst: "委託流向分析師",
+    orderflow_analyst_role: "委託流向分析",
+    orderflow_analyst_desc: "VWAP位置、買賣力道失衡、大單足跡、盤中動能（台股支援逐筆tick資料）",
+
     // Researchers
     bull_researcher: "看漲研究員",
     bull_researcher_role: "多頭分析",
