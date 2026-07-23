@@ -158,6 +158,7 @@ The trash icon uses a **two-click confirmation** (by design, to prevent accident
 | `scripts/export_reports_to_md.py` | Added `orderflow_report` section (🌊 委託流向分析) to markdown export |
 | `pyproject.toml` | Added `sentence-transformers>=5.6.0` as explicit dependency |
 | `uv.lock` | Upgraded `huggingface-hub` 0.33.0 → 1.16.1, `regex`, `tokenizers`, `typer` |
+| `test_orderflow.py` | Ad-hoc smoke-test script for orderflow analyst (not committed; run with `uv run python test_orderflow.py`) |
 | `tradingagents/agents/utils/agent_utils.py` | Export `get_tick_microstructure` |
 | `tradingagents/agents/analysts/market_analyst.py` | Remove tick tool (moved to orderflow analyst); clean up EN/ZH prompts |
 | `tradingagents/agents/analysts/orderflow_analyst.py` | New — 5th parallel analyst: order flow + microstructure |
@@ -176,6 +177,7 @@ The trash icon uses a **two-click confirmation** (by design, to prevent accident
 ## Commits (this period)
 
 ```
+a18bb3d  Update bring-up report with dependency fix details
 7f2d904  Add sentence-transformers as explicit dependency; upgrade huggingface-hub
 2006f4b  Add orderflow_report section to markdown export
 6df59d1  Add orderflow analyst as 5th parallel analyst in propagation phase
