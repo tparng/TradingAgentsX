@@ -101,7 +101,7 @@
 | # | Symptom | Root Cause | Fix |
 |---|---------|-----------|-----|
 | 1 | "Analysis failed" always shown in UI | `routes.py` used `result.get("message")` but the key was `"error"` | Changed to `result.get("error")` |
-| 2 | `sentence-transformers` crash on import | `transformers` 5.13.1 called `is_offline_mode` removed in `huggingface_hub` 0.33.0 | Pinned `transformers>=5.14.0` |
+| 2 | `sentence-transformers` crash on import | `transformers` 5.13.1 called `is_offline_mode` removed in `huggingface_hub` 0.33.0 | Added `sentence-transformers` as explicit dep via `uv add`; lock resolves to `huggingface-hub 1.16.1` which re-exports the symbol |
 | 3 | Progress timeline shows all 14 steps regardless of analyst selection | `AnalysisProgress` had no knowledge of selected analysts | Added `analysts` prop + `activePipeline` filter |
 | 4 | TypeScript error: `"cancelled"` not in status type | `TaskStatusResponse.status` union was incomplete | Added `"cancelling" \| "cancelled"` to `types.ts` |
 | 5 | `OperationError` crash when opening Trading page | Browser fingerprint-derived crypto key broke on any environment change | Replaced fingerprint with fixed `APP_KEY_MATERIAL` constant |
@@ -156,6 +156,8 @@ The trash icon uses a **two-click confirmation** (by design, to prevent accident
 | `tradingagents/dataflows/shioaji_ticks.py` | New — fetch + aggregate intraday ticks from Shioaji sidecar |
 | `tradingagents/agents/utils/tick_tools.py` | New — `get_tick_microstructure` LangChain tool wrapper |
 | `scripts/export_reports_to_md.py` | Added `orderflow_report` section (🌊 委託流向分析) to markdown export |
+| `pyproject.toml` | Added `sentence-transformers>=5.6.0` as explicit dependency |
+| `uv.lock` | Upgraded `huggingface-hub` 0.33.0 → 1.16.1, `regex`, `tokenizers`, `typer` |
 | `tradingagents/agents/utils/agent_utils.py` | Export `get_tick_microstructure` |
 | `tradingagents/agents/analysts/market_analyst.py` | Remove tick tool (moved to orderflow analyst); clean up EN/ZH prompts |
 | `tradingagents/agents/analysts/orderflow_analyst.py` | New — 5th parallel analyst: order flow + microstructure |
@@ -174,6 +176,7 @@ The trash icon uses a **two-click confirmation** (by design, to prevent accident
 ## Commits (this period)
 
 ```
+7f2d904  Add sentence-transformers as explicit dependency; upgrade huggingface-hub
 2006f4b  Add orderflow_report section to markdown export
 6df59d1  Add orderflow analyst as 5th parallel analyst in propagation phase
 9c20d40  Add intraday tick microstructure page to analysis PDF
