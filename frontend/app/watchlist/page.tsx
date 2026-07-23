@@ -71,17 +71,36 @@ import {
 } from "lucide-react";
 
 const PRO_TERMINAL_URL = "http://localhost:5173";
-let proTerminalWindow: Window | null = null;
 
 function openInProTerminal(ticker: string) {
-  // If the terminal window is already open, send via postMessage (works cross-origin)
-  if (proTerminalWindow && !proTerminalWindow.closed) {
-    proTerminalWindow.postMessage({ type: "sj-select-code", code: ticker }, PRO_TERMINAL_URL);
-    proTerminalWindow.focus();
+  // window.open('', name) returns an existing named window without navigating it
+  // (cross-origin safe — we can call postMessage but not read its location).
+  // If no such window exists yet, it creates a blank one.
+  const probe = window.open("", "shioaji-pro-terminal");
+
+  // Detect whether we got an existing cross-origin terminal (not a blank new window).
+  // A freshly-created about:blank window shares our origin and exposes document.body.
+  // The Pro Terminal at localhost:5173 is cross-origin — accessing .document throws.
+  let isLiveTerminal = false;
+  if (probe && !probe.closed) {
+    try {
+      // If this succeeds, it's a same-origin blank window (not our terminal)
+      void probe.document;
+    } catch {
+      // Cross-origin → it IS our Pro Terminal
+      isLiveTerminal = true;
+    }
+  }
+
+  if (isLiveTerminal && probe) {
+    probe.postMessage({ type: "sj-select-code", code: ticker }, PRO_TERMINAL_URL);
+    probe.focus();
     return;
   }
-  // Otherwise open a new window; ?code= is read on mount to pre-select the ticker
-  proTerminalWindow = window.open(`${PRO_TERMINAL_URL}/?code=${ticker}`, "shioaji-pro-terminal");
+
+  // Close the blank probe window we accidentally created, then open the terminal
+  if (probe && !isLiveTerminal) probe.close();
+  window.open(`${PRO_TERMINAL_URL}/?code=${ticker}`, "shioaji-pro-terminal");
 }
 
 const MARKET_OPTIONS = [
