@@ -71,19 +71,16 @@ import {
 } from "lucide-react";
 
 const PRO_TERMINAL_URL = "http://localhost:5173";
-const proTerminalChannel = typeof window !== "undefined"
-  ? new BroadcastChannel("sj-select-code")
-  : null;
 let proTerminalWindow: Window | null = null;
 
 function openInProTerminal(ticker: string) {
-  // If the window is already open and alive, push via BroadcastChannel
+  // If the terminal window is already open, send via postMessage (works cross-origin)
   if (proTerminalWindow && !proTerminalWindow.closed) {
-    proTerminalChannel?.postMessage(ticker);
+    proTerminalWindow.postMessage({ type: "sj-select-code", code: ticker }, PRO_TERMINAL_URL);
     proTerminalWindow.focus();
     return;
   }
-  // Otherwise open a new window with ?code= pre-selected
+  // Otherwise open a new window; ?code= is read on mount to pre-select the ticker
   proTerminalWindow = window.open(`${PRO_TERMINAL_URL}/?code=${ticker}`, "shioaji-pro-terminal");
 }
 
