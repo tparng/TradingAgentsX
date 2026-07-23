@@ -3,10 +3,15 @@ REST endpoints to start/stop/status the shioaji sidecar HTTP server.
 """
 import asyncio
 import logging
-from fastapi import APIRouter, HTTPException
+import httpx
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.services.shioaji_server_service import shioaji_server_manager
+from backend.app.services.shioaji_server_service import shioaji_server_manager, SIDECAR_PORT
+from backend.app.db.database import get_db
+from backend.app.db.models import WatchlistItem
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/shioaji-server", tags=["Shioaji Server"])
@@ -44,3 +49,61 @@ async def stop_server():
 async def server_status():
     """Check if the shioaji sidecar server is running."""
     return await asyncio.to_thread(shioaji_server_manager.status)
+
+
+SIDECAR_URL = f"http://127.0.0.1:{SIDECAR_PORT}"
+LIST_NAME = "TradingAgentsX"
+
+# Taiwan market_type → Pro Terminal exchange code
+_EXCHANGE = {"twse": "TSE", "tpex": "OTC"}
+
+
+@router.post("/watchlist-sync")
+async def sync_watchlist_to_pro_terminal(db: AsyncSession = Depends(get_db)):
+    """
+    Push all TWSE/TPEx tickers from the TradingAgentsX watchlist into the
+    Shioaji Pro Terminal as a named list called 'TradingAgentsX'.
+    """
+    # Fetch Taiwan tickers from DB
+    result = await db.execute(
+        select(WatchlistItem).where(WatchlistItem.market_type.in_(["twse", "tpex"]))
+    )
+    items = result.scalars().all()
+
+    contracts = [
+        {
+            "security_type": "STK",
+            "exchange": _EXCHANGE[item.market_type],
+            "code": item.ticker,
+        }
+        for item in items
+    ]
+
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        # Check if the "TradingAgentsX" list already exists
+        try:
+            r = await client.get(f"{SIDECAR_URL}/api/v1/watchlist")
+            r.raise_for_status()
+            lists = r.json()
+        except Exception as e:
+            raise HTTPException(status_code=502, detail=f"Sidecar unreachable: {e}")
+
+        existing = next((l for l in lists if l.get("name") == LIST_NAME), None)
+
+        if existing:
+            # Update existing list
+            r = await client.put(
+                f"{SIDECAR_URL}/api/v1/watchlist/{existing['id']}",
+                json={"contracts": contracts},
+            )
+        else:
+            # Create new list
+            r = await client.post(
+                f"{SIDECAR_URL}/api/v1/watchlist",
+                json={"name": LIST_NAME, "contracts": contracts},
+            )
+
+        if r.status_code >= 400:
+            raise HTTPException(status_code=502, detail=f"Sidecar error: {r.text}")
+
+        return {"synced": len(contracts), "list_name": LIST_NAME, "action": "updated" if existing else "created"}

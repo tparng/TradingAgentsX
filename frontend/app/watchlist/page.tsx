@@ -443,6 +443,7 @@ export default function WatchlistPage() {
   const [status, setStatus] = useState<WatchlistStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [syncingProTerminal, setSyncingProTerminal] = useState(false);
   const [analyzingAll, setAnalyzingAll] = useState(false);
   const [analyzingTicker, setAnalyzingTicker] = useState<string | null>(null);
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
@@ -524,6 +525,15 @@ export default function WatchlistPage() {
       await load();
     } catch { showToast(wt.syncError, false); }
     finally { setSyncing(false); }
+  };
+
+  const handleSyncToProTerminal = async () => {
+    setSyncingProTerminal(true);
+    try {
+      const res = await api.syncWatchlistToProTerminal();
+      showToast(`Synced ${res.synced} tickers to Pro Terminal`);
+    } catch { showToast("Failed to sync to Pro Terminal", false); }
+    finally { setSyncingProTerminal(false); }
   };
 
   const handleAnalyzeAll = async () => {
@@ -771,6 +781,12 @@ export default function WatchlistPage() {
             </Button>
             <Button variant="outline" size="sm" onClick={handleAnalyzeAll} disabled={analyzingAll || items.length === 0} className="gap-1.5">
               <BarChart2 className="w-3.5 h-3.5" />{analyzingAll ? "Starting..." : wt.analyzeAll}
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleSyncToProTerminal}
+              disabled={syncingProTerminal || items.filter(i => i.market_type === "twse" || i.market_type === "tpex").length === 0}
+              className="gap-1.5">
+              <LineChart className={`w-3.5 h-3.5 ${syncingProTerminal ? "animate-spin" : ""}`} />
+              {syncingProTerminal ? "Syncing..." : "Sync to Pro Terminal"}
             </Button>
             <Button variant="ghost" size="sm" onClick={load} className="gap-1.5 ml-auto">
               <RefreshCw className="w-3.5 h-3.5" />{t.history?.refresh ?? "Refresh"}

@@ -135,6 +135,11 @@ export const api = {
     await apiClient.delete(`/api/watchlist/${ticker}`);
   },
 
+  async syncWatchlistToProTerminal(): Promise<{ synced: number; list_name: string; action: string }> {
+    const response = await apiClient.post("/api/shioaji-server/watchlist-sync");
+    return response.data;
+  },
+
   async syncWatchlistFromSheet(): Promise<{ message: string }> {
     const response = await apiClient.post<{ message: string }>("/api/watchlist/sync");
     return response.data;
