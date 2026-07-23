@@ -46,6 +46,7 @@ from tradingagents.agents.utils.quant_tools import (
     get_revenue_trend,
     get_valuation_metrics,
 )
+from tradingagents.agents.utils.tick_tools import get_tick_microstructure
 
 def create_msg_delete():
     """
