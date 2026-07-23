@@ -155,6 +155,7 @@ The trash icon uses a **two-click confirmation** (by design, to prevent accident
 | `shioaji-pro-app/src/App.tsx` | postMessage listener; `?code=` fix for main window *(git-ignored, local only)* |
 | `tradingagents/dataflows/shioaji_ticks.py` | New — fetch + aggregate intraday ticks from Shioaji sidecar |
 | `tradingagents/agents/utils/tick_tools.py` | New — `get_tick_microstructure` LangChain tool wrapper |
+| `scripts/export_reports_to_md.py` | Added `orderflow_report` section (🌊 委託流向分析) to markdown export |
 | `tradingagents/agents/utils/agent_utils.py` | Export `get_tick_microstructure` |
 | `tradingagents/agents/analysts/market_analyst.py` | Remove tick tool (moved to orderflow analyst); clean up EN/ZH prompts |
 | `tradingagents/agents/analysts/orderflow_analyst.py` | New — 5th parallel analyst: order flow + microstructure |
@@ -173,6 +174,7 @@ The trash icon uses a **two-click confirmation** (by design, to prevent accident
 ## Commits (this period)
 
 ```
+2006f4b  Add orderflow_report section to markdown export
 6df59d1  Add orderflow analyst as 5th parallel analyst in propagation phase
 9c20d40  Add intraday tick microstructure page to analysis PDF
 a658cf7  Update bring-up report with tick microstructure feature and full commit log
