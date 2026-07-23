@@ -45,6 +45,22 @@ PDF_LABELS = {
         'report_content': 'Report Content',
         'price_chart': 'Price Chart & Volume',
         'price_stats': 'Price Statistics',
+        'tick_page_title': 'Intraday Microstructure',
+        'tick_price_panel': 'Price & VWAP',
+        'tick_volume_panel': 'Buy / Sell Volume',
+        'tick_metrics_title': 'Microstructure Metrics',
+        'tick_metric_ticks': 'Total Ticks',
+        'tick_metric_volume': 'Total Volume (shares)',
+        'tick_metric_avg_size': 'Avg Trade Size (shares)',
+        'tick_metric_vwap': 'VWAP',
+        'tick_metric_last': 'Last Price',
+        'tick_metric_vwap_dev': 'Price vs VWAP',
+        'tick_metric_buy_vol': 'Buy Volume',
+        'tick_metric_sell_vol': 'Sell Volume',
+        'tick_metric_imbalance': 'Order Flow Imbalance',
+        'tick_metric_block_pct': 'Block Trade %',
+        'tick_metric_momentum': 'Session Momentum',
+        'tick_metric_spread': 'Avg Bid-Ask Spread',
         'item': 'Item',
         'value': 'Value',
         'total_return': 'Total Return',
@@ -79,6 +95,22 @@ PDF_LABELS = {
         'report_content': '報告內容',
         'price_chart': '價格走勢圖 & 交易量柱狀圖',
         'price_stats': '價格統計',
+        'tick_page_title': '盤中籌碼微結構',
+        'tick_price_panel': '成交價格 & VWAP',
+        'tick_volume_panel': '主動買入 / 賣出量',
+        'tick_metrics_title': '微結構指標',
+        'tick_metric_ticks': '成交筆數',
+        'tick_metric_volume': '總成交量（股）',
+        'tick_metric_avg_size': '均筆量（股/筆）',
+        'tick_metric_vwap': 'VWAP',
+        'tick_metric_last': '尾盤成交價',
+        'tick_metric_vwap_dev': '價格相對 VWAP',
+        'tick_metric_buy_vol': '主動買入量',
+        'tick_metric_sell_vol': '主動賣出量',
+        'tick_metric_imbalance': '買賣力道指數',
+        'tick_metric_block_pct': '大單佔比',
+        'tick_metric_momentum': '盤中動能',
+        'tick_metric_spread': '平均買賣價差',
         'item': '項目',
         'value': '數值',
         'total_return': '總報酬',
@@ -690,9 +722,167 @@ class PDFGenerator:
         buf.seek(0)
         return buf.getvalue()
 
+    def _generate_tick_chart(self, tick_data: dict, ticker: str, language: str) -> bytes | None:
+        """Generate a two-panel intraday chart: price+VWAP (top) and buy/sell volume (bottom)."""
+        closes     = tick_data.get("close", [])
+        volumes    = tick_data.get("volume", [])
+        tick_types = tick_data.get("tick_type", [])
+        datetimes  = tick_data.get("datetime", [])
+
+        n = len(closes)
+        if n < 2:
+            return None
+
+        # ── Compute VWAP ───────────────────────────────────────────────────────
+        total_vol = sum(volumes) or 1
+        vwap = sum(c * v for c, v in zip(closes, volumes)) / total_vol
+
+        # ── Bucket into ~30 time segments for volume bars ──────────────────────
+        N_BUCKETS = min(30, n)
+        bucket_size = max(1, n // N_BUCKETS)
+        bucket_buy, bucket_sell, bucket_times = [], [], []
+        for i in range(0, n, bucket_size):
+            seg_vols = volumes[i:i+bucket_size]
+            seg_types = tick_types[i:i+bucket_size]
+            seg_dt = datetimes[i:i+bucket_size]
+            bucket_buy.append(sum(v for v, t in zip(seg_vols, seg_types) if t == 1))
+            bucket_sell.append(sum(v for v, t in zip(seg_vols, seg_types) if t == 2))
+            label = seg_dt[0][11:16] if seg_dt and len(seg_dt[0]) >= 16 else str(i)
+            bucket_times.append(label)
+
+        x_buckets = list(range(len(bucket_buy)))
+
+        # ── Plot ───────────────────────────────────────────────────────────────
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 6),
+                                        gridspec_kw={'height_ratios': [3, 2]})
+        fig.patch.set_facecolor('white')
+
+        # Panel 1: price line + VWAP
+        ax1.plot(range(n), closes, color='#1e3a5f', linewidth=0.8, label='Price')
+        ax1.axhline(vwap, color='#f59e0b', linewidth=1.2, linestyle='--',
+                    label=f'VWAP {vwap:.2f}')
+        ax1.fill_between(range(n), closes, vwap,
+                         where=[c >= vwap for c in closes],
+                         alpha=0.12, color='#22c55e', interpolate=True)
+        ax1.fill_between(range(n), closes, vwap,
+                         where=[c < vwap for c in closes],
+                         alpha=0.12, color='#ef4444', interpolate=True)
+        price_label = 'Price & VWAP' if language == 'en' else '成交價格 & VWAP'
+        ax1.set_title(f'{ticker}  —  {price_label}', fontsize=11, fontweight='bold')
+        ax1.legend(fontsize=8, loc='upper left')
+        ax1.set_ylabel('TWD', fontsize=9)
+        ax1.set_xticks([])
+        ax1.grid(True, alpha=0.25)
+        ax1.set_facecolor('#fafafa')
+
+        # Panel 2: buy / sell volume bars
+        ax2.bar(x_buckets, bucket_buy,  color='#22c55e', alpha=0.8,
+                label='Buy' if language == 'en' else '主動買入')
+        ax2.bar(x_buckets, [-s for s in bucket_sell], color='#ef4444', alpha=0.8,
+                label='Sell' if language == 'en' else '主動賣出')
+        ax2.axhline(0, color='#666', linewidth=0.6)
+        vol_label = 'Buy / Sell Volume' if language == 'en' else '主動買入 / 賣出量'
+        ax2.set_title(vol_label, fontsize=10)
+        ax2.legend(fontsize=8, loc='upper left')
+        ax2.yaxis.set_major_formatter(
+            plt.FuncFormatter(lambda x, _: f'{abs(x)/1e3:.0f}K' if abs(x) >= 1e3 else f'{abs(x):.0f}'))
+        ax2.grid(True, alpha=0.25)
+        ax2.set_facecolor('#fafafa')
+
+        # X-axis: show ~6 time labels evenly spaced
+        step = max(1, len(bucket_times) // 6)
+        ax2.set_xticks(x_buckets[::step])
+        ax2.set_xticklabels(bucket_times[::step], fontsize=8)
+
+        plt.tight_layout(pad=1.5)
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png', dpi=150, bbox_inches='tight',
+                    facecolor='white', edgecolor='none')
+        plt.close(fig)
+        buf.seek(0)
+        return buf.getvalue()
+
     # ------------------------------------------------------------------
     # Page builders
     # ------------------------------------------------------------------
+
+    def _build_tick_page(self, pdf: FPDF, ticker: str, analysis_date: str,
+                         tick_data: dict, language: str):
+        """Dedicated intraday microstructure page with chart + metrics table."""
+        from tradingagents.dataflows.shioaji_ticks import LARGE_LOT_THRESHOLD
+        fn = self._fn()
+        pdf.add_page()
+
+        # Section title
+        pdf.set_font(fn, '', size=22)
+        self._set_color(pdf, '#1e3a5f')
+        pdf.cell(0, 12, get_pdf_label('tick_page_title', language),
+                 align='C', new_x='LMARGIN', new_y='NEXT')
+        pdf.ln(3)
+
+        # Chart
+        try:
+            chart_bytes = self._generate_tick_chart(tick_data, ticker, language)
+            if chart_bytes:
+                chart_buf = io.BytesIO(chart_bytes)
+                pdf.image(chart_buf, w=pdf.epw, h=pdf.epw * 0.55)
+                pdf.ln(4)
+        except Exception as e:
+            print(f'Tick chart generation failed: {e}')
+
+        # Metrics table
+        closes     = tick_data.get("close", [])
+        volumes    = tick_data.get("volume", [])
+        tick_types = tick_data.get("tick_type", [])
+        bid_prices = tick_data.get("bid_price", [])
+        ask_prices = tick_data.get("ask_price", [])
+
+        n = len(closes)
+        total_vol = sum(volumes) or 1
+        buy_vol  = sum(v for v, t in zip(volumes, tick_types) if t == 1)
+        sell_vol = sum(v for v, t in zip(volumes, tick_types) if t == 2)
+        imbalance = (buy_vol - sell_vol) / total_vol
+        vwap = sum(c * v for c, v in zip(closes, volumes)) / total_vol
+        last = closes[-1] if closes else 0
+        vwap_dev = (last - vwap) / vwap * 100 if vwap else 0
+        avg_size = total_vol / n if n else 0
+        large_vol = sum(v for v in volumes if v >= LARGE_LOT_THRESHOLD)
+        block_pct = large_vol / total_vol * 100
+        seg = max(1, n // 10)
+        early = sum(closes[:seg]) / seg if closes else 0
+        late  = sum(closes[-seg:]) / seg if closes else 0
+        momentum = (late - early) / early * 100 if early else 0
+        spreads = [a - b for b, a in zip(bid_prices, ask_prices) if b > 0 and a > 0]
+        avg_spread = sum(spreads) / len(spreads) if spreads else 0
+
+        sign = lambda x: f'+{x:.2f}%' if x >= 0 else f'{x:.2f}%'
+
+        pdf.set_font(fn, '', size=13)
+        self._set_color(pdf, '#2c3e50')
+        pdf.cell(0, 7, get_pdf_label('tick_metrics_title', language),
+                 new_x='LMARGIN', new_y='NEXT')
+        pdf.set_draw_color(180, 180, 180)
+        pdf.line(pdf.l_margin, pdf.get_y(), pdf.l_margin + pdf.epw, pdf.get_y())
+        pdf.ln(3)
+
+        lbl = get_pdf_label
+        rows = [
+            [lbl('item', language),                   lbl('value', language)],
+            [lbl('tick_metric_ticks', language),       f'{n:,}'],
+            [lbl('tick_metric_volume', language),      f'{total_vol:,}'],
+            [lbl('tick_metric_avg_size', language),    f'{avg_size:.0f}'],
+            [lbl('tick_metric_vwap', language),        f'{vwap:.2f}'],
+            [lbl('tick_metric_last', language),        f'{last:.2f}'],
+            [lbl('tick_metric_vwap_dev', language),    sign(vwap_dev)],
+            [lbl('tick_metric_buy_vol', language),     f'{buy_vol:,}  ({buy_vol/total_vol*100:.1f}%)'],
+            [lbl('tick_metric_sell_vol', language),    f'{sell_vol:,}  ({sell_vol/total_vol*100:.1f}%)'],
+            [lbl('tick_metric_imbalance', language),   f'{imbalance:+.3f}'],
+            [lbl('tick_metric_block_pct', language),   f'{block_pct:.1f}%'],
+            [lbl('tick_metric_momentum', language),    sign(momentum)],
+            [lbl('tick_metric_spread', language),      f'{avg_spread:.2f} TWD'],
+        ]
+        self._add_table(pdf, rows)
+        pdf.set_text_color(0, 0, 0)
 
     def _build_cover_page(self, pdf: FPDF, ticker: str, analysis_date: str, language: str,
                           deep_think_llm: str = None, quick_think_llm: str = None):
@@ -954,6 +1144,7 @@ class PDFGenerator:
         reports: list,
         price_data: list = None,
         price_stats: dict = None,
+        tick_data: dict = None,
         language: str = 'zh-TW',
         deep_think_llm: str = None,
         quick_think_llm: str = None,
@@ -1022,6 +1213,10 @@ class PDFGenerator:
         # Chart page
         if has_chart:
             self._build_chart_page(pdf, ticker, price_data, price_stats, language)
+
+        # Tick microstructure page (Taiwan stocks with sidecar data)
+        if tick_data and tick_data.get("close"):
+            self._build_tick_page(pdf, ticker, analysis_date, tick_data, language)
 
         # Team separator + analyst sections
         for team in TEAMS:

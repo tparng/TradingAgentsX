@@ -268,6 +268,20 @@ class TradingService:
                 except Exception as e:
                     logger.warning(f"Could not load price data for {ticker}: {e}")
                 
+                # Fetch raw tick data for Taiwan stocks (PDF visualization)
+                tick_data = None
+                import re as _re
+                if _re.fullmatch(r"\d{4,6}", ticker):
+                    try:
+                        from tradingagents.dataflows.shioaji_ticks import fetch_raw_ticks
+                        tick_data = fetch_raw_ticks(ticker, analysis_date)
+                        if tick_data:
+                            logger.info(f"Loaded {len(tick_data.get('close', []))} ticks for {ticker}")
+                        else:
+                            logger.info(f"No tick data available for {ticker} on {analysis_date}")
+                    except Exception as te:
+                        logger.warning(f"Could not fetch tick data for {ticker}: {te}")
+
                 return {
                     "status": "success",
                     "ticker": ticker,
@@ -276,6 +290,7 @@ class TradingService:
                     "reports": reports,
                     "price_data": price_data,
                     "price_stats": price_stats,
+                    "tick_data": tick_data,
                     "deep_think_llm": deep_think_llm,
                     "quick_think_llm": quick_think_llm,
                 }

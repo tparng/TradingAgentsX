@@ -30,6 +30,30 @@ def _is_taiwan_symbol(symbol: str) -> bool:
     return bool(re.fullmatch(r"\d{4,6}", symbol))
 
 
+def fetch_raw_ticks(symbol: str, date: str) -> dict | None:
+    """
+    Fetch raw tick arrays from the sidecar for *symbol* on *date*.
+    Returns the sidecar JSON dict on success, None if unavailable or no data.
+    """
+    if not _is_taiwan_symbol(symbol):
+        return None
+    exchange = _detect_exchange(symbol)
+    payload = {
+        "contract": {"security_type": "STK", "exchange": exchange, "code": symbol},
+        "date": date,
+    }
+    try:
+        with httpx.Client(timeout=15.0) as client:
+            r = client.post(f"{SIDECAR_URL}/api/v1/data/ticks", json=payload)
+            r.raise_for_status()
+            data = r.json()
+        if not data.get("close"):
+            return None
+        return data
+    except Exception:
+        return None
+
+
 def get_tick_microstructure(symbol: str, date: str) -> str:
     """
     Fetch all intraday ticks for *symbol* on *date* from the Shioaji sidecar

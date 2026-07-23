@@ -348,15 +348,17 @@ async def download_reports(request: DownloadRequest):
         reports_data = result.get("reports", {})
         price_data = result.get("price_data")
         price_stats = result.get("price_stats")
+        tick_data = result.get("tick_data")
     else:
         # Direct mode: use provided reports data
         if not request.reports:
             raise HTTPException(status_code=400, detail="Either task_id or reports data is required")
-        
+
         reports_data = request.reports
         price_data = request.price_data
         price_stats = request.price_stats
-    
+        tick_data = None
+
     # Analyst name mapping - bilingual support
     language = request.language or "zh-TW"
     print(f"📄 PDF Download - Received language: '{request.language}', Using: '{language}'")
@@ -427,6 +429,7 @@ async def download_reports(request: DownloadRequest):
         reports=reports_to_download,
         price_data=price_data,
         price_stats=price_stats,
+        tick_data=tick_data,
         language=request.language or "zh-TW",
         deep_think_llm=request.deep_think_llm,
         quick_think_llm=request.quick_think_llm,
@@ -464,12 +467,14 @@ async def generate_pdf_temp(request: DownloadRequest):
         reports_data = result.get("reports", {})
         price_data = result.get("price_data")
         price_stats = result.get("price_stats")
+        tick_data = result.get("tick_data")
     else:
         if not request.reports:
             raise HTTPException(status_code=400, detail="Either task_id or reports data is required")
         reports_data = request.reports
         price_data = request.price_data
         price_stats = request.price_stats
+        tick_data = None
 
     language = request.language or "zh-TW"
 
@@ -534,6 +539,7 @@ async def generate_pdf_temp(request: DownloadRequest):
         reports=reports_to_download,
         price_data=price_data,
         price_stats=price_stats,
+        tick_data=tick_data,
         language=language,
         deep_think_llm=request.deep_think_llm,
         quick_think_llm=request.quick_think_llm,
